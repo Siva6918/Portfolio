@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import {
   Shield, User, FolderGit2, Cpu, GraduationCap, Award, Trophy,
   FileText, Plus, Trash2, Upload, Lock, Pencil, X, Save,
-  Briefcase, Image
+  Briefcase, Image, Code2, Sparkles, MapPin, Target
 } from 'lucide-react';
 import {
   getProfile, updateProfile,
@@ -13,15 +13,59 @@ import {
   getCertifications, createCertification, updateCertification, deleteCertification,
   getAchievements, createAchievement, updateAchievement, deleteAchievement,
   getExperience, createExperience, updateExperience, deleteExperience,
-  getResume, uploadResumeFile, uploadMedia
+  getCodingProfiles, createCodingProfile, updateCodingProfile, deleteCodingProfile,
+  getCareerNodes, createCareerNode, updateCareerNode, deleteCareerNode,
+  getResume, uploadResumeFile, uploadMedia, resolveMediaUrl
 } from '../services/api';
 import PasswordModal from '../components/common/PasswordModal';
 import Toast from '../components/common/Toast';
 
-// Reusable input styling
+// ─── Reusable input styling ─────────────────────────────────────────────
 const inp = "w-full px-3 py-2 rounded-xl bg-[#09090b] border border-[#2d2d3a] text-[#fafafa] text-xs focus:outline-none focus:ring-1 focus:ring-[#6366f1] placeholder:text-[#52525b]";
 const lbl = "block text-[10px] font-mono uppercase text-[#a1a1aa] font-bold mb-1";
 
+// ─── STABLE COMPONENT DEFINITIONS (outside parent to prevent focus loss) ─
+const SectionHeader = ({ icon: Icon, title, count, color, onAdd, addOpen }) => (
+  <div className="flex items-center justify-between border-b border-[#2d2d3a] pb-4">
+    <h3 className="text-lg font-bold text-[#fafafa] flex items-center gap-2">
+      <Icon className="w-5 h-5" style={{ color }} />
+      <span>{title} {count !== undefined && <span className="text-sm font-normal text-[#a1a1aa]">({count})</span>}</span>
+    </h3>
+    {onAdd && (
+      <button onClick={onAdd} className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold font-mono border transition-all"
+        style={{ background: color + '18', color, borderColor: color + '40' }}>
+        <Plus className="w-3.5 h-3.5" />
+        <span>{addOpen ? 'Close Form' : 'Add New'}</span>
+      </button>
+    )}
+  </div>
+);
+
+const ActionBtns = ({ onEdit, onDelete }) => (
+  <div className="flex gap-2 shrink-0">
+    <button onClick={onEdit} className="p-1.5 rounded-lg bg-[#6366f1]/10 text-[#6366f1] hover:bg-[#6366f1]/25 border border-[#6366f1]/20 transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
+    <button onClick={onDelete} className="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+  </div>
+);
+
+const EditActions = ({ onSave, onCancel }) => (
+  <div className="flex gap-2 pt-1">
+    <button type="button" onClick={onSave} className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#6366f1] text-white text-xs font-bold transition-all hover:bg-[#c084fc]"><Save className="w-3.5 h-3.5" />Save Changes</button>
+    <button type="button" onClick={onCancel} className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#2d2d3a] text-[#a1a1aa] text-xs font-bold"><X className="w-3.5 h-3.5" />Cancel</button>
+  </div>
+);
+
+const FormCard = ({ children, onSubmit, color, title }) => (
+  <form onSubmit={onSubmit} className="p-5 rounded-2xl border space-y-3" style={{ borderColor: color + '40', background: '#121217' }}>
+    <h4 className="text-xs font-bold font-mono uppercase" style={{ color }}>{title}</h4>
+    {children}
+    <button type="submit" className="w-full py-2.5 rounded-xl text-xs font-bold border mt-1 flex items-center justify-center gap-2 transition-all" style={{ background: color + '18', color, borderColor: color + '40' }}>
+      <Lock className="w-3 h-3" />Save (Password Required)
+    </button>
+  </form>
+);
+
+// ─── MAIN COMPONENT ─────────────────────────────────────────────────────
 const AdminSpacePage = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [loading, setLoading] = useState(true);
@@ -34,6 +78,8 @@ const AdminSpacePage = () => {
   const [achievements, setAchievements] = useState([]);
   const [experience, setExperience] = useState([]);
   const [resume, setResume] = useState({});
+  const [codingProfiles, setCodingProfiles] = useState([]);
+  const [careerNodes, setCareerNodes] = useState([]);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
@@ -49,6 +95,8 @@ const AdminSpacePage = () => {
   const [certForm, setCertForm] = useState({ title: '', organization: '', issueDate: '', credentialUrl: '', credentialId: '', image: '', description: '', displayOrder: 0 });
   const [achieveForm, setAchieveForm] = useState({ title: '', rank: '1st', event: '', organization: 'RGMCET', year: '2025', description: '', image: '' });
   const [expForm, setExpForm] = useState({ role: '', company: '', companyLogo: '', startDate: '', endDate: '', year: '', location: '', mode: 'Internship', description: '', responsibilities: '', technologies: '', certificate: '', companyUrl: '', displayOrder: 0 });
+  const [codingForm, setCodingForm] = useState({ platform: '', username: '', profileUrl: '', logo: '', problemsSolved: '150+', rating: '', rank: '', description: '', displayOrder: 0 });
+  const [careerForm, setCareerForm] = useState({ year: '', title: '', subtitle: '', description: '', status: 'future', icon: 'Target', displayOrder: 0 });
 
   const avatarRef = useRef(null);
   const projectImgRef = useRef(null);
@@ -62,9 +110,10 @@ const AdminSpacePage = () => {
     try {
       const results = await Promise.allSettled([
         getProfile(), getProjects(), getSkills(), getEducation(),
-        getCertifications(), getAchievements(), getExperience(), getResume()
+        getCertifications(), getAchievements(), getExperience(), getResume(),
+        getCodingProfiles(), getCareerNodes()
       ]);
-      const [profRes, projRes, skillRes, eduRes, certRes, achRes, expRes, resRes] = results;
+      const [profRes, projRes, skillRes, eduRes, certRes, achRes, expRes, resRes, codRes, carRes] = results;
       if (profRes.status === 'fulfilled' && profRes.value?.data?.data) setProfile(profRes.value.data.data);
       if (projRes.status === 'fulfilled' && projRes.value?.data?.data) setProjects(projRes.value.data.data);
       if (skillRes.status === 'fulfilled' && skillRes.value?.data?.data) setSkills(skillRes.value.data.data);
@@ -73,6 +122,8 @@ const AdminSpacePage = () => {
       if (achRes.status === 'fulfilled' && achRes.value?.data?.data) setAchievements(achRes.value.data.data);
       if (expRes.status === 'fulfilled' && expRes.value?.data?.data) setExperience(expRes.value.data.data);
       if (resRes.status === 'fulfilled' && resRes.value?.data?.data) setResume(resRes.value.data.data);
+      if (codRes.status === 'fulfilled' && codRes.value?.data?.data) setCodingProfiles(codRes.value.data.data);
+      if (carRes.status === 'fulfilled' && carRes.value?.data?.data) setCareerNodes(carRes.value.data.data);
     } catch (err) { console.error('Fetch error:', err); }
     finally { setLoading(false); }
   };
@@ -100,7 +151,8 @@ const AdminSpacePage = () => {
     const fd = new FormData();
     fd.append('file', file);
     const res = await uploadMedia(fd, pwd);
-    return res.data.url;
+    // Resolve to full URL so it works across origins (client ≠ server)
+    return resolveMediaUrl(res.data.url);
   };
 
   const csvToArr = (v) => typeof v === 'string' ? v.split(',').map(s => s.trim()).filter(Boolean) : (v || []);
@@ -194,6 +246,22 @@ const AdminSpacePage = () => {
   const handleUpdateAchievement = (id) => { triggerMutation('Update Achievement', async (pwd) => { await updateAchievement(id, editForm, pwd); }); };
   const handleDeleteAchievement = (id, title) => { triggerMutation('Delete: ' + title, async (pwd) => { await deleteAchievement(id, pwd); }); };
 
+  // ── CODING PROFILES ───────────────────────────────────────────────────────
+  const handleCreateCodingProfile = (e) => {
+    e.preventDefault();
+    triggerMutation('Add Coding Profile', async (pwd) => { await createCodingProfile(codingForm, pwd); });
+  };
+  const handleUpdateCodingProfile = (id) => { triggerMutation('Update Coding Profile', async (pwd) => { await updateCodingProfile(id, editForm, pwd); }); };
+  const handleDeleteCodingProfile = (id, platform) => { triggerMutation('Delete: ' + platform, async (pwd) => { await deleteCodingProfile(id, pwd); }); };
+
+  // ── CAREER NODES ──────────────────────────────────────────────────────────
+  const handleCreateCareerNode = (e) => {
+    e.preventDefault();
+    triggerMutation('Add Career Node', async (pwd) => { await createCareerNode(careerForm, pwd); });
+  };
+  const handleUpdateCareerNode = (id) => { triggerMutation('Update Career Node', async (pwd) => { await updateCareerNode(id, editForm, pwd); }); };
+  const handleDeleteCareerNode = (id, title) => { triggerMutation('Delete: ' + title, async (pwd) => { await deleteCareerNode(id, pwd); }); };
+
   // ── RESUME ────────────────────────────────────────────────────────────────
   const handleResumeUpload = (e) => {
     const file = e.target.files[0];
@@ -212,49 +280,10 @@ const AdminSpacePage = () => {
     { id: 'education', name: 'Education', icon: GraduationCap, count: education.length, color: '#10b981' },
     { id: 'certifications', name: 'Certs', icon: Award, count: certifications.length, color: '#f59e0b' },
     { id: 'achievements', name: 'Honors', icon: Trophy, count: achievements.length, color: '#c084fc' },
+    { id: 'coding', name: 'Coding', icon: Code2, count: codingProfiles.length, color: '#38bdf8' },
+    { id: 'career', name: 'Roadmap', icon: Sparkles, count: careerNodes.length, color: '#6366f1' },
     { id: 'resume', name: 'Resume', icon: FileText, count: 1, color: '#6366f1' },
   ];
-
-  // ── Reusable UI atoms ─────────────────────────────────────────────────────
-  const SectionHeader = ({ icon: Icon, title, count, color, onAdd, addOpen }) => (
-    <div className="flex items-center justify-between border-b border-[#2d2d3a] pb-4">
-      <h3 className="text-lg font-bold text-[#fafafa] flex items-center gap-2">
-        <Icon className="w-5 h-5" style={{ color }} />
-        <span>{title} {count !== undefined && <span className="text-sm font-normal text-[#a1a1aa]">({count})</span>}</span>
-      </h3>
-      {onAdd && (
-        <button onClick={onAdd} className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold font-mono border transition-all"
-          style={{ background: color + '18', color, borderColor: color + '40' }}>
-          <Plus className="w-3.5 h-3.5" />
-          <span>{addOpen ? 'Close Form' : 'Add New'}</span>
-        </button>
-      )}
-    </div>
-  );
-
-  const ActionBtns = ({ onEdit, onDelete }) => (
-    <div className="flex gap-2 shrink-0">
-      <button onClick={onEdit} className="p-1.5 rounded-lg bg-[#6366f1]/10 text-[#6366f1] hover:bg-[#6366f1]/25 border border-[#6366f1]/20 transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
-      <button onClick={onDelete} className="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
-    </div>
-  );
-
-  const EditActions = ({ onSave, onCancel }) => (
-    <div className="flex gap-2 pt-1">
-      <button type="button" onClick={onSave} className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#6366f1] text-white text-xs font-bold transition-all hover:bg-[#c084fc]"><Save className="w-3.5 h-3.5" />Save Changes</button>
-      <button type="button" onClick={onCancel} className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#2d2d3a] text-[#a1a1aa] text-xs font-bold"><X className="w-3.5 h-3.5" />Cancel</button>
-    </div>
-  );
-
-  const FormCard = ({ children, onSubmit, color, title }) => (
-    <form onSubmit={onSubmit} className="p-5 rounded-2xl border space-y-3" style={{ borderColor: color + '40', background: '#121217' }}>
-      <h4 className="text-xs font-bold font-mono uppercase" style={{ color }}>{title}</h4>
-      {children}
-      <button type="submit" className="w-full py-2.5 rounded-xl text-xs font-bold border mt-1 flex items-center justify-center gap-2 transition-all" style={{ background: color + '18', color, borderColor: color + '40' }}>
-        <Lock className="w-3 h-3" />Save (Password Required)
-      </button>
-    </form>
-  );
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="text-[#a1a1aa] font-mono text-sm animate-pulse">Loading Admin Space...</div></div>;
 
@@ -270,8 +299,8 @@ const AdminSpacePage = () => {
       {/* Header */}
       <div className="glass-card p-6 rounded-3xl border border-[#2d2d3a] flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-[#6366f1]/40 shrink-0">
-            <img src={profile.profileImage || '/Avatar.png'} alt="avatar" className="w-full h-full object-cover" />
+          <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-[#6366f1]/40 shrink-0">
+            <img src={resolveMediaUrl(profile.profileImage) || '/Avatar.png'} alt="avatar" className="w-full h-full object-cover" />
           </div>
           <div>
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#6366f1]/10 text-[#6366f1] text-[10px] font-mono font-bold border border-[#6366f1]/20 mb-1">
@@ -287,7 +316,7 @@ const AdminSpacePage = () => {
       </div>
 
       {/* Tab bar */}
-      <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
+      <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
         {navTabs.map((tab) => {
           const Icon = tab.icon;
           const active = activeTab === tab.id;
@@ -321,11 +350,37 @@ const AdminSpacePage = () => {
               </div>
               <div><label className={lbl}>Short Bio Headline</label><input type="text" className={inp} defaultValue={profile.shortBio} onChange={e => setProfileForm(p => ({ ...p, shortBio: e.target.value }))} /></div>
               <div><label className={lbl}>Detailed Bio</label><textarea rows={3} className={inp} defaultValue={profile.longBio} onChange={e => setProfileForm(p => ({ ...p, longBio: e.target.value }))} /></div>
+
+              {/* About Me & Development Vision Fields */}
+              <div className="pt-4 border-t border-[#2d2d3a]">
+                <h4 className="text-xs font-bold font-mono uppercase text-[#38bdf8] mb-3 flex items-center gap-2"><Target className="w-3.5 h-3.5" /> About Me & Development Vision</h4>
+                <div className="space-y-3">
+                  <div><label className={lbl}>Career Goal</label><textarea rows={2} className={inp} defaultValue={profile.careerGoal} onChange={e => setProfileForm(p => ({ ...p, careerGoal: e.target.value }))} placeholder="e.g. Become a strong software engineer..." /></div>
+                  <div><label className={lbl}>Current Focus Areas</label><input type="text" className={inp} defaultValue={profile.currentFocus} onChange={e => setProfileForm(p => ({ ...p, currentFocus: e.target.value }))} placeholder="e.g. MERN Stack, DSA, Cloud, AI" /></div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div><label className={lbl}>Location</label><input type="text" className={inp} defaultValue={profile.location} onChange={e => setProfileForm(p => ({ ...p, location: e.target.value }))} placeholder="Andhra Pradesh, India" /></div>
+                    <div><label className={lbl}>Availability Status</label><input type="text" className={inp} defaultValue={profile.availability} onChange={e => setProfileForm(p => ({ ...p, availability: e.target.value }))} placeholder="Open for Internships & SWE Roles" /></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Education Summary Fields */}
+              <div className="pt-4 border-t border-[#2d2d3a]">
+                <h4 className="text-xs font-bold font-mono uppercase text-[#10b981] mb-3 flex items-center gap-2"><GraduationCap className="w-3.5 h-3.5" /> Education Summary (Quick Metrics)</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div><label className={lbl}>Degree</label><input type="text" className={inp} defaultValue={profile.degree} onChange={e => setProfileForm(p => ({ ...p, degree: e.target.value }))} placeholder="B.Tech" /></div>
+                  <div><label className={lbl}>Branch</label><input type="text" className={inp} defaultValue={profile.branch} onChange={e => setProfileForm(p => ({ ...p, branch: e.target.value }))} placeholder="Computer Science" /></div>
+                  <div><label className={lbl}>College</label><input type="text" className={inp} defaultValue={profile.college} onChange={e => setProfileForm(p => ({ ...p, college: e.target.value }))} placeholder="RGMCET" /></div>
+                  <div><label className={lbl}>Graduation Year</label><input type="number" className={inp} defaultValue={profile.graduationYear} onChange={e => setProfileForm(p => ({ ...p, graduationYear: +e.target.value }))} /></div>
+                  <div><label className={lbl}>CGPA</label><input type="number" step="0.1" className={inp} defaultValue={profile.cgpa} onChange={e => setProfileForm(p => ({ ...p, cgpa: +e.target.value }))} /></div>
+                </div>
+              </div>
+
               {/* Avatar Upload */}
               <div>
                 <label className={lbl}>Profile Avatar Image</label>
                 <div className="flex items-center gap-4">
-                  <img src={profile.profileImage || '/Avatar.png'} alt="avatar" className="w-14 h-14 rounded-xl object-cover border border-[#2d2d3a]" />
+                  <img src={resolveMediaUrl(profile.profileImage) || '/Avatar.png'} alt="avatar" className="w-14 h-14 rounded-full object-cover border border-[#2d2d3a]" />
                   <label className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#6366f1]/10 border border-[#6366f1]/30 text-[#6366f1] text-xs font-bold cursor-pointer hover:bg-[#6366f1]/20">
                     <Image className="w-4 h-4" /><span>Upload New Avatar</span>
                     <input type="file" ref={avatarRef} accept="image/*" className="hidden" />
@@ -469,7 +524,7 @@ const AdminSpacePage = () => {
                   ) : (
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-3">
-                        {proj.thumbnail && <img src={proj.thumbnail} alt={proj.title} className="w-14 h-10 rounded-lg object-cover border border-[#2d2d3a] shrink-0" />}
+                        {proj.thumbnail && <img src={resolveMediaUrl(proj.thumbnail)} alt={proj.title} className="w-14 h-10 rounded-lg object-cover border border-[#2d2d3a] shrink-0" />}
                         <div>
                           <span className="text-[10px] font-mono uppercase text-[#06b6d4] font-bold">{proj.category}</span>
                           <h4 className="text-sm font-bold text-[#fafafa]">{proj.title}</h4>
@@ -539,7 +594,7 @@ const AdminSpacePage = () => {
                     <>
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
-                          {skill.logo && <img src={skill.logo} alt={skill.name} className="w-7 h-7 rounded-lg object-contain border border-[#2d2d3a]" />}
+                          {skill.logo && <img src={resolveMediaUrl(skill.logo)} alt={skill.name} className="w-7 h-7 rounded-lg object-contain border border-[#2d2d3a]" />}
                           <div>
                             <span className="text-xs font-bold text-[#fafafa] block">{skill.name}</span>
                             <span className="text-[10px] text-[#c084fc] font-mono">{skill.category}</span>
@@ -668,7 +723,7 @@ const AdminSpacePage = () => {
                   ) : (
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-3">
-                        {cert.image && <img src={cert.image} alt={cert.title} className="w-14 h-10 rounded-lg object-cover border border-[#2d2d3a] shrink-0" />}
+                        {cert.image && <img src={resolveMediaUrl(cert.image)} alt={cert.title} className="w-14 h-10 rounded-lg object-cover border border-[#2d2d3a] shrink-0" />}
                         <div>
                           <span className="text-[10px] font-mono uppercase text-[#f59e0b] font-bold">{cert.organization}</span>
                           <h4 className="text-sm font-bold text-[#fafafa]">{cert.title}</h4>
@@ -738,6 +793,176 @@ const AdminSpacePage = () => {
           </div>
         )}
 
+        {/* ─── CODING PROFILES ────────────────────────────────────── */}
+        {activeTab === 'coding' && (
+          <div className="space-y-6">
+            <SectionHeader icon={Code2} title="Coding Profiles & Benchmarks" count={codingProfiles.length} color="#38bdf8" onAdd={() => setShowAddForm(f => !f)} addOpen={showAddForm} />
+
+            {showAddForm && (
+              <FormCard onSubmit={handleCreateCodingProfile} color="#38bdf8" title="Add Coding Profile">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div><label className={lbl}>Platform Name *</label><input required type="text" className={inp} placeholder="LeetCode / CodeChef / HackerRank" value={codingForm.platform} onChange={e => setCodingForm(p => ({ ...p, platform: e.target.value }))} /></div>
+                  <div><label className={lbl}>Username</label><input type="text" className={inp} placeholder="your_username" value={codingForm.username} onChange={e => setCodingForm(p => ({ ...p, username: e.target.value }))} /></div>
+                  <div className="sm:col-span-2"><label className={lbl}>Profile URL *</label><input required type="text" className={inp} placeholder="https://leetcode.com/..." value={codingForm.profileUrl} onChange={e => setCodingForm(p => ({ ...p, profileUrl: e.target.value }))} /></div>
+                  <div><label className={lbl}>Problems Solved</label><input type="text" className={inp} placeholder="150+" value={codingForm.problemsSolved} onChange={e => setCodingForm(p => ({ ...p, problemsSolved: e.target.value }))} /></div>
+                  <div><label className={lbl}>Rating / Stars</label><input type="text" className={inp} placeholder="1650 / 4★" value={codingForm.rating} onChange={e => setCodingForm(p => ({ ...p, rating: e.target.value }))} /></div>
+                  <div><label className={lbl}>Rank</label><input type="text" className={inp} placeholder="Top 15%" value={codingForm.rank} onChange={e => setCodingForm(p => ({ ...p, rank: e.target.value }))} /></div>
+                  <div><label className={lbl}>Logo URL</label><input type="text" className={inp} placeholder="https://..." value={codingForm.logo} onChange={e => setCodingForm(p => ({ ...p, logo: e.target.value }))} /></div>
+                  <div><label className={lbl}>Display Order</label><input type="number" className={inp} value={codingForm.displayOrder} onChange={e => setCodingForm(p => ({ ...p, displayOrder: +e.target.value }))} /></div>
+                </div>
+                <div><label className={lbl}>Description</label><textarea rows={2} className={inp} placeholder="Focus areas, streaks, etc." value={codingForm.description} onChange={e => setCodingForm(p => ({ ...p, description: e.target.value }))} /></div>
+              </FormCard>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {codingProfiles.length === 0 && <p className="text-xs text-[#a1a1aa] font-mono text-center py-8 col-span-full">No coding profiles yet. Click "Add New" to get started.</p>}
+              {codingProfiles.map(cp => (
+                <div key={cp._id} className="p-4 rounded-2xl bg-[#121217] border border-[#2d2d3a]">
+                  {editingId === cp._id ? (
+                    <div className="space-y-2">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div><label className={lbl}>Platform</label><input type="text" className={inp} value={editForm.platform || ''} onChange={e => setEditForm(p => ({ ...p, platform: e.target.value }))} /></div>
+                        <div><label className={lbl}>Username</label><input type="text" className={inp} value={editForm.username || ''} onChange={e => setEditForm(p => ({ ...p, username: e.target.value }))} /></div>
+                      </div>
+                      <div><label className={lbl}>Profile URL</label><input type="text" className={inp} value={editForm.profileUrl || ''} onChange={e => setEditForm(p => ({ ...p, profileUrl: e.target.value }))} /></div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div><label className={lbl}>Problems Solved</label><input type="text" className={inp} value={editForm.problemsSolved || ''} onChange={e => setEditForm(p => ({ ...p, problemsSolved: e.target.value }))} /></div>
+                        <div><label className={lbl}>Rating / Stars</label><input type="text" className={inp} value={editForm.rating || ''} onChange={e => setEditForm(p => ({ ...p, rating: e.target.value }))} /></div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div><label className={lbl}>Rank</label><input type="text" className={inp} value={editForm.rank || ''} onChange={e => setEditForm(p => ({ ...p, rank: e.target.value }))} /></div>
+                        <div><label className={lbl}>Order</label><input type="number" className={inp} value={editForm.displayOrder ?? 0} onChange={e => setEditForm(p => ({ ...p, displayOrder: +e.target.value }))} /></div>
+                      </div>
+                      <div><label className={lbl}>Logo URL</label><input type="text" className={inp} value={editForm.logo || ''} onChange={e => setEditForm(p => ({ ...p, logo: e.target.value }))} /></div>
+                      <div><label className={lbl}>Description</label><textarea rows={2} className={inp} value={editForm.description || ''} onChange={e => setEditForm(p => ({ ...p, description: e.target.value }))} /></div>
+                      <EditActions onSave={() => handleUpdateCodingProfile(cp._id)} onCancel={cancelEdit} />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-sm font-bold text-[#fafafa]">{cp.platform}</h4>
+                        <ActionBtns onEdit={() => startEdit(cp)} onDelete={() => handleDeleteCodingProfile(cp._id, cp.platform)} />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="p-2.5 rounded-xl bg-[#09090b] border border-[#2d2d3a]">
+                          <span className="block text-[10px] font-mono text-[#a1a1aa]">Solved</span>
+                          <span className="text-sm font-bold text-[#38bdf8] font-mono">{cp.problemsSolved}</span>
+                        </div>
+                        {cp.rating && (
+                          <div className="p-2.5 rounded-xl bg-[#09090b] border border-[#2d2d3a]">
+                            <span className="block text-[10px] font-mono text-[#a1a1aa]">Rating</span>
+                            <span className="text-sm font-bold text-[#c084fc] font-mono">{cp.rating}</span>
+                          </div>
+                        )}
+                      </div>
+                      {cp.profileUrl && <a href={cp.profileUrl} target="_blank" rel="noreferrer" className="text-[10px] text-[#38bdf8] font-mono mt-2 block truncate hover:underline">{cp.profileUrl}</a>}
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ─── CAREER ROAD SPINE ──────────────────────────────────── */}
+        {activeTab === 'career' && (
+          <div className="space-y-6">
+            <SectionHeader icon={Sparkles} title="Career Road Spine" count={careerNodes.length} color="#6366f1" onAdd={() => setShowAddForm(f => !f)} addOpen={showAddForm} />
+
+            <div className="p-3 rounded-xl bg-[#6366f1]/5 border border-[#6366f1]/20 text-xs text-[#a1a1aa] font-mono">
+              <span className="text-[#6366f1] font-bold">ℹ Info:</span> When no career nodes exist in the database, the portfolio shows built-in default milestones. Add your own nodes here to override them.
+            </div>
+
+            {showAddForm && (
+              <FormCard onSubmit={handleCreateCareerNode} color="#6366f1" title="Add Career Milestone">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div><label className={lbl}>Year / Period *</label><input required type="text" className={inp} placeholder="2024 or 2024 — 2025" value={careerForm.year} onChange={e => setCareerForm(p => ({ ...p, year: e.target.value }))} /></div>
+                  <div><label className={lbl}>Title *</label><input required type="text" className={inp} placeholder="🎓 EDUCATION" value={careerForm.title} onChange={e => setCareerForm(p => ({ ...p, title: e.target.value }))} /></div>
+                  <div className="sm:col-span-2"><label className={lbl}>Subtitle</label><input type="text" className={inp} placeholder="Rajeev Gandhi Memorial College..." value={careerForm.subtitle} onChange={e => setCareerForm(p => ({ ...p, subtitle: e.target.value }))} /></div>
+                  <div><label className={lbl}>Status</label>
+                    <select className={inp} value={careerForm.status} onChange={e => setCareerForm(p => ({ ...p, status: e.target.value }))}>
+                      <option value="completed">✅ Completed</option>
+                      <option value="active">🟢 Active</option>
+                      <option value="future">⏳ Future</option>
+                    </select>
+                  </div>
+                  <div><label className={lbl}>Icon</label>
+                    <select className={inp} value={careerForm.icon} onChange={e => setCareerForm(p => ({ ...p, icon: e.target.value }))}>
+                      <option value="GraduationCap">🎓 GraduationCap</option>
+                      <option value="Cpu">💻 Cpu</option>
+                      <option value="Code2">🧠 Code2</option>
+                      <option value="Briefcase">🏢 Briefcase</option>
+                      <option value="FlaskConical">🧪 FlaskConical</option>
+                      <option value="Trophy">🏆 Trophy</option>
+                      <option value="Rocket">🚀 Rocket</option>
+                      <option value="Target">🎯 Target</option>
+                      <option value="Sparkles">✨ Sparkles</option>
+                    </select>
+                  </div>
+                  <div><label className={lbl}>Display Order</label><input type="number" className={inp} value={careerForm.displayOrder} onChange={e => setCareerForm(p => ({ ...p, displayOrder: +e.target.value }))} /></div>
+                </div>
+                <div><label className={lbl}>Description</label><textarea rows={2} className={inp} placeholder="Details about this milestone..." value={careerForm.description} onChange={e => setCareerForm(p => ({ ...p, description: e.target.value }))} /></div>
+              </FormCard>
+            )}
+
+            <div className="space-y-3">
+              {careerNodes.length === 0 && <p className="text-xs text-[#a1a1aa] font-mono text-center py-8">No custom career nodes. Default milestones are showing on the portfolio.</p>}
+              {careerNodes.map(node => (
+                <div key={node._id} className="p-4 rounded-2xl bg-[#121217] border border-[#2d2d3a]">
+                  {editingId === node._id ? (
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div><label className={lbl}>Year</label><input type="text" className={inp} value={editForm.year || ''} onChange={e => setEditForm(p => ({ ...p, year: e.target.value }))} /></div>
+                        <div><label className={lbl}>Title</label><input type="text" className={inp} value={editForm.title || ''} onChange={e => setEditForm(p => ({ ...p, title: e.target.value }))} /></div>
+                        <div className="sm:col-span-2"><label className={lbl}>Subtitle</label><input type="text" className={inp} value={editForm.subtitle || ''} onChange={e => setEditForm(p => ({ ...p, subtitle: e.target.value }))} /></div>
+                        <div><label className={lbl}>Status</label>
+                          <select className={inp} value={editForm.status || 'future'} onChange={e => setEditForm(p => ({ ...p, status: e.target.value }))}>
+                            <option value="completed">✅ Completed</option>
+                            <option value="active">🟢 Active</option>
+                            <option value="future">⏳ Future</option>
+                          </select>
+                        </div>
+                        <div><label className={lbl}>Icon</label>
+                          <select className={inp} value={editForm.icon || 'Target'} onChange={e => setEditForm(p => ({ ...p, icon: e.target.value }))}>
+                            <option value="GraduationCap">🎓 GraduationCap</option>
+                            <option value="Cpu">💻 Cpu</option>
+                            <option value="Code2">🧠 Code2</option>
+                            <option value="Briefcase">🏢 Briefcase</option>
+                            <option value="FlaskConical">🧪 FlaskConical</option>
+                            <option value="Trophy">🏆 Trophy</option>
+                            <option value="Rocket">🚀 Rocket</option>
+                            <option value="Target">🎯 Target</option>
+                            <option value="Sparkles">✨ Sparkles</option>
+                          </select>
+                        </div>
+                        <div><label className={lbl}>Display Order</label><input type="number" className={inp} value={editForm.displayOrder ?? 0} onChange={e => setEditForm(p => ({ ...p, displayOrder: +e.target.value }))} /></div>
+                      </div>
+                      <div><label className={lbl}>Description</label><textarea rows={2} className={inp} value={editForm.description || ''} onChange={e => setEditForm(p => ({ ...p, description: e.target.value }))} /></div>
+                      <EditActions onSave={() => handleUpdateCareerNode(node._id)} onCancel={cancelEdit} />
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className={`text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded-full border ${
+                            node.status === 'completed' ? 'bg-[#6366f1]/10 text-[#6366f1] border-[#6366f1]/30' :
+                            node.status === 'active' ? 'bg-[#06b6d4]/10 text-[#06b6d4] border-[#06b6d4]/30' :
+                            'bg-[#3f3f46]/10 text-[#a1a1aa] border-[#3f3f46]/30'
+                          }`}>{node.year}</span>
+                          <span className="text-[10px] font-mono text-[#a1a1aa] capitalize">{node.status}</span>
+                        </div>
+                        <h4 className="text-sm font-bold text-[#fafafa]">{node.title}</h4>
+                        <p className="text-xs text-[#a1a1aa]">{node.subtitle}</p>
+                      </div>
+                      <ActionBtns onEdit={() => startEdit(node)} onDelete={() => handleDeleteCareerNode(node._id, node.title)} />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* ─── RESUME ─────────────────────────────────────────────── */}
         {activeTab === 'resume' && (
           <div className="space-y-6">
@@ -746,7 +971,7 @@ const AdminSpacePage = () => {
               <div>
                 <span className="text-xs font-mono text-[#a1a1aa] block">Currently Active</span>
                 <span className="text-base font-bold text-[#fafafa]">{resume.title || 'Venkata_Siva_Reddy_Resume.pdf'}</span>
-                {resume.url && <a href={resume.url} target="_blank" rel="noreferrer" className="text-xs text-[#06b6d4] underline block mt-1">View Current Resume ↗</a>}
+                {resume.url && <a href={resolveMediaUrl(resume.url)} target="_blank" rel="noreferrer" className="text-xs text-[#06b6d4] underline block mt-1">View Current Resume ↗</a>}
               </div>
               <label className="cursor-pointer flex items-center gap-2 px-5 py-3 rounded-xl bg-[#6366f1]/10 hover:bg-[#6366f1]/20 text-[#6366f1] border border-[#6366f1]/30 font-bold text-xs transition-all">
                 <Upload className="w-4 h-4" /><span>Upload New Resume PDF (Password Required)</span>

@@ -12,6 +12,7 @@ const Contact = require('../models/Contact');
 const Resume = require('../models/Resume');
 const Goal = require('../models/Goal');
 const FocusArea = require('../models/FocusArea');
+const CareerNode = require('../models/CareerNode');
 
 // --- Helper for creating generic REST handlers ---
 const createCrudHandlers = (Model, populateFields = []) => ({
@@ -174,5 +175,6 @@ module.exports = {
   resume: { getActive: getActiveResume, upload: uploadResumeHandler },
   goal: createCrudHandlers(Goal),
   focusArea: createCrudHandlers(FocusArea),
+  careerNode: createCrudHandlers(CareerNode),
   uploadMedia: uploadMediaHandler
 };

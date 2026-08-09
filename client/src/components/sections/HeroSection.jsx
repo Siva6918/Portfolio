@@ -1,12 +1,13 @@
 import React from 'react';
 import { Download, ArrowRight, Github, Linkedin, Mail, Code2 } from 'lucide-react';
+import { resolveMediaUrl } from '../../services/api';
 
 const HeroSection = ({ profile, resumeUrl }) => {
   const name = profile?.name || 'VENKATA SIVA REDDY';
   const role = profile?.role || 'FULL STACK & SOFTWARE ENGINEER';
   const shortBio = profile?.shortBio || 'B.Tech CSE Student (2023-2027) building production MERN applications, cloud backend architectures, and AI integrations.';
-  const avatarImage = profile?.profileImage || '/Avatar.png';
-  const cgpa = profile?.educationSummary?.cgpa || '8.1';
+  const avatarImage = resolveMediaUrl(profile?.profileImage) || '/Avatar.png';
+  const cgpa = profile?.cgpa || profile?.educationSummary?.cgpa || '8.1';
 
   return (
     <section className="relative min-h-[85vh] flex items-center justify-center pt-10 pb-16 overflow-hidden w-full bg-transparent">
@@ -71,7 +72,7 @@ const HeroSection = ({ profile, resumeUrl }) => {
               <a href={profile?.github || "https://github.com/vasanreddy"} target="_blank" rel="noreferrer" className="text-[#a1a1aa] hover:text-[#06b6d4] transition-colors p-2.5 rounded-xl bg-[#121217] border border-[#2d2d3a] hover:border-[#6366f1]">
                 <Github className="w-5 h-5" />
               </a>
-              <a href={profile?.linkedin || "https://linkedin.com/in/venkata-siva-reddy"} target="_blank" rel="noreferrer" className="text-[#a1a1aa] hover:text-[#06b6d4] transition-colors p-2.5 rounded-xl bg-[#121217] border border-[#2d2d3a] hover:border-[#6366f1]">
+              <a href={profile?.linkedin || "https://www.linkedin.com/in/venkatasiva-reddy/"} target="_blank" rel="noreferrer" className="text-[#a1a1aa] hover:text-[#06b6d4] transition-colors p-2.5 rounded-xl bg-[#121217] border border-[#2d2d3a] hover:border-[#6366f1]">
                 <Linkedin className="w-5 h-5" />
               </a>
               <a href={`mailto:${profile?.email || 'vasanreddy1331@gmail.com'}`} className="text-[#a1a1aa] hover:text-[#06b6d4] transition-colors p-2.5 rounded-xl bg-[#121217] border border-[#2d2d3a] hover:border-[#6366f1]">
@@ -81,25 +82,36 @@ const HeroSection = ({ profile, resumeUrl }) => {
 
           </div>
 
-          {/* Avatar Column (Right Side - Single Primary Academic Marker) */}
+          {/* Avatar Column (Right Side — Circular with Role Tags) */}
           <div className="lg:col-span-5 flex justify-center relative">
             <div className="relative group">
               
-              {/* Outer Electric Indigo & Neon Violet Accent Glow Ring */}
-              <div className="absolute -inset-2 rounded-3xl bg-gradient-to-r from-[#6366f1]/35 via-[#c084fc]/35 to-[#6366f1]/35 blur-xl group-hover:opacity-100 transition duration-500"></div>
+              {/* Outer Electric Glow Ring (circle) */}
+              <div className="absolute -inset-3 rounded-full bg-gradient-to-tr from-[#6366f1]/40 via-[#c084fc]/30 to-[#06b6d4]/40 blur-2xl opacity-70 group-hover:opacity-100 transition duration-700"></div>
               
-              {/* Profile Image Container */}
-              <div className="relative w-72 h-72 sm:w-88 sm:h-88 rounded-3xl overflow-hidden bg-[#121217] p-2 border border-[#2d2d3a] shadow-2xl">
+              {/* Rotating Border Ring */}
+              <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#6366f1] via-[#c084fc] to-[#06b6d4] opacity-30 group-hover:opacity-60 transition duration-500" style={{ animation: 'spin 8s linear infinite' }}></div>
+              
+              {/* Circular Profile Image Container */}
+              <div className="relative w-72 h-72 sm:w-80 sm:h-80 rounded-full overflow-hidden bg-[#121217] p-1.5 border-2 border-[#2d2d3a] shadow-2xl">
                 <img
                   src={avatarImage}
                   alt={name}
-                  className="w-full h-full object-cover rounded-2xl group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full object-cover rounded-full group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
 
-              {/* Single Environmental Marker near Avatar: Academic CGPA */}
-              <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-[#121217]/90 backdrop-blur-md px-4 py-2 rounded-2xl border border-[#6366f1]/40 shadow-2xl flex items-center gap-2.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#6366f1]"></span>
+              {/* Top-Right Tag — Role Badge */}
+              <div className="absolute -top-2 -right-2 sm:top-2 sm:-right-4 bg-[#121217]/95 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-[#6366f1]/50 shadow-[0_0_15px_rgba(99,102,241,0.3)] flex items-center gap-2 max-w-[180px] sm:max-w-[240px] z-20">
+                <Code2 className="w-3.5 h-3.5 text-[#6366f1] shrink-0" />
+                <span className="text-[10px] font-bold font-mono text-[#fafafa] uppercase tracking-wide truncate">
+                  {role}
+                </span>
+              </div>
+
+              {/* Bottom Center — CGPA Marker */}
+              <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-[#121217]/90 backdrop-blur-md px-4 py-2 rounded-2xl border border-[#6366f1]/40 shadow-2xl flex items-center gap-2.5 whitespace-nowrap z-20">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#6366f1] shrink-0"></span>
                 <span className="text-xs font-bold font-mono text-[#fafafa]">{cgpa} CGPA (B.Tech CSE)</span>
               </div>
 
@@ -109,6 +121,14 @@ const HeroSection = ({ profile, resumeUrl }) => {
         </div>
 
       </div>
+
+      {/* CSS for spinning border */}
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </section>
   );
 };

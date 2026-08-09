@@ -34,7 +34,7 @@ const Footer = () => {
                 <Github className="w-4 h-4" />
               </a>
               <a
-                href="https://linkedin.com/in/venkata-siva-reddy"
+                href="https://www.linkedin.com/in/venkatasiva-reddy/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 rounded-xl bg-[#18181b] border border-[#27272a] flex items-center justify-center text-[#a1a1aa] hover:text-[#7dd3fc] hover:scale-110 transition-all cursor-pointer z-30"

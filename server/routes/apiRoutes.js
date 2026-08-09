@@ -53,5 +53,6 @@ registerCrudRoutes('coding-profiles', portfolioController.codingProfile);
 registerCrudRoutes('contacts', portfolioController.contact);
 registerCrudRoutes('goals', portfolioController.goal);
 registerCrudRoutes('focus-areas', portfolioController.focusArea);
+registerCrudRoutes('career-nodes', portfolioController.careerNode);
 
 module.exports = router;

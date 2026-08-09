@@ -3,6 +3,10 @@ const nodemailer = require('nodemailer');
 /**
  * POST /api/contact/send
  * Sends contact form data to the portfolio owner's email.
+ * 
+ * Uses explicit Gmail SMTP config (smtp.gmail.com:465) instead of
+ * `service: 'gmail'` shorthand — this is more reliable on cloud
+ * platforms like Render, Railway, Vercel serverless, etc.
  */
 const sendContactEmail = async (req, res) => {
   const { name, email, subject, message } = req.body;
@@ -17,14 +21,38 @@ const sendContactEmail = async (req, res) => {
     return res.status(400).json({ success: false, message: 'Invalid email address.' });
   }
 
+  // Verify SMTP credentials are configured
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    console.error('[Contact Email Error] SMTP_USER or SMTP_PASS not configured in environment variables.');
+    return res.status(500).json({ success: false, message: 'Email service is not configured. Please contact directly at vasanthavenkatasiva@gmail.com.' });
+  }
+
   try {
+    // Explicit Gmail SMTP configuration — works reliably on Render, Railway, etc.
     const transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: parseInt(process.env.SMTP_PORT || '465', 10),
+      secure: true, // true for 465 (SSL), false for 587 (STARTTLS)
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS
-      }
+      },
+      // Render/cloud platform DNS resolution can be slow — increase timeouts
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000
     });
+
+    // Verify the transporter connection first
+    try {
+      await transporter.verify();
+    } catch (verifyErr) {
+      console.error('[SMTP Verify Error]', verifyErr.message);
+      return res.status(500).json({
+        success: false,
+        message: 'Email server connection failed. Please contact directly at vasanthavenkatasiva@gmail.com.'
+      });
+    }
 
     const htmlBody = `
       <div style="font-family: 'Segoe UI', Arial, sans-serif; background: #09090b; color: #fafafa; padding: 32px; border-radius: 16px; max-width: 600px; margin: 0 auto; border: 1px solid #27272a;">

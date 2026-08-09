@@ -14,7 +14,7 @@ import SkeletonLoader from '../components/common/SkeletonLoader';
 import { 
   getProfile, getProjects, getSkills, getEducation, 
   getExperience, getCertifications, getAchievements, 
-  getCodingProfiles, getResume 
+  getCodingProfiles, getCareerNodes, getResume 
 } from '../services/api';
 
 const HomePage = () => {
@@ -27,6 +27,7 @@ const HomePage = () => {
   const [certifications, setCertifications] = useState([]);
   const [achievements, setAchievements] = useState([]);
   const [codingProfiles, setCodingProfiles] = useState([]);
+  const [careerNodes, setCareerNodes] = useState([]);
   const [resumeUrl, setResumeUrl] = useState('');
 
   useEffect(() => {
@@ -38,7 +39,7 @@ const HomePage = () => {
     try {
       const [
         profRes, projRes, skillRes, eduRes, 
-        expRes, certRes, achRes, codRes, resRes
+        expRes, certRes, achRes, codRes, carRes, resRes
       ] = await Promise.allSettled([
         getProfile(),
         getProjects(),
@@ -48,6 +49,7 @@ const HomePage = () => {
         getCertifications(),
         getAchievements(),
         getCodingProfiles(),
+        getCareerNodes(),
         getResume()
       ]);
 
@@ -59,6 +61,7 @@ const HomePage = () => {
       if (certRes.status === 'fulfilled' && certRes.value.data.data) setCertifications(certRes.value.data.data);
       if (achRes.status === 'fulfilled' && achRes.value.data.data) setAchievements(achRes.value.data.data);
       if (codRes.status === 'fulfilled' && codRes.value.data.data) setCodingProfiles(codRes.value.data.data);
+      if (carRes.status === 'fulfilled' && carRes.value.data.data) setCareerNodes(carRes.value.data.data);
       if (resRes.status === 'fulfilled' && resRes.value.data.data) setResumeUrl(resRes.value.data.data.url);
     } catch (err) {
       console.error('Error fetching home portfolio data:', err);
@@ -92,7 +95,7 @@ const HomePage = () => {
       />
 
       {/* 3. 🛣️ 3D PERSPECTIVE CAREER ROAD */}
-      <CareerRoadSection />
+      <CareerRoadSection careerNodes={careerNodes} />
 
       {/* 4. DETAILED SPECIFIC SECTIONS */}
       <AboutSection profile={profile} />

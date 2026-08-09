@@ -54,7 +54,7 @@ const seedData = async () => {
       availability: 'Open for Software Engineering Internships & Freelance Opportunities',
       email: 'vasanreddy1331@gmail.com',
       github: 'https://github.com/vasanreddy',
-      linkedin: 'https://linkedin.com/in/venkata-siva-reddy',
+      linkedin: 'https://www.linkedin.com/in/venkatasiva-reddy/',
       degree: 'B.Tech',
       branch: 'Computer Science and Engineering',
       college: 'Rajeev Gandhi Memorial College of Engineering and Technology',

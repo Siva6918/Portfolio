@@ -1,91 +1,80 @@
 import React, { useState } from 'react';
 import { GraduationCap, Cpu, Code2, FlaskConical, Briefcase, Rocket, Trophy, Target, Sparkles } from 'lucide-react';
 
-const CareerRoadSection = () => {
+// Map icon name strings (from DB) to Lucide components
+const iconMap = {
+  GraduationCap, Cpu, Code2, FlaskConical, Briefcase, Rocket, Trophy, Target, Sparkles
+};
+
+const defaultNodes = [
+  {
+    id: 0, year: '2023', title: '🎓 EDUCATION',
+    subtitle: 'Rajeev Gandhi Memorial College of Engineering & Tech',
+    desc: 'B.Tech Computer Science & Engineering (8.1 CGPA). Core CS fundamentals & logic.',
+    status: 'completed', color: '#6366f1', icon: GraduationCap
+  },
+  {
+    id: 1, year: '2023 — 2024', title: '💻 PROGRAMMING',
+    subtitle: 'Data Structures & Algorithms Engine',
+    desc: 'Solved 300+ DSA problems (Arrays, DP, Graphs, Trees) with optimal time-space complexity.',
+    status: 'completed', color: '#6366f1', icon: Cpu
+  },
+  {
+    id: 2, year: '2024', title: '🧠 SKILLS & MERN STACK',
+    subtitle: 'React 18, Node.js, Express, MongoDB & Redux',
+    desc: 'Production full-stack web applications, REST APIs, state management, and modern UI.',
+    status: 'completed', color: '#6366f1', icon: Code2
+  },
+  {
+    id: 3, year: '2024 — 2025', title: '🏢 INTERNSHIPS',
+    subtitle: 'Software Engineering Experience',
+    desc: 'Practical full-stack development, cloud backend services, API rate limiting, and teamwork.',
+    status: 'active', color: '#06b6d4', icon: Briefcase
+  },
+  {
+    id: 4, year: '2025', title: '🧪 PROJECTS',
+    subtitle: 'Project Laboratory Applications',
+    desc: 'NutriCloud, DocSpot, Candidate Rank, and Weather App with full-stack production deployments.',
+    status: 'active', color: '#06b6d4', icon: FlaskConical
+  },
+  {
+    id: 5, year: '2025 — 2026', title: '🏆 CERTIFICATIONS',
+    subtitle: 'Achievement Plaza & Industry Credentials',
+    desc: 'Earning cloud & software engineering certifications while maintaining top academic performance.',
+    status: 'completed', color: '#6366f1', icon: Trophy
+  },
+  {
+    id: 6, year: '2026', title: '🚀 AI / CLOUD INTEGRATION',
+    subtitle: 'FastAPI, OpenAI API, PyTorch & AWS Cloud Native',
+    desc: 'AI-powered web tools, vector search pipelines, containerization (Docker), and cloud services.',
+    status: 'future', color: '#3f3f46', icon: Rocket
+  },
+  {
+    id: 7, year: '2027', title: '🎯 SOFTWARE ENGINEER',
+    subtitle: 'Product-Based Tech Leaders (Target 2027)',
+    desc: 'Graduating as a high-impact Software Engineer driving scalable web and AI product engineering.',
+    status: 'future', color: '#3f3f46', icon: Target
+  }
+];
+
+const statusColorMap = { completed: '#6366f1', active: '#06b6d4', future: '#3f3f46' };
+
+const CareerRoadSection = ({ careerNodes = [] }) => {
   const [activeStep, setActiveStep] = useState(4);
 
-  const roadNodes = [
-    {
-      id: 0,
-      year: '2023',
-      title: '🎓 EDUCATION',
-      subtitle: 'Rajeev Gandhi Memorial College of Engineering & Tech',
-      desc: 'B.Tech Computer Science & Engineering (8.1 CGPA). Core CS fundamentals & logic.',
-      status: 'completed',
-      color: '#6366f1',
-      icon: GraduationCap
-    },
-    {
-      id: 1,
-      year: '2023 — 2024',
-      title: '💻 PROGRAMMING',
-      subtitle: 'Data Structures & Algorithms Engine',
-      desc: 'Solved 300+ DSA problems (Arrays, DP, Graphs, Trees) with optimal time-space complexity.',
-      status: 'completed',
-      color: '#6366f1',
-      icon: Cpu
-    },
-    {
-      id: 2,
-      year: '2024',
-      title: '🧠 SKILLS & MERN STACK',
-      subtitle: 'React 18, Node.js, Express, MongoDB & Redux',
-      desc: 'Production full-stack web applications, REST APIs, state management, and modern UI.',
-      status: 'completed',
-      color: '#6366f1',
-      icon: Code2
-    },
-    {
-      id: 3,
-      year: '2024 — 2025',
-      title: '🏢 INTERNSHIPS',
-      subtitle: 'Software Engineering Experience',
-      desc: 'Practical full-stack development, cloud backend services, API rate limiting, and teamwork.',
-      status: 'active',
-      color: '#06b6d4',
-      icon: Briefcase
-    },
-    {
-      id: 4,
-      year: '2025',
-      title: '🧪 PROJECTS',
-      subtitle: 'Project Laboratory Applications',
-      desc: 'NutriCloud, DocSpot, Candidate Rank, and Weather App with full-stack production deployments.',
-      status: 'active',
-      color: '#06b6d4',
-      icon: FlaskConical
-    },
-    {
-      id: 5,
-      year: '2025 — 2026',
-      title: '🏆 CERTIFICATIONS',
-      subtitle: 'Achievement Plaza & Industry Credentials',
-      desc: 'Earning cloud & software engineering certifications while maintaining top academic performance.',
-      status: 'completed',
-      color: '#6366f1',
-      icon: Trophy
-    },
-    {
-      id: 6,
-      year: '2026',
-      title: '🚀 AI / CLOUD INTEGRATION',
-      subtitle: 'FastAPI, OpenAI API, PyTorch & AWS Cloud Native',
-      desc: 'AI-powered web tools, vector search pipelines, containerization (Docker), and cloud services.',
-      status: 'future',
-      color: '#3f3f46',
-      icon: Rocket
-    },
-    {
-      id: 7,
-      year: '2027',
-      title: '🎯 SOFTWARE ENGINEER',
-      subtitle: 'Product-Based Tech Leaders (Target 2027)',
-      desc: 'Graduating as a high-impact Software Engineer driving scalable web and AI product engineering.',
-      status: 'future',
-      color: '#3f3f46',
-      icon: Target
-    }
-  ];
+  // Use DB nodes if available, otherwise fall back to hardcoded defaults
+  const roadNodes = careerNodes.length > 0
+    ? careerNodes.map((node, idx) => ({
+        id: node._id || idx,
+        year: node.year,
+        title: node.title,
+        subtitle: node.subtitle,
+        desc: node.description,
+        status: node.status || 'future',
+        color: statusColorMap[node.status] || '#3f3f46',
+        icon: iconMap[node.icon] || Target
+      }))
+    : defaultNodes;
 
   return (
     <section id="career-road" className="py-20 relative w-full bg-transparent">

@@ -13,7 +13,7 @@ const profileSchema = new mongoose.Schema({
   email: { type: String, default: 'vasanreddy1331@gmail.com' },
   phone: { type: String, default: '' },
   github: { type: String, default: 'https://github.com/' },
-  linkedin: { type: String, default: 'https://linkedin.com/in/' },
+  linkedin: { type: String, default: 'https://www.linkedin.com/in/venkatasiva-reddy/' },
   degree: { type: String, default: 'B.Tech' },
   branch: { type: String, default: 'Computer Science and Engineering' },
   college: { type: String, default: 'Rajeev Gandhi Memorial College of Engineering and Technology' },

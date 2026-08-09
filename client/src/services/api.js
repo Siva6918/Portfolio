@@ -1,6 +1,24 @@
 import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+export const API_BASE = import.meta.env.VITE_API_URL || '/api';
+
+// Derive the server origin from the API base URL (strip trailing /api)
+const SERVER_ORIGIN = API_BASE.replace(/\/api\/?$/, '');
+
+/**
+ * Resolves a media path (like /uploads/file.jpg) into a full URL
+ * pointing at the server. If the path is already an absolute URL or
+ * a local public asset, it is returned unchanged.
+ */
+export const resolveMediaUrl = (path) => {
+  if (!path) return '';
+  // Already a full URL — leave it alone
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  // Server-hosted upload — prefix with server origin
+  if (path.startsWith('/uploads/')) return `${SERVER_ORIGIN}${path}`;
+  // Local public asset (e.g. /Avatar.png) — leave it alone
+  return path;
+};
 
 const api = axios.create({
   baseURL: API_BASE,
@@ -73,6 +91,11 @@ export const getContacts = () => api.get('/contacts');
 export const createContact = (data, pwd) => api.post('/contacts', data, authHeader(pwd));
 export const updateContact = (id, data, pwd) => api.put(`/contacts/${id}`, data, authHeader(pwd));
 export const deleteContact = (id, pwd) => api.delete(`/contacts/${id}`, authHeader(pwd));
+
+export const getCareerNodes = () => api.get('/career-nodes');
+export const createCareerNode = (data, pwd) => api.post('/career-nodes', data, authHeader(pwd));
+export const updateCareerNode = (id, data, pwd) => api.put(`/career-nodes/${id}`, data, authHeader(pwd));
+export const deleteCareerNode = (id, pwd) => api.delete(`/career-nodes/${id}`, authHeader(pwd));
 
 export const getResume = () => api.get('/resume');
 
