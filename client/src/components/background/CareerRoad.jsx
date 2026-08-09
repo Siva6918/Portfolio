@@ -3,8 +3,8 @@ import JourneyNode from './JourneyNode';
 
 const CareerRoad = () => {
   return (
-    <div aria-hidden="true" className="fixed inset-0 pointer-events-none z-0 overflow-hidden hidden lg:block">
-      <svg className="w-full h-full opacity-75" preserveAspectRatio="none" viewBox="0 0 1400 900">
+    <div aria-hidden="true" className="fixed inset-0 pointer-events-none z-0 overflow-hidden block">
+      <svg className="w-full h-full opacity-40 sm:opacity-60 lg:opacity-75" preserveAspectRatio="none" viewBox="0 0 1400 900">
         
         {/* Main Base Road SVG Path */}
         <path

@@ -32,15 +32,15 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           
           {/* Brand */}
-          <Link to="/" className="flex items-center gap-2.5 group shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6366f1] to-[#8b5cf6] flex items-center justify-center">
+          <Link to="/" className="flex items-center gap-2 sm:gap-2.5 group shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6366f1] to-[#8b5cf6] flex items-center justify-center shadow-lg shadow-[#6366f1]/20">
               <Terminal className="w-4 h-4 text-white" />
             </div>
-            <div className="hidden sm:block">
-              <span className="font-bold text-sm tracking-tight text-[#fafafa] group-hover:text-[#a5b4fc] transition-colors">
+            <div className="flex flex-col">
+              <span className="font-extrabold text-xs sm:text-sm tracking-tight text-[#fafafa] group-hover:text-[#a5b4fc] transition-colors leading-tight">
                 VENKATA SIVA REDDY
               </span>
-              <span className="block text-[10px] font-mono text-[#71717a] tracking-wide">
+              <span className="text-[9px] sm:text-[10px] font-mono text-[#71717a] tracking-wide leading-none mt-0.5">
                 Software Engineer
               </span>
             </div>

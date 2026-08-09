@@ -4,7 +4,7 @@ const DigitalBuilding = ({ title, type = 'tower', xPercent, yPercent, width = 14
   return (
     <div
       aria-hidden="true"
-      className="absolute pointer-events-none transition-all duration-500 hidden lg:block"
+      className="absolute pointer-events-none transition-all duration-500 block scale-75 sm:scale-90 lg:scale-100"
       style={{
         left: `${xPercent}%`,
         top: `${yPercent}%`,
