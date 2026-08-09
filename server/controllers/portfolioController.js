@@ -124,14 +124,16 @@ const uploadResumeHandler = async (req, res) => {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'Please upload a PDF file.' });
     }
-    const fileUrl = `/uploads/${req.file.filename}`;
+    const mime = req.file.mimetype || 'application/pdf';
+    const base64Data = req.file.buffer.toString('base64');
+    const fileUrl = `data:${mime};base64,${base64Data}`;
     
     // Deactivate previous active resumes
     await Resume.updateMany({}, { active: false });
     
     const newResume = new Resume({
       title: req.file.originalname,
-      filename: req.file.filename,
+      filename: req.file.originalname,
       url: fileUrl,
       active: true
     });
@@ -143,17 +145,19 @@ const uploadResumeHandler = async (req, res) => {
   }
 };
 
-// Image Upload Handler
+// Image & File Upload Handler
 const uploadMediaHandler = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'No file uploaded.' });
     }
-    const fileUrl = `/uploads/${req.file.filename}`;
+    const mime = req.file.mimetype || 'image/png';
+    const base64Data = req.file.buffer.toString('base64');
+    const fileUrl = `data:${mime};base64,${base64Data}`;
     res.status(200).json({
       success: true,
       url: fileUrl,
-      filename: req.file.filename,
+      filename: req.file.originalname,
       message: 'File uploaded successfully.'
     });
   } catch (err) {
