@@ -1,109 +1,111 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require("resend");
+
+// Helper to escape HTML characters in email content
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 
 /**
  * POST /api/contact/send
- * Sends contact form data to the portfolio owner's email.
+ * Sends contact form data to the portfolio owner's email using Resend API.
  * 
- * Uses explicit Gmail SMTP config (smtp.gmail.com:465) instead of
- * `service: 'gmail'` shorthand — this is more reliable on cloud
- * platforms like Render, Railway, Vercel serverless, etc.
+ * Works cleanly on cloud environments (like Render Free) where outbound SMTP ports are blocked.
  */
 const sendContactEmail = async (req, res) => {
-  const { name, email, subject, message } = req.body;
-
-  if (!name || !email || !subject || !message) {
-    return res.status(400).json({ success: false, message: 'All fields are required.' });
-  }
-
-  // Simple email validation
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    return res.status(400).json({ success: false, message: 'Invalid email address.' });
-  }
-
-  // Verify SMTP credentials are configured
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    console.error('[Contact Email Error] SMTP_USER or SMTP_PASS not configured in environment variables.');
-    return res.status(500).json({ success: false, message: 'Email service is not configured. Please contact directly at vasanthavenkatasiva@gmail.com.' });
-  }
-
   try {
-    // Explicit Gmail SMTP configuration — works reliably on Render, Railway, etc.
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.SMTP_PORT || '465', 10),
-      secure: true, // true for 465 (SSL), false for 587 (STARTTLS)
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
-      },
-      // Render/cloud platform DNS resolution can be slow — increase timeouts
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 15000
-    });
+    const { name, email, subject, message } = req.body;
 
-    // Verify the transporter connection first
-    try {
-      await transporter.verify();
-    } catch (verifyErr) {
-      console.error('[SMTP Verify Error]', verifyErr.message);
-      return res.status(500).json({
+    // Basic Validation
+    if (!name || !email || !subject || !message) {
+      return res.status(400).json({
         success: false,
-        message: 'Email server connection failed. Please contact directly at vasanthavenkatasiva@gmail.com.'
+        message: "All fields are required."
       });
     }
 
-    const htmlBody = `
-      <div style="font-family: 'Segoe UI', Arial, sans-serif; background: #09090b; color: #fafafa; padding: 32px; border-radius: 16px; max-width: 600px; margin: 0 auto; border: 1px solid #27272a;">
-        <div style="border-bottom: 1px solid #27272a; padding-bottom: 16px; margin-bottom: 24px;">
-          <h1 style="color: #6366f1; font-size: 22px; margin: 0;">📬 New Portfolio Contact Message</h1>
-          <p style="color: #a1a1aa; font-size: 12px; margin: 6px 0 0; font-family: monospace;">Received via SIVA SPACE Portfolio</p>
-        </div>
+    const cleanName = name.trim();
+    const cleanEmail = email.trim();
+    const cleanSubject = subject.trim();
+    const cleanMessage = message.trim();
 
-        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
-          <tr>
-            <td style="padding: 10px 0; color: #a1a1aa; font-weight: bold; width: 100px; vertical-align: top; font-family: monospace; font-size: 11px; text-transform: uppercase;">Name</td>
-            <td style="padding: 10px 0; color: #fafafa; font-weight: 600;">${name}</td>
-          </tr>
-          <tr style="border-top: 1px solid #27272a;">
-            <td style="padding: 10px 0; color: #a1a1aa; font-weight: bold; vertical-align: top; font-family: monospace; font-size: 11px; text-transform: uppercase;">Email</td>
-            <td style="padding: 10px 0; color: #06b6d4;">${email}</td>
-          </tr>
-          <tr style="border-top: 1px solid #27272a;">
-            <td style="padding: 10px 0; color: #a1a1aa; font-weight: bold; vertical-align: top; font-family: monospace; font-size: 11px; text-transform: uppercase;">Subject</td>
-            <td style="padding: 10px 0; color: #c084fc; font-weight: 600;">${subject}</td>
-          </tr>
-          <tr style="border-top: 1px solid #27272a;">
-            <td style="padding: 10px 0; color: #a1a1aa; font-weight: bold; vertical-align: top; font-family: monospace; font-size: 11px; text-transform: uppercase;">Message</td>
-            <td style="padding: 10px 0; color: #fafafa; line-height: 1.7; white-space: pre-wrap;">${message}</td>
-          </tr>
-        </table>
+    // Check if Resend API key is present
+    if (!process.env.RESEND_API_KEY) {
+      console.error("[Resend Error] RESEND_API_KEY is not set in environment variables.");
+      return res.status(500).json({
+        success: false,
+        message: "Email service is not configured on the server. Please contact directly at vasanthavenkatasiva@gmail.com."
+      });
+    }
 
-        <div style="margin-top: 24px; padding: 14px; background: #18181b; border-radius: 10px; border: 1px solid #27272a; font-size: 12px; color: #a1a1aa; font-family: monospace;">
-          <strong style="color: #6366f1;">Reply directly</strong> to this email to respond to ${name} at: <strong style="color: #06b6d4;">${email}</strong>
-        </div>
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const toEmail = process.env.CONTACT_TO_EMAIL || "vasanthavenkatasiva@gmail.com";
 
-        <p style="margin-top: 20px; font-size: 11px; color: #52525b; font-family: monospace; text-align: center;">
-          SIVA SPACE Portfolio · vasanthavenkatasiva@gmail.com · +91 9502486918
-        </p>
-      </div>
-    `;
+    // Send email through Resend HTTP API
+    const { data, error } = await resend.emails.send({
+      from: "Portfolio Contact <onboarding@resend.dev>",
+      to: [toEmail],
+      subject: `Portfolio Contact: ${cleanSubject}`,
+      replyTo: cleanEmail,
+      html: `
+        <!DOCTYPE html>
+        <html>
+          <body style="margin:0; padding:0; background:#09090B; font-family:Arial, sans-serif; color:#FAFAFA;">
+            <div style="max-width:650px; margin:30px auto; background:#18181B; border:1px solid #27272A; border-radius:16px; overflow:hidden;">
+              <div style="padding:24px; background:#09090B; border-bottom:1px solid #27272A;">
+                <h1 style="margin:0; color:#FAFAFA; font-size:24px;">New Portfolio Message</h1>
+                <p style="margin:8px 0 0; color:#A1A1AA;">Someone contacted you through Siva Space Portfolio.</p>
+              </div>
 
-    await transporter.sendMail({
-      from: `"SIVA SPACE Portfolio" <${process.env.SMTP_USER}>`,
-      to: process.env.CONTACT_TO_EMAIL || 'vasanthavenkatasiva@gmail.com',
-      replyTo: email,
-      subject: `[Portfolio Contact] ${subject}`,
-      html: htmlBody,
-      text: `New Portfolio Message\n\nName: ${name}\nEmail: ${email}\nSubject: ${subject}\n\nMessage:\n${message}`
+              <div style="padding:24px;">
+                <p><strong style="color:#A1A1AA;">Name:</strong> <span style="color:#FAFAFA;">${escapeHtml(cleanName)}</span></p>
+                <p><strong style="color:#A1A1AA;">Email:</strong> <span style="color:#06B6D4;">${escapeHtml(cleanEmail)}</span></p>
+                <p><strong style="color:#A1A1AA;">Subject:</strong> <span style="color:#C084FC;">${escapeHtml(cleanSubject)}</span></p>
+
+                <div style="margin-top:24px; padding:18px; background:#09090B; border-left:3px solid #8B5CF6; border-radius:8px;">
+                  <p style="margin:0 0 8px 0; color:#A1A1AA; font-size:12px; font-weight:bold; letter-spacing:1px;">MESSAGE</p>
+                  <p style="margin:0; color:#FAFAFA; line-height:1.7; white-space:pre-wrap;">${escapeHtml(cleanMessage)}</p>
+                </div>
+              </div>
+
+              <div style="padding:18px 24px; border-top:1px solid #27272A; color:#71717A; font-size:12px; text-align:center;">
+                Siva Space Portfolio Contact System · Reply directly to this email to respond to ${escapeHtml(cleanName)}
+              </div>
+            </div>
+          </body>
+        </html>
+      `
     });
 
-    res.status(200).json({ success: true, message: 'Message sent successfully! I will get back to you soon.' });
-  } catch (err) {
-    console.error('[Contact Email Error]', err.message);
-    res.status(500).json({ success: false, message: 'Failed to send message. Please try again or contact directly at vasanthavenkatasiva@gmail.com.' });
+    if (error) {
+      console.error("[Resend Error]", error);
+      return res.status(500).json({
+        success: false,
+        message: error.message || "Email service failed. Please try again later."
+      });
+    }
+
+    console.log("[Contact Email Sent]", data);
+
+    return res.status(200).json({
+      success: true,
+      message: "Message sent successfully.",
+      emailId: data?.id || null
+    });
+
+  } catch (error) {
+    console.error("[Contact Controller Error]", error);
+    return res.status(500).json({
+      success: false,
+      message: "Unable to send message."
+    });
   }
 };
 
-module.exports = { sendContactEmail };
+module.exports = {
+  sendContactEmail
+};
