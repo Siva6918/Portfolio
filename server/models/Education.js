@@ -4,6 +4,7 @@ const educationSchema = new mongoose.Schema({
   degree: { type: String, required: true },
   branch: { type: String, default: '' },
   college: { type: String, required: true },
+  collegeUrl: { type: String, default: '' },
   university: { type: String, default: '' },
   startYear: { type: String, required: true },
   endYear: { type: String, required: true },

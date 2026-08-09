@@ -350,38 +350,39 @@ const AdminSpacePage = () => {
             <SectionHeader icon={User} title="Profile & Personal Info" color="#6366f1" />
             <form onSubmit={handleSaveProfile} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div><label className={lbl}>Full Name</label><input type="text" className={inp} defaultValue={profile.name} onChange={e => setProfileForm(p => ({ ...p, name: e.target.value }))} /></div>
-                <div><label className={lbl}>Role / Title</label><input type="text" className={inp} defaultValue={profile.role} onChange={e => setProfileForm(p => ({ ...p, role: e.target.value }))} /></div>
-                <div><label className={lbl}>Email</label><input type="email" className={inp} defaultValue={profile.email} onChange={e => setProfileForm(p => ({ ...p, email: e.target.value }))} /></div>
-                <div><label className={lbl}>Phone</label><input type="text" className={inp} defaultValue={profile.phone} onChange={e => setProfileForm(p => ({ ...p, phone: e.target.value }))} /></div>
-                <div><label className={lbl}>GitHub URL</label><input type="text" className={inp} defaultValue={profile.github} onChange={e => setProfileForm(p => ({ ...p, github: e.target.value }))} /></div>
-                <div><label className={lbl}>LinkedIn URL</label><input type="text" className={inp} defaultValue={profile.linkedin} onChange={e => setProfileForm(p => ({ ...p, linkedin: e.target.value }))} /></div>
+                <div><label className={lbl}>Full Name</label><input type="text" className={inp} value={profileForm.name || ''} onChange={e => setProfileForm(p => ({ ...p, name: e.target.value }))} /></div>
+                <div><label className={lbl}>Role / Title</label><input type="text" className={inp} value={profileForm.role || ''} onChange={e => setProfileForm(p => ({ ...p, role: e.target.value }))} /></div>
+                <div><label className={lbl}>Email</label><input type="email" className={inp} value={profileForm.email || ''} onChange={e => setProfileForm(p => ({ ...p, email: e.target.value }))} /></div>
+                <div><label className={lbl}>Phone</label><input type="text" className={inp} value={profileForm.phone || ''} onChange={e => setProfileForm(p => ({ ...p, phone: e.target.value }))} /></div>
+                <div><label className={lbl}>GitHub URL</label><input type="text" className={inp} value={profileForm.github || ''} onChange={e => setProfileForm(p => ({ ...p, github: e.target.value }))} /></div>
+                <div><label className={lbl}>LinkedIn URL</label><input type="text" className={inp} value={profileForm.linkedin || ''} onChange={e => setProfileForm(p => ({ ...p, linkedin: e.target.value }))} /></div>
               </div>
-              <div><label className={lbl}>Short Bio Headline</label><input type="text" className={inp} defaultValue={profile.shortBio} onChange={e => setProfileForm(p => ({ ...p, shortBio: e.target.value }))} /></div>
-              <div><label className={lbl}>Detailed Bio</label><textarea rows={3} className={inp} defaultValue={profile.longBio} onChange={e => setProfileForm(p => ({ ...p, longBio: e.target.value }))} /></div>
+              <div><label className={lbl}>Short Bio Headline</label><input type="text" className={inp} value={profileForm.shortBio || ''} onChange={e => setProfileForm(p => ({ ...p, shortBio: e.target.value }))} /></div>
+              <div><label className={lbl}>Detailed Bio</label><textarea rows={3} className={inp} value={profileForm.longBio || ''} onChange={e => setProfileForm(p => ({ ...p, longBio: e.target.value }))} /></div>
 
               {/* About Me & Development Vision Fields */}
               <div className="pt-4 border-t border-[#2d2d3a]">
                 <h4 className="text-xs font-bold font-mono uppercase text-[#38bdf8] mb-3 flex items-center gap-2"><Target className="w-3.5 h-3.5" /> About Me & Development Vision</h4>
                 <div className="space-y-3">
-                  <div><label className={lbl}>Career Goal</label><textarea rows={2} className={inp} defaultValue={profile.careerGoal} onChange={e => setProfileForm(p => ({ ...p, careerGoal: e.target.value }))} placeholder="e.g. Become a strong software engineer..." /></div>
-                  <div><label className={lbl}>Current Focus Areas</label><input type="text" className={inp} defaultValue={profile.currentFocus} onChange={e => setProfileForm(p => ({ ...p, currentFocus: e.target.value }))} placeholder="e.g. MERN Stack, DSA, Cloud, AI" /></div>
+                  <div><label className={lbl}>Career Goal</label><textarea rows={2} className={inp} value={profileForm.careerGoal || ''} onChange={e => setProfileForm(p => ({ ...p, careerGoal: e.target.value }))} placeholder="e.g. Become a strong software engineer..." /></div>
+                  <div><label className={lbl}>Current Focus Areas</label><input type="text" className={inp} value={profileForm.currentFocus || ''} onChange={e => setProfileForm(p => ({ ...p, currentFocus: e.target.value }))} placeholder="e.g. MERN Stack, DSA, Cloud, AI" /></div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div><label className={lbl}>Location</label><input type="text" className={inp} defaultValue={profile.location} onChange={e => setProfileForm(p => ({ ...p, location: e.target.value }))} placeholder="Andhra Pradesh, India" /></div>
-                    <div><label className={lbl}>Availability Status</label><input type="text" className={inp} defaultValue={profile.availability} onChange={e => setProfileForm(p => ({ ...p, availability: e.target.value }))} placeholder="Open for Internships & SWE Roles" /></div>
+                    <div><label className={lbl}>Location</label><input type="text" className={inp} value={profileForm.location || ''} onChange={e => setProfileForm(p => ({ ...p, location: e.target.value }))} placeholder="Andhra Pradesh, India" /></div>
+                    <div><label className={lbl}>Availability Status</label><input type="text" className={inp} value={profileForm.availability || ''} onChange={e => setProfileForm(p => ({ ...p, availability: e.target.value }))} placeholder="Open for Internships & SWE Roles" /></div>
                   </div>
                 </div>
               </div>
 
               {/* Education Summary Fields */}
               <div className="pt-4 border-t border-[#2d2d3a]">
-                <h4 className="text-xs font-bold font-mono uppercase text-[#10b981] mb-3 flex items-center gap-2"><GraduationCap className="w-3.5 h-3.5" /> Education Summary (Quick Metrics)</h4>
+                <h4 className="text-xs font-bold font-mono uppercase text-[#10b981] mb-3 flex items-center gap-2"><GraduationCap className="w-3.5 h-3.5" /> Education Summary & College Website</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div><label className={lbl}>Degree</label><input type="text" className={inp} defaultValue={profile.degree} onChange={e => setProfileForm(p => ({ ...p, degree: e.target.value }))} placeholder="B.Tech" /></div>
-                  <div><label className={lbl}>Branch</label><input type="text" className={inp} defaultValue={profile.branch} onChange={e => setProfileForm(p => ({ ...p, branch: e.target.value }))} placeholder="Computer Science" /></div>
-                  <div><label className={lbl}>College</label><input type="text" className={inp} defaultValue={profile.college} onChange={e => setProfileForm(p => ({ ...p, college: e.target.value }))} placeholder="RGMCET" /></div>
-                  <div><label className={lbl}>Graduation Year</label><input type="number" className={inp} defaultValue={profile.graduationYear} onChange={e => setProfileForm(p => ({ ...p, graduationYear: +e.target.value }))} /></div>
-                  <div><label className={lbl}>CGPA</label><input type="number" step="0.1" className={inp} defaultValue={profile.cgpa} onChange={e => setProfileForm(p => ({ ...p, cgpa: +e.target.value }))} /></div>
+                  <div><label className={lbl}>Degree</label><input type="text" className={inp} value={profileForm.degree || ''} onChange={e => setProfileForm(p => ({ ...p, degree: e.target.value }))} placeholder="B.Tech" /></div>
+                  <div><label className={lbl}>Branch</label><input type="text" className={inp} value={profileForm.branch || ''} onChange={e => setProfileForm(p => ({ ...p, branch: e.target.value }))} placeholder="Computer Science" /></div>
+                  <div><label className={lbl}>College Name</label><input type="text" className={inp} value={profileForm.college || ''} onChange={e => setProfileForm(p => ({ ...p, college: e.target.value }))} placeholder="RGMCET" /></div>
+                  <div className="sm:col-span-2"><label className={lbl}>College Website URL</label><input type="text" className={inp} value={profileForm.collegeUrl || ''} onChange={e => setProfileForm(p => ({ ...p, collegeUrl: e.target.value }))} placeholder="https://www.rgmcet.edu.in/" /></div>
+                  <div><label className={lbl}>Graduation Year</label><input type="number" className={inp} value={profileForm.graduationYear || 2027} onChange={e => setProfileForm(p => ({ ...p, graduationYear: +e.target.value }))} /></div>
+                  <div><label className={lbl}>CGPA</label><input type="number" step="0.1" className={inp} value={profileForm.cgpa || 8.1} onChange={e => setProfileForm(p => ({ ...p, cgpa: +e.target.value }))} /></div>
                 </div>
               </div>
 
@@ -444,6 +445,7 @@ const AdminSpacePage = () => {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div><label className={lbl}>Role</label><input type="text" className={inp} value={editForm.role || ''} onChange={e => setEditForm(p => ({ ...p, role: e.target.value }))} /></div>
                         <div><label className={lbl}>Company</label><input type="text" className={inp} value={editForm.company || ''} onChange={e => setEditForm(p => ({ ...p, company: e.target.value }))} /></div>
+                        <div><label className={lbl}>Company Website URL</label><input type="text" className={inp} placeholder="https://company.com" value={editForm.companyUrl || ''} onChange={e => setEditForm(p => ({ ...p, companyUrl: e.target.value }))} /></div>
                         <div><label className={lbl}>Start Date</label><input type="text" className={inp} value={editForm.startDate || ''} onChange={e => setEditForm(p => ({ ...p, startDate: e.target.value }))} /></div>
                         <div><label className={lbl}>End Date</label><input type="text" className={inp} value={editForm.endDate || ''} onChange={e => setEditForm(p => ({ ...p, endDate: e.target.value }))} /></div>
                         <div><label className={lbl}>Year</label><input type="text" className={inp} value={editForm.year || ''} onChange={e => setEditForm(p => ({ ...p, year: e.target.value }))} /></div>
@@ -661,6 +663,7 @@ const AdminSpacePage = () => {
                   <div><label className={lbl}>Degree *</label><input required type="text" className={inp} placeholder="B.Tech / Intermediate / SSC" value={educationForm.degree} onChange={e => setEducationForm(p => ({ ...p, degree: e.target.value }))} /></div>
                   <div><label className={lbl}>Branch / Stream</label><input type="text" className={inp} placeholder="Computer Science and Engineering" value={educationForm.branch} onChange={e => setEducationForm(p => ({ ...p, branch: e.target.value }))} /></div>
                   <div className="sm:col-span-2"><label className={lbl}>College / Institution *</label><input required type="text" className={inp} placeholder="RGMCET, Nandyal" value={educationForm.college} onChange={e => setEducationForm(p => ({ ...p, college: e.target.value }))} /></div>
+                  <div className="sm:col-span-2"><label className={lbl}>College Website URL</label><input type="text" className={inp} placeholder="https://www.rgmcet.edu.in/" value={educationForm.collegeUrl} onChange={e => setEducationForm(p => ({ ...p, collegeUrl: e.target.value }))} /></div>
                   <div><label className={lbl}>Start Year</label><input type="text" className={inp} placeholder="2023" value={educationForm.startYear} onChange={e => setEducationForm(p => ({ ...p, startYear: e.target.value }))} /></div>
                   <div><label className={lbl}>End Year</label><input type="text" className={inp} placeholder="2027 (Expected)" value={educationForm.endYear} onChange={e => setEducationForm(p => ({ ...p, endYear: e.target.value }))} /></div>
                   <div><label className={lbl}>CGPA</label><input type="text" className={inp} placeholder="8.1" value={educationForm.cgpa} onChange={e => setEducationForm(p => ({ ...p, cgpa: e.target.value }))} /></div>
@@ -680,6 +683,7 @@ const AdminSpacePage = () => {
                         <div><label className={lbl}>Degree</label><input type="text" className={inp} value={editForm.degree || ''} onChange={e => setEditForm(p => ({ ...p, degree: e.target.value }))} /></div>
                         <div><label className={lbl}>Branch</label><input type="text" className={inp} value={editForm.branch || ''} onChange={e => setEditForm(p => ({ ...p, branch: e.target.value }))} /></div>
                         <div className="sm:col-span-2"><label className={lbl}>College</label><input type="text" className={inp} value={editForm.college || ''} onChange={e => setEditForm(p => ({ ...p, college: e.target.value }))} /></div>
+                        <div className="sm:col-span-2"><label className={lbl}>College Website URL</label><input type="text" className={inp} placeholder="https://www.rgmcet.edu.in/" value={editForm.collegeUrl || ''} onChange={e => setEditForm(p => ({ ...p, collegeUrl: e.target.value }))} /></div>
                         <div><label className={lbl}>Start Year</label><input type="text" className={inp} value={editForm.startYear || ''} onChange={e => setEditForm(p => ({ ...p, startYear: e.target.value }))} /></div>
                         <div><label className={lbl}>End Year</label><input type="text" className={inp} value={editForm.endYear || ''} onChange={e => setEditForm(p => ({ ...p, endYear: e.target.value }))} /></div>
                         <div><label className={lbl}>CGPA</label><input type="text" className={inp} value={editForm.cgpa || ''} onChange={e => setEditForm(p => ({ ...p, cgpa: e.target.value }))} /></div>

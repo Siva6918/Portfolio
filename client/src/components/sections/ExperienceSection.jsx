@@ -42,8 +42,23 @@ const ExperienceSection = ({ education = [], experience = [], achievements = [],
                       <span className="text-[#52525b] capitalize">{exp.type}</span>
                     </div>
 
-                    <h5 className="text-sm font-bold text-[#fafafa]">
-                      {exp.role} <span className="text-[#a1a1aa] font-normal">@ {exp.company}</span>
+                    <h5 className="text-sm font-bold text-[#fafafa] flex items-center justify-between">
+                      <span>
+                        {exp.role}{' '}
+                        {exp.companyUrl ? (
+                          <a
+                            href={exp.companyUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[#a1a1aa] hover:text-[#f97316] font-normal underline-offset-2 hover:underline inline-flex items-center gap-1 transition-colors"
+                          >
+                            <span>@ {exp.company}</span>
+                            <ExternalLink className="w-3 h-3 text-[#f97316]" />
+                          </a>
+                        ) : (
+                          <span className="text-[#a1a1aa] font-normal">@ {exp.company}</span>
+                        )}
+                      </span>
                     </h5>
 
                     <p className="text-xs text-[#a1a1aa] leading-relaxed">

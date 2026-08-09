@@ -41,7 +41,11 @@ const createCrudHandlers = (Model, populateFields = []) => ({
   },
   update: async (req, res) => {
     try {
-      const item = await Model.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+      // Strip undefined keys to prevent partial updates from erasing existing document fields
+      const cleanData = Object.fromEntries(
+        Object.entries(req.body || {}).filter(([_, v]) => v !== undefined)
+      );
+      const item = await Model.findByIdAndUpdate(req.params.id, cleanData, { new: true, runValidators: true });
       if (!item) return res.status(404).json({ success: false, message: 'Item not found.' });
       res.json({ success: true, data: item, message: 'Updated successfully.' });
     } catch (err) {
@@ -75,10 +79,14 @@ const getProfile = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     let profile = await Profile.findOne();
+    // Strip undefined keys to preserve untouched profile properties
+    const cleanData = Object.fromEntries(
+      Object.entries(req.body || {}).filter(([_, v]) => v !== undefined)
+    );
     if (!profile) {
-      profile = new Profile(req.body);
+      profile = new Profile(cleanData);
     } else {
-      Object.assign(profile, req.body);
+      Object.assign(profile, cleanData);
     }
     await profile.save();
     console.log('[Portfolio Controller] Profile updated successfully in MongoDB.');

@@ -12,11 +12,12 @@ const profileSchema = new mongoose.Schema({
   availability: { type: String, default: 'Open for Internships & Software Engineering Roles' },
   email: { type: String, default: 'vasanreddy1331@gmail.com' },
   phone: { type: String, default: '' },
-  github: { type: String, default: 'https://github.com/' },
+  github: { type: String, default: 'https://github.com/vasanreddy' },
   linkedin: { type: String, default: 'https://www.linkedin.com/in/venkatasiva-reddy/' },
   degree: { type: String, default: 'B.Tech' },
   branch: { type: String, default: 'Computer Science and Engineering' },
   college: { type: String, default: 'Rajeev Gandhi Memorial College of Engineering and Technology' },
+  collegeUrl: { type: String, default: 'https://www.rgmcet.edu.in/' },
   graduationYear: { type: Number, default: 2027 },
   cgpa: { type: Number, default: 8.1 }
 }, { timestamps: true });
