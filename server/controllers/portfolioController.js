@@ -70,7 +70,15 @@ const getProfile = async (req, res) => {
     if (!profile) {
       profile = await Profile.create({});
     }
-    res.json({ success: true, data: profile });
+    const profileObj = profile.toObject();
+
+    // Single Source of Truth: Populate active resume URL dynamically from Resume collection
+    const activeResume = await Resume.findOne({ active: true }).sort({ uploadedAt: -1 });
+    if (activeResume && activeResume.url) {
+      profileObj.resumeUrl = activeResume.url;
+    }
+
+    res.json({ success: true, data: profileObj });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
