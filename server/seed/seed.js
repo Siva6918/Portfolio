@@ -133,7 +133,15 @@ const seedData = async () => {
 
       // Tools & Core CS
       { name: 'Data Structures & Algorithms', category: 'Core CS', logo: '', proficiency: 'Advanced', yearsOfExperience: '2+ yrs', displayOrder: 1 },
-      { name: 'System Design', category: 'Core CS', logo: '', proficiency: 'Intermediate', yearsOfExperience: '1+ yrs', displayOrder: 2 }
+      { name: 'System Design', category: 'Core CS', logo: '', proficiency: 'Intermediate', yearsOfExperience: '1+ yrs', displayOrder: 2 },
+
+      // Soft Skills & Practices
+      { name: 'Problem Solving & DSA', category: 'Soft Skills', type: 'soft', description: 'Algorithmic efficiency & analytical thinking', proficiency: 'Advanced', displayOrder: 1 },
+      { name: 'Technical Communication', category: 'Soft Skills', type: 'soft', description: 'Clear documentation & team alignment', proficiency: 'Advanced', displayOrder: 2 },
+      { name: 'Team Collaboration & Git', category: 'Soft Skills', type: 'soft', description: 'Version control & collaborative workflows', proficiency: 'Advanced', displayOrder: 3 },
+      { name: 'Agile & Scrum Principles', category: 'Soft Skills', type: 'soft', description: 'Sprint planning & iterative development', proficiency: 'Intermediate', displayOrder: 4 },
+      { name: 'Code Review & Testing', category: 'Soft Skills', type: 'soft', description: 'Quality assurance & clean code practices', proficiency: 'Intermediate', displayOrder: 5 },
+      { name: 'Adaptability & Quick Learning', category: 'Soft Skills', type: 'soft', description: 'Rapid adoption of new tech & stacks', proficiency: 'Expert', displayOrder: 6 }
     ]);
 
     // Map skill IDs for reference

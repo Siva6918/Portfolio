@@ -6,7 +6,7 @@ export const API_BASE = import.meta.env.VITE_API_URL || '/api';
 const SERVER_ORIGIN = API_BASE.replace(/\/api\/?$/, '');
 
 /**
- * Resolves a media path (like /uploads/file.jpg) into a full URL
+ * Resolves a media path (like /uploads/file.jpg or uploads/file.jpg) into a full URL
  * pointing at the server. If the path is already an absolute URL or
  * a local public asset, it is returned unchanged.
  */
@@ -14,9 +14,15 @@ export const resolveMediaUrl = (path) => {
   if (!path) return '';
   // Already a full URL — leave it alone
   if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  
+  // Normalize path with leading slash
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  
   // Server-hosted upload — prefix with server origin
-  if (path.startsWith('/uploads/')) return `${SERVER_ORIGIN}${path}`;
-  // Local public asset (e.g. /Avatar.png) — leave it alone
+  if (normalizedPath.startsWith('/uploads/')) {
+    return `${SERVER_ORIGIN}${normalizedPath}`;
+  }
+  
   return path;
 };
 

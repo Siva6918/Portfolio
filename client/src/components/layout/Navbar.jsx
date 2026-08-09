@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Terminal, ArrowLeft, Github, Linkedin, Download } from 'lucide-react';
+import { Menu, X, Terminal, ArrowLeft, Github, Linkedin } from 'lucide-react';
 
-const Navbar = ({ resumeUrl }) => {
+const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const isAdmin = location.pathname.startsWith('/admin');
@@ -13,8 +13,18 @@ const Navbar = ({ resumeUrl }) => {
     { name: 'Projects', href: '/#projects' },
     { name: 'Timeline', href: '/#career-road' },
     { name: 'Experience', href: '/#experience' },
+    { name: 'Certifications', href: '/#certifications' },
     { name: 'Contact', href: '/#contact' },
   ];
+
+  const handleNavClick = (e, href) => {
+    const targetId = href.replace('/#', '').replace('#', '');
+    const element = document.getElementById(targetId);
+    if (element && location.pathname === '/') {
+      e.preventDefault();
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 glass-nav w-full">
@@ -44,6 +54,7 @@ const Navbar = ({ resumeUrl }) => {
                   <a
                     key={link.name}
                     href={link.href}
+                    onClick={(e) => handleNavClick(e, link.href)}
                     className="px-3 py-1.5 text-[13px] font-medium text-[#a1a1aa] hover:text-[#fafafa] transition-colors rounded-lg hover:bg-[#27272a]/50"
                   >
                     {link.name}
@@ -121,7 +132,10 @@ const Navbar = ({ resumeUrl }) => {
                   <a
                     key={link.name}
                     href={link.href}
-                    onClick={() => setMobileMenuOpen(false)}
+                    onClick={(e) => {
+                      setMobileMenuOpen(false);
+                      handleNavClick(e, link.href);
+                    }}
                     className="block px-3 py-2.5 text-sm font-medium text-[#a1a1aa] hover:text-[#fafafa] hover:bg-[#27272a]/50 rounded-lg transition-colors"
                   >
                     {link.name}
