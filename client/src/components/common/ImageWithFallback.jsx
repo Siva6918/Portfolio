@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { resolveMediaUrl } from '../../services/api';
 import { ImageOff, Sparkles } from 'lucide-react';
 
 /**
  * ImageWithFallback renders an image using resolveMediaUrl.
- * Handles missing src, loading state, broken URLs, and cache-busting via updatedAt.
- * If the image fails to load or is missing, it displays a clean fallback UI instead of a broken icon.
+ * Robustly handles missing src, cached/Base64 instant loads, loading states, and fallback UI.
  */
 const ImageWithFallback = ({
   src,
@@ -19,26 +18,59 @@ const ImageWithFallback = ({
   loading = 'lazy'
 }) => {
   const [imgError, setImgError] = useState(false);
+  const [fallbackError, setFallbackError] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const imgRef = useRef(null);
+  const fallbackImgRef = useRef(null);
 
   const resolvedUrl = resolveMediaUrl(src, updatedAt);
   const resolvedFallback = fallbackSrc ? resolveMediaUrl(fallbackSrc) : null;
+  const isDataUri = resolvedUrl?.startsWith('data:');
+  const actualLoading = isDataUri ? 'eager' : loading;
 
   useEffect(() => {
     setImgError(false);
+    setFallbackError(false);
     setIsLoaded(false);
   }, [src, updatedAt]);
 
+  // Synchronously check if image is already complete (cached / Base64 instant load)
+  const checkComplete = () => {
+    if (imgRef.current) {
+      if (imgRef.current.complete) {
+        if (imgRef.current.naturalWidth > 0) {
+          setIsLoaded(true);
+        } else if (imgRef.current.naturalWidth === 0 && imgRef.current.src) {
+          setImgError(true);
+        }
+      }
+    }
+  };
+
+  useLayoutEffect(() => {
+    checkComplete();
+  }, [resolvedUrl]);
+
+  useEffect(() => {
+    checkComplete();
+  }, [resolvedUrl]);
+
   if (!src || imgError) {
-    if (resolvedFallback && !imgError) {
+    if (resolvedFallback && !fallbackError) {
       return (
         <div className={`relative overflow-hidden bg-[#18181b] ${containerClassName}`}>
           <img
+            ref={fallbackImgRef}
             src={resolvedFallback}
             alt={alt}
-            loading={loading}
+            loading={actualLoading}
             className={className}
-            onError={() => setImgError(true)}
+            onLoad={() => {
+              if (fallbackImgRef.current && fallbackImgRef.current.naturalWidth === 0) {
+                setFallbackError(true);
+              }
+            }}
+            onError={() => setFallbackError(true)}
           />
         </div>
       );
@@ -62,9 +94,10 @@ const ImageWithFallback = ({
         </div>
       )}
       <img
+        ref={imgRef}
         src={resolvedUrl}
         alt={alt}
-        loading={loading}
+        loading={actualLoading}
         onLoad={() => setIsLoaded(true)}
         onError={() => setImgError(true)}
         className={`${className} ${!isLoaded ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
@@ -74,3 +107,4 @@ const ImageWithFallback = ({
 };
 
 export default ImageWithFallback;
+

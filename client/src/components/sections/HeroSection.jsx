@@ -109,19 +109,20 @@ const HeroSection = ({ profile, resumeUrl }) => {
           </div>
 
           {/* Avatar Column */}
-          <div className="lg:col-span-5 flex justify-center">
+          <div className="lg:col-span-5 flex justify-center pt-4 lg:pt-0">
             <div className="relative">
               {/* Subtle glow behind avatar */}
-              <div className="absolute -inset-4 rounded-full bg-gradient-to-br from-[#6366f1]/15 to-[#8b5cf6]/10 blur-2xl" />
+              <div className="absolute -inset-4 rounded-full bg-gradient-to-br from-[#6366f1]/20 to-[#8b5cf6]/15 blur-2xl" />
               
               {/* Avatar */}
-              <div className="relative w-64 h-64 sm:w-72 sm:h-72 rounded-full overflow-hidden border-2 border-[#27272a] bg-[#18181b]">
+              <div className="relative w-52 h-52 sm:w-64 sm:h-64 lg:w-72 lg:h-72 rounded-full overflow-hidden border-2 border-[#27272a] bg-[#18181b] shadow-xl">
                 <ImageWithFallback
                   src={profile?.profileImage}
                   fallbackSrc="/Avatar.png"
                   alt={name}
                   updatedAt={profile?.updatedAt}
                   fallbackIcon={User}
+                  loading="eager"
                   className="w-full h-full object-cover"
                   containerClassName="w-full h-full"
                 />

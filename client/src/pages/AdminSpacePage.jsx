@@ -90,6 +90,7 @@ const AdminSpacePage = () => {
   const [showAddForm, setShowAddForm] = useState(false);
 
   const [profileForm, setProfileForm] = useState({});
+  const [avatarPreview, setAvatarPreview] = useState(null);
   const [projectForm, setProjectForm] = useState({ title: '', category: 'Full Stack MERN', shortDescription: '', description: '', technologies: '', repositoryUrl: '', liveUrl: '', thumbnail: '', displayOrder: 0 });
   const [skillForm, setSkillForm] = useState({ name: '', category: 'Languages & Core', type: 'technical', proficiency: 'Intermediate', logo: '', percent: 80, displayOrder: 0, description: '' });
   const [educationForm, setEducationForm] = useState({ degree: 'B.Tech', branch: 'Computer Science and Engineering', college: 'RGMCET', startYear: '2023', endYear: '2027', cgpa: '8.1', percentage: '', description: '', displayOrder: 0 });
@@ -177,6 +178,7 @@ const AdminSpacePage = () => {
       const avatarFile = avatarRef.current?.files?.[0];
       if (avatarFile) payload.profileImage = await uploadFile(avatarFile, pwd);
       await updateProfile(payload, pwd);
+      setAvatarPreview(null);
     });
   };
 
@@ -391,10 +393,21 @@ const AdminSpacePage = () => {
               <div>
                 <label className={lbl}>Profile Avatar Image</label>
                 <div className="flex items-center gap-4">
-                  <img src={resolveMediaUrl(profile.profileImage) || '/Avatar.png'} alt="avatar" className="w-14 h-14 rounded-full object-cover border border-[#2d2d3a]" />
+                  <img src={avatarPreview || resolveMediaUrl(profileForm.profileImage || profile.profileImage) || '/Avatar.png'} alt="avatar" className="w-14 h-14 rounded-full object-cover border border-[#2d2d3a]" />
                   <label className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#6366f1]/10 border border-[#6366f1]/30 text-[#6366f1] text-xs font-bold cursor-pointer hover:bg-[#6366f1]/20">
-                    <Image className="w-4 h-4" /><span>Upload New Avatar</span>
-                    <input type="file" ref={avatarRef} accept="image/*" className="hidden" />
+                    <Image className="w-4 h-4" /><span>{avatarPreview ? 'Change Selected Avatar' : 'Upload New Avatar'}</span>
+                    <input 
+                      type="file" 
+                      ref={avatarRef} 
+                      accept="image/*" 
+                      className="hidden" 
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setAvatarPreview(URL.createObjectURL(file));
+                        }
+                      }}
+                    />
                   </label>
                 </div>
               </div>
