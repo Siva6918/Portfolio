@@ -6,6 +6,7 @@ import SkillsSection from '../components/sections/SkillsSection';
 import ProjectsSection from '../components/sections/ProjectsSection';
 import ExperienceSection from '../components/sections/ExperienceSection';
 import CertificationsSection from '../components/sections/CertificationsSection';
+import AchievementsSection from '../components/sections/AchievementsSection';
 import ContactSection from '../components/sections/ContactSection';
 import SkeletonLoader from '../components/common/SkeletonLoader';
 import { 
@@ -92,18 +93,20 @@ const HomePage = () => {
       {/* 5. CAREER TIMELINE */}
       <CareerRoadSection careerNodes={careerNodes} />
 
-      {/* 6. EXPERIENCE, ACHIEVEMENTS & CODING PROFILES */}
+      {/* 6. EXPERIENCE & CODING PROFILES */}
       <ExperienceSection 
         education={education} 
         experience={experience}
-        achievements={achievements}
         codingProfiles={codingProfiles}
       />
 
       {/* 7. CERTIFICATIONS */}
       <CertificationsSection certifications={certifications} />
 
-      {/* 8. CONTACT */}
+      {/* 8. ACHIEVEMENTS CAROUSEL */}
+      <AchievementsSection achievements={achievements} />
+
+      {/* 9. CONTACT */}
       <ContactSection email={profile.email} profile={profile} />
     </div>
   );

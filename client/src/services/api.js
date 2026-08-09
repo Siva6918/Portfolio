@@ -7,23 +7,36 @@ const SERVER_ORIGIN = API_BASE.replace(/\/api\/?$/, '');
 
 /**
  * Resolves a media path (like /uploads/file.jpg or uploads/file.jpg) into a full URL
- * pointing at the server. If the path is already an absolute URL or
- * a local public asset, it is returned unchanged.
+ * pointing at the server with optional timestamp cache-busting.
  */
-export const resolveMediaUrl = (path) => {
+export const resolveMediaUrl = (path, updatedAt) => {
   if (!path) return '';
-  // Already a full URL — leave it alone
-  if (path.startsWith('http://') || path.startsWith('https://')) return path;
   
-  // Normalize path with leading slash
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  // Data URIs don't need server origin or query strings
+  if (path.startsWith('data:')) return path;
   
-  // Server-hosted upload — prefix with server origin
-  if (normalizedPath.startsWith('/uploads/')) {
-    return `${SERVER_ORIGIN}${normalizedPath}`;
+  let resolved = path;
+  
+  if (!path.startsWith('http://') && !path.startsWith('https://')) {
+    // Normalize path with leading slash
+    const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+    
+    // Server-hosted upload — prefix with server origin
+    if (normalizedPath.startsWith('/uploads/')) {
+      resolved = `${SERVER_ORIGIN}${normalizedPath}`;
+    }
   }
-  
-  return path;
+
+  // Append cache-busting timestamp query string if updatedAt is provided
+  if (updatedAt && !resolved.startsWith('data:')) {
+    const timestamp = new Date(updatedAt).getTime();
+    if (!isNaN(timestamp) && timestamp > 0) {
+      const separator = resolved.includes('?') ? '&' : '?';
+      resolved = `${resolved}${separator}v=${timestamp}`;
+    }
+  }
+
+  return resolved;
 };
 
 const api = axios.create({

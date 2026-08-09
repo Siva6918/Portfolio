@@ -102,6 +102,7 @@ const AdminSpacePage = () => {
   const projectImgRef = useRef(null);
   const certImgRef = useRef(null);
   const skillLogoRef = useRef(null);
+  const achieveImgRef = useRef(null);
 
   useEffect(() => { fetchData(); }, []);
 
@@ -244,7 +245,12 @@ const AdminSpacePage = () => {
   // ── ACHIEVEMENTS ──────────────────────────────────────────────────────────
   const handleCreateAchievement = (e) => {
     e.preventDefault();
-    triggerMutation('Add Achievement', async (pwd) => { await createAchievement(achieveForm, pwd); });
+    triggerMutation('Add Achievement', async (pwd) => {
+      let payload = { ...achieveForm };
+      const imgFile = achieveImgRef.current?.files?.[0];
+      if (imgFile) payload.image = await uploadFile(imgFile, pwd);
+      await createAchievement(payload, pwd);
+    });
   };
   const handleUpdateAchievement = (id) => { triggerMutation('Update Achievement', async (pwd) => { await updateAchievement(id, editForm, pwd); }); };
   const handleDeleteAchievement = (id, title) => { triggerMutation('Delete: ' + title, async (pwd) => { await deleteAchievement(id, pwd); }); };
@@ -777,7 +783,16 @@ const AdminSpacePage = () => {
                   <div><label className={lbl}>Event / Competition Name *</label><input required type="text" className={inp} placeholder="Smart India Hackathon 2024" value={achieveForm.event} onChange={e => setAchieveForm(p => ({ ...p, event: e.target.value }))} /></div>
                   <div><label className={lbl}>Organisation / Host *</label><input type="text" className={inp} placeholder="RGMCET / AICTE / NASSCOM" value={achieveForm.organization} onChange={e => setAchieveForm(p => ({ ...p, organization: e.target.value }))} /></div>
                   <div><label className={lbl}>Year *</label><input required type="text" className={inp} placeholder="2025" value={achieveForm.year} onChange={e => setAchieveForm(p => ({ ...p, year: e.target.value }))} /></div>
-                  <div><label className={lbl}>Image URL (Optional)</label><input type="text" className={inp} placeholder="https://..." value={achieveForm.image} onChange={e => setAchieveForm(p => ({ ...p, image: e.target.value }))} /></div>
+                  <div>
+                    <label className={lbl}>Image (URL or File Upload)</label>
+                    <div className="flex items-center gap-2">
+                      <input type="text" className={inp} placeholder="https://..." value={achieveForm.image} onChange={e => setAchieveForm(p => ({ ...p, image: e.target.value }))} />
+                      <label className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#c084fc]/10 border border-[#c084fc]/30 text-[#c084fc] text-xs font-bold cursor-pointer hover:bg-[#c084fc]/20">
+                        <Upload className="w-3.5 h-3.5" /><span>Upload</span>
+                        <input type="file" ref={achieveImgRef} accept="image/*" className="hidden" />
+                      </label>
+                    </div>
+                  </div>
                 </div>
                 <div><label className={lbl}>Description</label><textarea rows={2} className={inp} value={achieveForm.description} onChange={e => setAchieveForm(p => ({ ...p, description: e.target.value }))} /></div>
               </FormCard>

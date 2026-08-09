@@ -1,12 +1,12 @@
 import React from 'react';
-import { Download, ArrowRight, Github, Linkedin, Mail } from 'lucide-react';
+import { Download, ArrowRight, Github, Linkedin, Mail, User } from 'lucide-react';
 import { resolveMediaUrl } from '../../services/api';
+import ImageWithFallback from '../common/ImageWithFallback';
 
 const HeroSection = ({ profile, resumeUrl }) => {
   const name = profile?.name || 'VENKATA SIVA REDDY';
   const role = profile?.role || 'Full Stack & Software Engineer';
   const shortBio = profile?.shortBio || 'B.Tech CSE Student (2023-2027) building production MERN applications, cloud backend architectures, and AI integrations.';
-  const avatarImage = resolveMediaUrl(profile?.profileImage) || '/Avatar.png';
 
   return (
     <section className="relative min-h-[80vh] flex items-center pt-12 pb-16 w-full">
@@ -102,10 +102,14 @@ const HeroSection = ({ profile, resumeUrl }) => {
               
               {/* Avatar */}
               <div className="relative w-64 h-64 sm:w-72 sm:h-72 rounded-full overflow-hidden border-2 border-[#27272a] bg-[#18181b]">
-                <img
-                  src={avatarImage}
+                <ImageWithFallback
+                  src={profile?.profileImage}
+                  fallbackSrc="/Avatar.png"
                   alt={name}
+                  updatedAt={profile?.updatedAt}
+                  fallbackIcon={User}
                   className="w-full h-full object-cover"
+                  containerClassName="w-full h-full"
                 />
               </div>
             </div>

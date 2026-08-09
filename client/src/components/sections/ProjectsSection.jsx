@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FolderGit2, ExternalLink, Github, ArrowUpRight, ChevronDown, ChevronUp } from 'lucide-react';
-import { resolveMediaUrl } from '../../services/api';
+import ImageWithFallback from '../common/ImageWithFallback';
 
 const ProjectsSection = ({ projects = [] }) => {
   const [showAll, setShowAll] = useState(false);
@@ -32,53 +32,61 @@ const ProjectsSection = ({ projects = [] }) => {
           {displayedProjects.map((project) => (
             <div
               key={project._id || project.slug}
-              className="glass-card rounded-xl overflow-hidden group hover:border-[#8b5cf6]/30 transition-all duration-300"
+              className="glass-card rounded-xl overflow-hidden group hover:border-[#8b5cf6]/30 transition-all duration-300 flex flex-col justify-between"
             >
-              {/* Thumbnail */}
-              <div className="relative aspect-[16/9] overflow-hidden bg-[#18181b]">
-                <img
-                  src={resolveMediaUrl(project.thumbnail) || 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800'}
-                  alt={project.title}
-                  className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#09090b]/80 via-transparent to-transparent" />
-                
-                {/* Category Badge */}
-                <div className="absolute top-3 left-3">
-                  <span className="px-2.5 py-1 rounded-md bg-[#09090b]/80 backdrop-blur-sm border border-[#27272a] text-[10px] font-mono text-[#c4b5fd] uppercase tracking-wider font-semibold">
-                    {project.category}
-                  </span>
+              <div>
+                {/* Thumbnail */}
+                <div className="relative aspect-[16/9] overflow-hidden bg-[#18181b]">
+                  <ImageWithFallback
+                    src={project.thumbnail}
+                    fallbackSrc="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800"
+                    alt={project.title}
+                    updatedAt={project.updatedAt}
+                    fallbackIcon={FolderGit2}
+                    className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+                    containerClassName="w-full h-full"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#09090b]/80 via-transparent to-transparent pointer-events-none" />
+                  
+                  {/* Category Badge */}
+                  <div className="absolute top-3 left-3">
+                    <span className="px-2.5 py-1 rounded-md bg-[#09090b]/80 backdrop-blur-sm border border-[#27272a] text-[10px] font-mono text-[#c4b5fd] uppercase tracking-wider font-semibold">
+                      {project.category}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="p-5 space-y-3">
+                  <h4 className="text-lg font-bold text-[#fafafa] group-hover:text-[#c4b5fd] transition-colors">
+                    {project.title}
+                  </h4>
+
+                  <p className="text-sm text-[#a1a1aa] leading-relaxed line-clamp-2">
+                    {project.shortDescription}
+                  </p>
+
+                  {/* Tech Chips */}
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {project.technologies?.slice(0, 6).map((tech) => (
+                      <span
+                        key={tech}
+                        className="px-2 py-0.5 rounded-md bg-[#18181b] text-[10px] font-mono text-[#a1a1aa] border border-[#27272a]"
+                      >
+                        {tech}
+                      </span>
+                    ))}
+                    {project.technologies?.length > 6 && (
+                      <span className="px-2 py-0.5 rounded-md bg-[#18181b] text-[10px] font-mono text-[#52525b] border border-[#27272a]">
+                        +{project.technologies.length - 6}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              {/* Content */}
-              <div className="p-5 space-y-3">
-                <h4 className="text-lg font-bold text-[#fafafa] group-hover:text-[#c4b5fd] transition-colors">
-                  {project.title}
-                </h4>
-
-                <p className="text-sm text-[#a1a1aa] leading-relaxed line-clamp-2">
-                  {project.shortDescription}
-                </p>
-
-                {/* Tech Chips */}
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  {project.technologies?.slice(0, 6).map((tech) => (
-                    <span
-                      key={tech}
-                      className="px-2 py-0.5 rounded-md bg-[#18181b] text-[10px] font-mono text-[#a1a1aa] border border-[#27272a]"
-                    >
-                      {tech}
-                    </span>
-                  ))}
-                  {project.technologies?.length > 6 && (
-                    <span className="px-2 py-0.5 rounded-md bg-[#18181b] text-[10px] font-mono text-[#52525b] border border-[#27272a]">
-                      +{project.technologies.length - 6}
-                    </span>
-                  )}
-                </div>
-
-                {/* Actions */}
+              {/* Actions */}
+              <div className="px-5 pb-5 pt-2">
                 <div className="flex items-center gap-2 pt-2 border-t border-[#27272a]">
                   <Link
                     to={`/projects/${project.slug}`}
@@ -113,6 +121,7 @@ const ProjectsSection = ({ projects = [] }) => {
                   )}
                 </div>
               </div>
+
             </div>
           ))}
         </div>
