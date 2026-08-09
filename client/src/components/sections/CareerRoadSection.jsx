@@ -1,5 +1,6 @@
 import React from 'react';
 import { GraduationCap, Cpu, Code2, FlaskConical, Briefcase, Rocket, Trophy, Target, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const iconMap = {
   GraduationCap, Cpu, Code2, FlaskConical, Briefcase, Rocket, Trophy, Target, Sparkles
@@ -77,7 +78,13 @@ const CareerRoadSection = ({ careerNodes = [] }) => {
       <div className="section-container">
         
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10"
+        >
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg bg-[#6366f1]/10 border border-[#6366f1]/20 flex items-center justify-center text-[#6366f1]">
               <Sparkles className="w-4.5 h-4.5" />
@@ -107,30 +114,43 @@ const CareerRoadSection = ({ careerNodes = [] }) => {
               Upcoming
             </span>
           </div>
-        </div>
+        </motion.div>
 
         {/* Vertical Timeline — Single Column */}
         <div className="relative max-w-2xl mx-auto">
           
           {/* Timeline Line */}
-          <div className="absolute left-5 top-0 bottom-0 w-px bg-[#27272a]" />
+          <motion.div
+            initial={{ scaleY: 0 }}
+            whileInView={{ scaleY: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute left-5 top-0 bottom-0 w-px bg-gradient-to-b from-[#6366f1] via-[#06b6d4] to-[#27272a] origin-top"
+          />
 
           <div className="space-y-6">
-            {roadNodes.map((node) => {
+            {roadNodes.map((node, idx) => {
               const IconComp = node.icon;
               const isActive = node.status === 'active';
               const isCompleted = node.status === 'completed';
               const isFuture = node.status === 'future';
 
               return (
-                <div key={node.id} className="relative flex items-start gap-5 pl-0">
+                <motion.div
+                  key={node.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true, margin: '-40px' }}
+                  transition={{ duration: 0.45, delay: idx * 0.06, ease: [0.16, 1, 0.3, 1] }}
+                  className="relative flex items-start gap-5 pl-0 group"
+                >
                   
                   {/* Timeline Dot */}
                   <div className="relative z-10 shrink-0">
                     <div
-                      className={`w-10 h-10 rounded-lg flex items-center justify-center border transition-all ${
+                      className={`w-10 h-10 rounded-lg flex items-center justify-center border transition-all duration-300 group-hover:scale-110 ${
                         isActive
-                          ? 'bg-[#06b6d4]/10 border-[#06b6d4]/40 text-[#06b6d4]'
+                          ? 'bg-[#06b6d4]/10 border-[#06b6d4]/40 text-[#06b6d4] shadow-[0_0_15px_rgba(6,182,212,0.3)]'
                           : isCompleted
                           ? 'bg-[#6366f1]/10 border-[#6366f1]/30 text-[#6366f1]'
                           : 'bg-[#18181b] border-[#27272a] text-[#52525b]'
@@ -141,7 +161,7 @@ const CareerRoadSection = ({ careerNodes = [] }) => {
                   </div>
 
                   {/* Content */}
-                  <div className={`flex-1 pb-1 ${isFuture ? 'opacity-50' : ''}`}>
+                  <div className={`flex-1 pb-1 ${isFuture ? 'opacity-60' : ''}`}>
                     <div className="flex items-center gap-2 mb-1">
                       <span className={`text-[11px] font-mono font-semibold ${
                         isActive ? 'text-[#06b6d4]' : isCompleted ? 'text-[#a5b4fc]' : 'text-[#52525b]'
@@ -154,12 +174,12 @@ const CareerRoadSection = ({ careerNodes = [] }) => {
                         </span>
                       )}
                     </div>
-                    <h4 className="text-sm font-bold text-[#fafafa]">{node.title}</h4>
+                    <h4 className="text-sm font-bold text-[#fafafa] group-hover:text-[#a5b4fc] transition-colors">{node.title}</h4>
                     <p className="text-xs text-[#a5b4fc] font-medium mt-0.5">{node.subtitle}</p>
                     <p className="text-xs text-[#71717a] mt-1 leading-relaxed">{node.desc}</p>
                   </div>
 
-                </div>
+                </motion.div>
               );
             })}
           </div>

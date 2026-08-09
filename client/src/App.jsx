@@ -7,6 +7,7 @@ import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import PortfolioBackground from './components/layout/PortfolioBackground';
 import AdminBackground from './components/layout/AdminBackground';
+import ScrollProgressBar from './components/common/ScrollProgressBar';
 
 import HomePage from './pages/HomePage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
@@ -36,6 +37,9 @@ function App() {
       <AuthProvider>
         <Router>
           <div className="relative min-h-screen flex flex-col bg-[#09090b] text-[#fafafa] font-sans transition-colors duration-300">
+            {/* Top Scroll Indicator */}
+            <ScrollProgressBar />
+
             {/* Scroll restoration on navigation */}
             <ScrollToTop />
 

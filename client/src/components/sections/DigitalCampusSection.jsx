@@ -1,5 +1,6 @@
 import React from 'react';
 import { User, Target, Cpu, GraduationCap, MapPin, ExternalLink } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const DigitalCampusSection = ({ profile, education = [] }) => {
   const longBio = profile?.longBio || 'Computer Science student capable of building scalable full-stack applications, designing robust backend architectures, and integrating AI/ML solutions into modern web platforms.';
@@ -14,7 +15,13 @@ const DigitalCampusSection = ({ profile, education = [] }) => {
       <div className="section-container">
         
         {/* Section Header */}
-        <div className="flex items-center gap-3 mb-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="flex items-center gap-3 mb-10"
+        >
           <div className="w-9 h-9 rounded-lg bg-[#6366f1]/10 border border-[#6366f1]/20 flex items-center justify-center text-[#6366f1]">
             <User className="w-4.5 h-4.5" />
           </div>
@@ -26,14 +33,20 @@ const DigitalCampusSection = ({ profile, education = [] }) => {
               About & Education
             </h3>
           </div>
-        </div>
+        </motion.div>
 
         {/* Two Column: Bio + Education */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           
           {/* Left: Bio */}
-          <div className="lg:col-span-7 space-y-5">
-            <div className="glass-card p-6 sm:p-7 rounded-xl space-y-5">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: '-50px' }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="lg:col-span-7 space-y-5"
+          >
+            <div className="glass-card p-6 sm:p-7 rounded-xl space-y-5 hover:border-[#6366f1]/40 transition-all">
               <p className="text-[15px] text-[#d4d4d8] leading-relaxed">
                 {longBio}
               </p>
@@ -56,22 +69,28 @@ const DigitalCampusSection = ({ profile, education = [] }) => {
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Right: Education + Metrics */}
-          <div className="lg:col-span-5 space-y-4">
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: '-50px' }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+            className="lg:col-span-5 space-y-4"
+          >
             
             {/* Quick Metrics Row */}
             <div className="grid grid-cols-3 gap-3">
-              <div className="glass-card p-4 rounded-xl text-center">
+              <div className="glass-card p-4 rounded-xl text-center hover:-translate-y-1 transition-transform duration-200">
                 <span className="block text-2xl font-bold text-[#6366f1] font-mono">{cgpa}</span>
                 <span className="block text-[10px] font-mono text-[#71717a] mt-0.5">CGPA</span>
               </div>
-              <div className="glass-card p-4 rounded-xl text-center">
+              <div className="glass-card p-4 rounded-xl text-center hover:-translate-y-1 transition-transform duration-200">
                 <span className="block text-2xl font-bold text-[#a5b4fc] font-mono">2027</span>
                 <span className="block text-[10px] font-mono text-[#71717a] mt-0.5">Graduation</span>
               </div>
-              <div className="glass-card p-4 rounded-xl text-center">
+              <div className="glass-card p-4 rounded-xl text-center hover:-translate-y-1 transition-transform duration-200">
                 <span className="block text-2xl font-bold text-[#10b981] font-mono">B.Tech</span>
                 <span className="block text-[10px] font-mono text-[#71717a] mt-0.5">CSE</span>
               </div>
@@ -79,10 +98,17 @@ const DigitalCampusSection = ({ profile, education = [] }) => {
 
             {/* Education Cards */}
             <div className="space-y-3">
-              {education.length > 0 ? education.map((edu) => {
+              {education.length > 0 ? education.map((edu, idx) => {
                 const targetUrl = edu.collegeUrl || (edu.college?.includes('Rajeev Gandhi') || edu.college?.includes('RGMCET') ? collegeUrl : null);
                 return (
-                  <div key={edu._id || edu.degree} className="glass-card p-5 rounded-xl space-y-2">
+                  <motion.div
+                    key={edu._id || edu.degree}
+                    initial={{ opacity: 0, y: 15 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: idx * 0.08, ease: [0.16, 1, 0.3, 1] }}
+                    className="glass-card p-5 rounded-xl space-y-2 hover:-translate-y-1 hover:border-[#6366f1]/40 transition-all duration-200"
+                  >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <GraduationCap className="w-4 h-4 text-[#a5b4fc]" />
@@ -117,10 +143,10 @@ const DigitalCampusSection = ({ profile, education = [] }) => {
                         )}
                       </span>
                     </div>
-                  </div>
+                  </motion.div>
                 );
               }) : (
-                <div className="glass-card p-5 rounded-xl space-y-2">
+                <div className="glass-card p-5 rounded-xl space-y-2 hover:-translate-y-1 transition-all duration-200">
                   <div className="flex items-center gap-2">
                     <GraduationCap className="w-4 h-4 text-[#a5b4fc]" />
                     <span className="text-xs font-mono font-semibold text-[#a5b4fc]">2023 — 2027</span>
@@ -144,7 +170,7 @@ const DigitalCampusSection = ({ profile, education = [] }) => {
               )}
             </div>
 
-          </div>
+          </motion.div>
 
         </div>
 

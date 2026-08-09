@@ -3,6 +3,7 @@ import {
   Cpu, Search, Sparkles, Brain, MessageSquare, 
   Users, Workflow, ShieldCheck, Lightbulb 
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { resolveMediaUrl } from '../../services/api';
 
 const defaultSoftSkills = [
@@ -39,7 +40,13 @@ const SkillsSection = ({ skills = [] }) => {
       <div className="section-container">
         
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8"
+        >
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg bg-[#10b981]/10 border border-[#10b981]/20 flex items-center justify-center text-[#10b981]">
               <Cpu className="w-4.5 h-4.5" />
@@ -62,10 +69,10 @@ const SkillsSection = ({ skills = [] }) => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search skills..."
-              className="w-full pl-9 pr-4 py-2 rounded-lg bg-[#18181b] border border-[#27272a] text-sm text-[#fafafa] focus:outline-none focus:border-[#3f3f46] placeholder:text-[#52525b]"
+              className="w-full pl-9 pr-4 py-2 rounded-lg bg-[#18181b] border border-[#27272a] text-sm text-[#fafafa] focus:outline-none focus:border-[#3f3f46] placeholder:text-[#52525b] transition-all"
             />
           </div>
-        </div>
+        </motion.div>
 
         {/* Category Filters */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-4 scrollbar-none mb-2">
@@ -73,9 +80,9 @@ const SkillsSection = ({ skills = [] }) => {
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-all ${
+              className={`px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-all duration-200 active:scale-95 ${
                 selectedCategory === cat
-                  ? 'bg-[#6366f1]/15 text-[#a5b4fc] border border-[#6366f1]/30'
+                  ? 'bg-[#6366f1]/15 text-[#a5b4fc] border border-[#6366f1]/30 shadow-[0_2px_12px_rgba(99,102,241,0.2)]'
                   : 'text-[#71717a] hover:text-[#a1a1aa] border border-transparent hover:border-[#27272a]'
               }`}
             >
@@ -89,12 +96,16 @@ const SkillsSection = ({ skills = [] }) => {
 
         {/* Skills Grid — Technical Stack */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5">
-          {filteredTechSkills.map((skill) => (
-            <div
+          {filteredTechSkills.map((skill, idx) => (
+            <motion.div
               key={skill._id || skill.name}
-              className="glass-card px-3.5 py-3 rounded-xl flex items-center gap-2.5 group hover:border-[#6366f1]/30 transition-all"
+              initial={{ opacity: 0, y: 15, scale: 0.95 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              viewport={{ once: true, margin: '-40px' }}
+              transition={{ duration: 0.35, delay: (idx % 12) * 0.035, ease: [0.16, 1, 0.3, 1] }}
+              className="glass-card px-3.5 py-3 rounded-xl flex items-center gap-2.5 group hover:-translate-y-1 hover:border-[#6366f1]/40 hover:shadow-[0_6px_20px_-5px_rgba(99,102,241,0.25)] transition-all duration-200"
             >
-              <div className="w-8 h-8 rounded-lg bg-[#0a0a0c] p-1.5 flex items-center justify-center shrink-0 border border-[#27272a]">
+              <div className="w-8 h-8 rounded-lg bg-[#0a0a0c] p-1.5 flex items-center justify-center shrink-0 border border-[#27272a] group-hover:border-[#6366f1]/30 transition-colors">
                 {skill.logo ? (
                   <img src={resolveMediaUrl(skill.logo)} alt={skill.name} className="w-5 h-5 object-contain" />
                 ) : (
@@ -109,7 +120,7 @@ const SkillsSection = ({ skills = [] }) => {
                   {skill.category}
                 </span>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
 
@@ -128,10 +139,14 @@ const SkillsSection = ({ skills = [] }) => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {databaseSoftSkills.length > 0 ? (
-              databaseSoftSkills.map((soft) => (
-                <div
+              databaseSoftSkills.map((soft, idx) => (
+                <motion.div
                   key={soft._id || soft.name}
-                  className="glass-card p-4 rounded-xl flex items-start gap-3 group hover:border-[#38bdf8]/30 transition-all"
+                  initial={{ opacity: 0, y: 15 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: idx * 0.05, ease: [0.16, 1, 0.3, 1] }}
+                  className="glass-card p-4 rounded-xl flex items-start gap-3 group hover:-translate-y-1 hover:border-[#38bdf8]/40 hover:shadow-[0_6px_20px_-5px_rgba(56,189,248,0.2)] transition-all duration-200"
                 >
                   <div className="w-8 h-8 rounded-lg bg-[#38bdf8]/10 border border-[#38bdf8]/20 text-[#38bdf8] flex items-center justify-center shrink-0 mt-0.5">
                     {soft.logo ? (
@@ -148,15 +163,19 @@ const SkillsSection = ({ skills = [] }) => {
                       {soft.description || soft.category || 'Professional Competency'}
                     </p>
                   </div>
-                </div>
+                </motion.div>
               ))
             ) : (
-              defaultSoftSkills.map((soft) => {
+              defaultSoftSkills.map((soft, idx) => {
                 const IconComp = soft.icon;
                 return (
-                  <div
+                  <motion.div
                     key={soft.title}
-                    className="glass-card p-4 rounded-xl flex items-start gap-3 group hover:border-[#38bdf8]/30 transition-all"
+                    initial={{ opacity: 0, y: 15 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: idx * 0.05, ease: [0.16, 1, 0.3, 1] }}
+                    className="glass-card p-4 rounded-xl flex items-start gap-3 group hover:-translate-y-1 hover:border-[#38bdf8]/40 hover:shadow-[0_6px_20px_-5px_rgba(56,189,248,0.2)] transition-all duration-200"
                   >
                     <div className="w-8 h-8 rounded-lg bg-[#38bdf8]/10 border border-[#38bdf8]/20 text-[#38bdf8] flex items-center justify-center shrink-0 mt-0.5">
                       <IconComp className="w-4 h-4" />
@@ -169,7 +188,7 @@ const SkillsSection = ({ skills = [] }) => {
                         {soft.desc}
                       </p>
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })
             )}

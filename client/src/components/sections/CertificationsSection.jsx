@@ -1,5 +1,6 @@
 import React from 'react';
 import { Award, ExternalLink, ShieldCheck } from 'lucide-react';
+import { motion } from 'framer-motion';
 import ImageWithFallback from '../common/ImageWithFallback';
 
 const CertificationsSection = ({ certifications = [] }) => {
@@ -8,7 +9,13 @@ const CertificationsSection = ({ certifications = [] }) => {
       <div className="section-container">
         
         {/* Header */}
-        <div className="flex items-center gap-3 mb-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="flex items-center gap-3 mb-10"
+        >
           <div className="w-9 h-9 rounded-lg bg-[#8b5cf6]/10 border border-[#8b5cf6]/20 flex items-center justify-center text-[#8b5cf6]">
             <Award className="w-4.5 h-4.5" />
           </div>
@@ -20,14 +27,18 @@ const CertificationsSection = ({ certifications = [] }) => {
               Certifications
             </h3>
           </div>
-        </div>
+        </motion.div>
 
         {/* Grid — 3 column desktop, 2 tablet, 1 mobile */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {certifications.map((cert) => (
-            <div
+          {certifications.map((cert, idx) => (
+            <motion.div
               key={cert._id || cert.title}
-              className="glass-card p-5 rounded-xl space-y-3 group hover:border-[#8b5cf6]/30 transition-all flex flex-col justify-between"
+              initial={{ opacity: 0, y: 20, scale: 0.96 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              viewport={{ once: true, margin: '-40px' }}
+              transition={{ duration: 0.45, delay: idx * 0.08, ease: [0.16, 1, 0.3, 1] }}
+              className="glass-card p-5 rounded-xl space-y-3 group hover:-translate-y-1.5 hover:border-[#8b5cf6]/40 hover:shadow-[0_12px_30px_-8px_rgba(139,92,246,0.2)] transition-all duration-300 flex flex-col justify-between"
             >
               <div className="space-y-3">
                 {/* Certificate Image if available */}
@@ -38,7 +49,7 @@ const CertificationsSection = ({ certifications = [] }) => {
                       alt={cert.title}
                       updatedAt={cert.updatedAt}
                       fallbackIcon={ShieldCheck}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
                       containerClassName="w-full h-full"
                     />
                   </div>
@@ -54,7 +65,7 @@ const CertificationsSection = ({ certifications = [] }) => {
                       {cert.title}
                     </h4>
                   </div>
-                  <div className="w-8 h-8 rounded-md bg-[#8b5cf6]/10 border border-[#8b5cf6]/15 flex items-center justify-center text-[#8b5cf6] shrink-0">
+                  <div className="w-8 h-8 rounded-md bg-[#8b5cf6]/10 border border-[#8b5cf6]/15 flex items-center justify-center text-[#8b5cf6] shrink-0 group-hover:scale-110 transition-transform">
                     <ShieldCheck className="w-4 h-4" />
                   </div>
                 </div>
@@ -89,14 +100,14 @@ const CertificationsSection = ({ certifications = [] }) => {
                     href={cert.credentialUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-1 text-[#a5b4fc] hover:text-[#c4b5fd] transition-colors font-semibold"
+                    className="flex items-center gap-1 text-[#a5b4fc] hover:text-[#c4b5fd] active:scale-95 transition-all font-semibold"
                   >
                     <span>Verify</span>
                     <ExternalLink className="w-3 h-3" />
                   </a>
                 )}
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
 

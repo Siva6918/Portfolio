@@ -12,6 +12,7 @@ import {
   Github,
   FileText
 } from "lucide-react";
+import { motion } from "framer-motion";
 
 const API_URL = (
   import.meta.env.VITE_API_URL || "/api"
@@ -155,7 +156,13 @@ const ContactSection = ({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           
           {/* Left Column: Direct Info & CTAs */}
-          <div className="lg:col-span-5 space-y-6">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: '-50px' }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="lg:col-span-5 space-y-6"
+          >
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-lg bg-[#6366f1]/10 border border-[#6366f1]/20 flex items-center justify-center text-[#6366f1]">
                 <MessageSquare className="w-4.5 h-4.5" />
@@ -176,11 +183,15 @@ const ContactSection = ({
 
             {/* Quick Contact Info */}
             <div className="space-y-2.5 pt-2">
-              <a
+              <motion.a
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: 0.1 }}
                 href={`mailto:${displayEmail}`}
-                className="glass-card p-4 rounded-xl flex items-center gap-3.5 group hover:border-[#6366f1]/40 transition-all"
+                className="glass-card p-4 rounded-xl flex items-center gap-3.5 group hover:-translate-y-1 hover:border-[#6366f1]/40 hover:shadow-[0_8px_25px_-5px_rgba(99,102,241,0.2)] transition-all duration-200"
               >
-                <div className="w-9 h-9 rounded-lg bg-[#6366f1]/10 border border-[#6366f1]/20 flex items-center justify-center text-[#6366f1] shrink-0">
+                <div className="w-9 h-9 rounded-lg bg-[#6366f1]/10 border border-[#6366f1]/20 flex items-center justify-center text-[#6366f1] shrink-0 group-hover:scale-110 transition-transform">
                   <Mail className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
@@ -189,15 +200,19 @@ const ContactSection = ({
                     {displayEmail}
                   </span>
                 </div>
-              </a>
+              </motion.a>
 
-              <a
+              <motion.a
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: 0.2 }}
                 href="https://www.linkedin.com/in/venkatasiva-reddy/"
                 target="_blank"
                 rel="noreferrer"
-                className="glass-card p-4 rounded-xl flex items-center gap-3.5 group hover:border-[#6366f1]/40 transition-all"
+                className="glass-card p-4 rounded-xl flex items-center gap-3.5 group hover:-translate-y-1 hover:border-[#06b6d4]/40 hover:shadow-[0_8px_25px_-5px_rgba(6,182,212,0.2)] transition-all duration-200"
               >
-                <div className="w-9 h-9 rounded-lg bg-[#06b6d4]/10 border border-[#06b6d4]/20 flex items-center justify-center text-[#06b6d4] shrink-0">
+                <div className="w-9 h-9 rounded-lg bg-[#06b6d4]/10 border border-[#06b6d4]/20 flex items-center justify-center text-[#06b6d4] shrink-0 group-hover:scale-110 transition-transform">
                   <Linkedin className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
@@ -206,15 +221,19 @@ const ContactSection = ({
                     linkedin.com/in/venkatasiva-reddy
                   </span>
                 </div>
-              </a>
+              </motion.a>
 
-              <a
+              <motion.a
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: 0.3 }}
                 href="https://github.com/vasanreddy"
                 target="_blank"
                 rel="noreferrer"
-                className="glass-card p-4 rounded-xl flex items-center gap-3.5 group hover:border-[#6366f1]/40 transition-all"
+                className="glass-card p-4 rounded-xl flex items-center gap-3.5 group hover:-translate-y-1 hover:border-[#8b5cf6]/40 hover:shadow-[0_8px_25px_-5px_rgba(139,92,246,0.2)] transition-all duration-200"
               >
-                <div className="w-9 h-9 rounded-lg bg-[#8b5cf6]/10 border border-[#8b5cf6]/20 flex items-center justify-center text-[#8b5cf6] shrink-0">
+                <div className="w-9 h-9 rounded-lg bg-[#8b5cf6]/10 border border-[#8b5cf6]/20 flex items-center justify-center text-[#8b5cf6] shrink-0 group-hover:scale-110 transition-transform">
                   <Github className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
@@ -223,13 +242,19 @@ const ContactSection = ({
                     github.com/vasanreddy
                   </span>
                 </div>
-              </a>
+              </motion.a>
             </div>
 
-          </div>
+          </motion.div>
 
           {/* Right Column: Clean Form */}
-          <div className="lg:col-span-7">
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: '-50px' }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
+            className="lg:col-span-7"
+          >
             <div className="glass-card p-6 sm:p-7 rounded-xl border border-[#27272a]">
               
               {status === "success" && (
@@ -268,7 +293,7 @@ const ContactSection = ({
                         onChange={handleChange}
                         placeholder="John Doe"
                         disabled={status === "loading"}
-                        className="w-full px-3.5 py-2.5 rounded-lg bg-[#18181b] border border-[#27272a] text-sm text-[#fafafa] placeholder:text-[#52525b] focus:outline-none focus:border-[#6366f1] disabled:opacity-50"
+                        className="w-full px-3.5 py-2.5 rounded-lg bg-[#18181b] border border-[#27272a] text-sm text-[#fafafa] placeholder:text-[#52525b] focus:outline-none focus:border-[#6366f1] disabled:opacity-50 transition-all"
                       />
                     </div>
 
@@ -285,7 +310,7 @@ const ContactSection = ({
                         onChange={handleChange}
                         placeholder="john@example.com"
                         disabled={status === "loading"}
-                        className="w-full px-3.5 py-2.5 rounded-lg bg-[#18181b] border border-[#27272a] text-sm text-[#fafafa] placeholder:text-[#52525b] focus:outline-none focus:border-[#6366f1] disabled:opacity-50"
+                        className="w-full px-3.5 py-2.5 rounded-lg bg-[#18181b] border border-[#27272a] text-sm text-[#fafafa] placeholder:text-[#52525b] focus:outline-none focus:border-[#6366f1] disabled:opacity-50 transition-all"
                       />
                     </div>
                   </div>
@@ -303,7 +328,7 @@ const ContactSection = ({
                       onChange={handleChange}
                       placeholder="Internship / Role Discussion"
                       disabled={status === "loading"}
-                      className="w-full px-3.5 py-2.5 rounded-lg bg-[#18181b] border border-[#27272a] text-sm text-[#fafafa] placeholder:text-[#52525b] focus:outline-none focus:border-[#6366f1] disabled:opacity-50"
+                      className="w-full px-3.5 py-2.5 rounded-lg bg-[#18181b] border border-[#27272a] text-sm text-[#fafafa] placeholder:text-[#52525b] focus:outline-none focus:border-[#6366f1] disabled:opacity-50 transition-all"
                     />
                   </div>
 
@@ -320,14 +345,14 @@ const ContactSection = ({
                       onChange={handleChange}
                       placeholder="Hi Venkata Siva Reddy, I'd like to connect regarding..."
                       disabled={status === "loading"}
-                      className="w-full px-3.5 py-2.5 rounded-lg bg-[#18181b] border border-[#27272a] text-sm text-[#fafafa] placeholder:text-[#52525b] focus:outline-none focus:border-[#6366f1] disabled:opacity-50 resize-none"
+                      className="w-full px-3.5 py-2.5 rounded-lg bg-[#18181b] border border-[#27272a] text-sm text-[#fafafa] placeholder:text-[#52525b] focus:outline-none focus:border-[#6366f1] disabled:opacity-50 resize-none transition-all"
                     />
                   </div>
 
                   <button
                     type="submit"
                     disabled={status === "loading"}
-                    className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-[#6366f1] text-white text-sm font-semibold hover:bg-[#7c3aed] transition-colors disabled:opacity-50"
+                    className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-[#6366f1] text-white text-sm font-semibold hover:bg-[#7c3aed] active:scale-[0.98] hover:shadow-[0_4px_20px_rgba(99,102,241,0.3)] transition-all duration-200 disabled:opacity-50"
                   >
                     {status === "loading" ? (
                       <>
@@ -345,7 +370,7 @@ const ContactSection = ({
               )}
 
             </div>
-          </div>
+          </motion.div>
 
         </div>
       </div>
