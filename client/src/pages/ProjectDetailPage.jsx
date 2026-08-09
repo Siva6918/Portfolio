@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Github, ExternalLink, ShieldCheck, CheckCircle2, Terminal } from 'lucide-react';
-import { getProjectBySlug } from '../services/api';
+import { getProjectBySlug, resolveMediaUrl } from '../services/api';
 import SkeletonLoader from '../components/common/SkeletonLoader';
 
 const ProjectDetailPage = () => {
@@ -109,7 +109,7 @@ const ProjectDetailPage = () => {
       {/* Thumbnail Banner */}
       <div className="w-full aspect-video rounded-3xl overflow-hidden glass-card border border-slate-700/80 shadow-2xl">
         <img
-          src={project.thumbnail || 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800'}
+          src={resolveMediaUrl(project.thumbnail) || 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800'}
           alt={project.title}
           className="w-full h-full object-cover"
         />

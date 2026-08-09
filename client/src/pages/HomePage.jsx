@@ -2,13 +2,10 @@ import React, { useEffect, useState } from 'react';
 import HeroSection from '../components/sections/HeroSection';
 import DigitalCampusSection from '../components/sections/DigitalCampusSection';
 import CareerRoadSection from '../components/sections/CareerRoadSection';
-import AboutSection from '../components/sections/AboutSection';
 import SkillsSection from '../components/sections/SkillsSection';
 import ProjectsSection from '../components/sections/ProjectsSection';
 import ExperienceSection from '../components/sections/ExperienceSection';
 import CertificationsSection from '../components/sections/CertificationsSection';
-import AchievementsSection from '../components/sections/AchievementsSection';
-import CodingPlatformsSection from '../components/sections/CodingPlatformsSection';
 import ContactSection from '../components/sections/ContactSection';
 import SkeletonLoader from '../components/common/SkeletonLoader';
 import { 
@@ -72,40 +69,42 @@ const HomePage = () => {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-20">
+      <div className="max-w-6xl mx-auto px-5 py-20">
         <SkeletonLoader count={3} />
       </div>
     );
   }
 
   return (
-    <div className="space-y-12">
-      {/* 1. HERO / DIGITAL SKY */}
+    <div className="space-y-4">
+      {/* 1. HERO */}
       <HeroSection profile={profile} resumeUrl={resumeUrl} />
 
-      {/* 2. 🏫 DIGITAL CAMPUS METAPHOR */}
-      <DigitalCampusSection
-        profile={profile}
-        skills={skills}
-        education={education}
-        experience={experience}
-        projects={projects}
-        certifications={certifications}
-        achievements={achievements}
-      />
+      {/* 2. ABOUT & EDUCATION */}
+      <DigitalCampusSection profile={profile} education={education} />
 
-      {/* 3. 🛣️ 3D PERSPECTIVE CAREER ROAD */}
+      {/* 3. SKILLS & TECH STACK */}
+      <SkillsSection skills={skills} />
+
+      {/* 4. FEATURED PROJECTS */}
+      <ProjectsSection projects={projects} />
+
+      {/* 5. CAREER TIMELINE */}
       <CareerRoadSection careerNodes={careerNodes} />
 
-      {/* 4. DETAILED SPECIFIC SECTIONS */}
-      <AboutSection profile={profile} />
-      <SkillsSection skills={skills} />
-      <ProjectsSection projects={projects} />
-      <ExperienceSection education={education} experience={experience} />
+      {/* 6. EXPERIENCE, ACHIEVEMENTS & CODING PROFILES */}
+      <ExperienceSection 
+        education={education} 
+        experience={experience}
+        achievements={achievements}
+        codingProfiles={codingProfiles}
+      />
+
+      {/* 7. CERTIFICATIONS */}
       <CertificationsSection certifications={certifications} />
-      <AchievementsSection achievements={achievements} />
-      <CodingPlatformsSection profiles={codingProfiles} />
-      <ContactSection email={profile.email || 'vasanreddy1331@gmail.com'} />
+
+      {/* 8. CONTACT */}
+      <ContactSection email={profile.email} profile={profile} />
     </div>
   );
 };

@@ -90,7 +90,7 @@ const AdminSpacePage = () => {
 
   const [profileForm, setProfileForm] = useState({});
   const [projectForm, setProjectForm] = useState({ title: '', category: 'Full Stack MERN', shortDescription: '', description: '', technologies: '', repositoryUrl: '', liveUrl: '', thumbnail: '', displayOrder: 0 });
-  const [skillForm, setSkillForm] = useState({ name: '', category: 'Languages & Core', proficiency: 'Intermediate', logo: '', percent: 80, displayOrder: 0 });
+  const [skillForm, setSkillForm] = useState({ name: '', category: 'Languages & Core', type: 'technical', proficiency: 'Intermediate', logo: '', percent: 80, displayOrder: 0, description: '' });
   const [educationForm, setEducationForm] = useState({ degree: 'B.Tech', branch: 'Computer Science and Engineering', college: 'RGMCET', startYear: '2023', endYear: '2027', cgpa: '8.1', percentage: '', description: '', displayOrder: 0 });
   const [certForm, setCertForm] = useState({ title: '', organization: '', issueDate: '', credentialUrl: '', credentialId: '', image: '', description: '', displayOrder: 0 });
   const [achieveForm, setAchieveForm] = useState({ title: '', rank: '1st', event: '', organization: 'RGMCET', year: '2025', description: '', image: '' });
@@ -114,7 +114,10 @@ const AdminSpacePage = () => {
         getCodingProfiles(), getCareerNodes()
       ]);
       const [profRes, projRes, skillRes, eduRes, certRes, achRes, expRes, resRes, codRes, carRes] = results;
-      if (profRes.status === 'fulfilled' && profRes.value?.data?.data) setProfile(profRes.value.data.data);
+      if (profRes.status === 'fulfilled' && profRes.value?.data?.data) {
+        setProfile(profRes.value.data.data);
+        setProfileForm(profRes.value.data.data);
+      }
       if (projRes.status === 'fulfilled' && projRes.value?.data?.data) setProjects(projRes.value.data.data);
       if (skillRes.status === 'fulfilled' && skillRes.value?.data?.data) setSkills(skillRes.value.data.data);
       if (eduRes.status === 'fulfilled' && eduRes.value?.data?.data) setEducation(eduRes.value.data.data);
@@ -168,7 +171,7 @@ const AdminSpacePage = () => {
   const handleSaveProfile = (e) => {
     e.preventDefault();
     triggerMutation('Update Profile', async (pwd) => {
-      let payload = { ...profileForm };
+      let payload = { ...profile, ...profileForm };
       const avatarFile = avatarRef.current?.files?.[0];
       if (avatarFile) payload.profileImage = await uploadFile(avatarFile, pwd);
       await updateProfile(payload, pwd);
@@ -548,8 +551,14 @@ const AdminSpacePage = () => {
             {showAddForm && (
               <FormCard onSubmit={handleCreateSkill} color="#c084fc" title="Add New Skill">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div><label className={lbl}>Skill Name *</label><input required type="text" className={inp} placeholder="React, Docker, Python..." value={skillForm.name} onChange={e => setSkillForm(p => ({ ...p, name: e.target.value }))} /></div>
-                  <div><label className={lbl}>Category *</label><input required type="text" className={inp} placeholder="Frontend / Backend / Cloud & DevOps" value={skillForm.category} onChange={e => setSkillForm(p => ({ ...p, category: e.target.value }))} /></div>
+                  <div><label className={lbl}>Skill Name *</label><input required type="text" className={inp} placeholder="React, Problem Solving..." value={skillForm.name} onChange={e => setSkillForm(p => ({ ...p, name: e.target.value }))} /></div>
+                  <div><label className={lbl}>Category *</label><input required type="text" className={inp} placeholder="Frontend / Soft Skills / Backend" value={skillForm.category} onChange={e => setSkillForm(p => ({ ...p, category: e.target.value }))} /></div>
+                  <div><label className={lbl}>Skill Type *</label>
+                    <select className={inp} value={skillForm.type || 'technical'} onChange={e => setSkillForm(p => ({ ...p, type: e.target.value }))}>
+                      <option value="technical">Technical Skill</option>
+                      <option value="soft">Soft Skill</option>
+                    </select>
+                  </div>
                   <div><label className={lbl}>Proficiency</label>
                     <select className={inp} value={skillForm.proficiency} onChange={e => setSkillForm(p => ({ ...p, proficiency: e.target.value }))}>
                       <option>Expert</option><option>Advanced</option><option>Intermediate</option><option>Beginner</option>
@@ -558,6 +567,7 @@ const AdminSpacePage = () => {
                   <div><label className={lbl}>Skill % (0–100)</label><input type="number" min="0" max="100" className={inp} value={skillForm.percent} onChange={e => setSkillForm(p => ({ ...p, percent: +e.target.value }))} /></div>
                   <div><label className={lbl}>Display Order</label><input type="number" className={inp} value={skillForm.displayOrder} onChange={e => setSkillForm(p => ({ ...p, displayOrder: +e.target.value }))} /></div>
                 </div>
+                <div><label className={lbl}>Description / Subtitle</label><input type="text" className={inp} placeholder="Brief detail about this skill..." value={skillForm.description || ''} onChange={e => setSkillForm(p => ({ ...p, description: e.target.value }))} /></div>
                 <div>
                   <label className={lbl}>Logo (URL or Upload)</label>
                   <div className="flex items-center gap-3">
@@ -579,15 +589,22 @@ const AdminSpacePage = () => {
                       <div className="grid grid-cols-2 gap-2">
                         <div><label className={lbl}>Name</label><input type="text" className={inp} value={editForm.name || ''} onChange={e => setEditForm(p => ({ ...p, name: e.target.value }))} /></div>
                         <div><label className={lbl}>Category</label><input type="text" className={inp} value={editForm.category || ''} onChange={e => setEditForm(p => ({ ...p, category: e.target.value }))} /></div>
+                        <div><label className={lbl}>Skill Type</label>
+                          <select className={inp} value={editForm.type || 'technical'} onChange={e => setEditForm(p => ({ ...p, type: e.target.value }))}>
+                            <option value="technical">Technical Skill</option>
+                            <option value="soft">Soft Skill</option>
+                          </select>
+                        </div>
                         <div><label className={lbl}>Proficiency</label>
                           <select className={inp} value={editForm.proficiency || 'Intermediate'} onChange={e => setEditForm(p => ({ ...p, proficiency: e.target.value }))}>
                             <option>Expert</option><option>Advanced</option><option>Intermediate</option><option>Beginner</option>
                           </select>
                         </div>
                         <div><label className={lbl}>% (0–100)</label><input type="number" min="0" max="100" className={inp} value={editForm.percent ?? 80} onChange={e => setEditForm(p => ({ ...p, percent: +e.target.value }))} /></div>
+                        <div><label className={lbl}>Order</label><input type="number" className={inp} value={editForm.displayOrder ?? 0} onChange={e => setEditForm(p => ({ ...p, displayOrder: +e.target.value }))} /></div>
                       </div>
+                      <div><label className={lbl}>Description</label><input type="text" className={inp} value={editForm.description || ''} onChange={e => setEditForm(p => ({ ...p, description: e.target.value }))} /></div>
                       <div><label className={lbl}>Logo URL</label><input type="text" className={inp} value={editForm.logo || ''} onChange={e => setEditForm(p => ({ ...p, logo: e.target.value }))} /></div>
-                      <div><label className={lbl}>Order</label><input type="number" className={inp} value={editForm.displayOrder ?? 0} onChange={e => setEditForm(p => ({ ...p, displayOrder: +e.target.value }))} /></div>
                       <EditActions onSave={() => handleUpdateSkill(skill._id)} onCancel={cancelEdit} />
                     </div>
                   ) : (
@@ -596,13 +613,21 @@ const AdminSpacePage = () => {
                         <div className="flex items-center gap-2">
                           {skill.logo && <img src={resolveMediaUrl(skill.logo)} alt={skill.name} className="w-7 h-7 rounded-lg object-contain border border-[#2d2d3a]" />}
                           <div>
-                            <span className="text-xs font-bold text-[#fafafa] block">{skill.name}</span>
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs font-bold text-[#fafafa] block">{skill.name}</span>
+                              <span className={`text-[9px] font-mono px-1.5 py-0.2 rounded font-bold uppercase ${skill.type === 'soft' ? 'bg-[#06b6d4]/20 text-[#06b6d4]' : 'bg-[#6366f1]/20 text-[#a5b4fc]'}`}>
+                                {skill.type === 'soft' ? 'Soft' : 'Tech'}
+                              </span>
+                            </div>
                             <span className="text-[10px] text-[#c084fc] font-mono">{skill.category}</span>
                           </div>
                         </div>
                         <ActionBtns onEdit={() => startEdit(skill)} onDelete={() => handleDeleteSkill(skill._id, skill.name)} />
                       </div>
                       <div>
+                        {skill.description && (
+                          <p className="text-[11px] text-[#a1a1aa] mb-1.5 line-clamp-1">{skill.description}</p>
+                        )}
                         <div className="flex justify-between text-[10px] font-mono mb-1">
                           <span className="text-[#a1a1aa]">{skill.proficiency}</span>
                           <span className="text-[#c084fc] font-bold">{skill.percent ?? 80}%</span>

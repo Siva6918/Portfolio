@@ -81,8 +81,10 @@ const updateProfile = async (req, res) => {
       Object.assign(profile, req.body);
     }
     await profile.save();
+    console.log('[Portfolio Controller] Profile updated successfully in MongoDB.');
     res.json({ success: true, data: profile, message: 'Profile updated successfully.' });
   } catch (err) {
+    console.error('[Portfolio Controller] Profile update error:', err.message);
     res.status(400).json({ success: false, message: err.message });
   }
 };

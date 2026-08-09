@@ -1,134 +1,119 @@
 import React from 'react';
-import { Download, ArrowRight, Github, Linkedin, Mail, Code2 } from 'lucide-react';
+import { Download, ArrowRight, Github, Linkedin, Mail } from 'lucide-react';
 import { resolveMediaUrl } from '../../services/api';
 
 const HeroSection = ({ profile, resumeUrl }) => {
   const name = profile?.name || 'VENKATA SIVA REDDY';
-  const role = profile?.role || 'FULL STACK & SOFTWARE ENGINEER';
+  const role = profile?.role || 'Full Stack & Software Engineer';
   const shortBio = profile?.shortBio || 'B.Tech CSE Student (2023-2027) building production MERN applications, cloud backend architectures, and AI integrations.';
   const avatarImage = resolveMediaUrl(profile?.profileImage) || '/Avatar.png';
-  const cgpa = profile?.cgpa || profile?.educationSummary?.cgpa || '8.1';
 
   return (
-    <section className="relative min-h-[85vh] flex items-center justify-center pt-10 pb-16 overflow-hidden w-full bg-transparent">
-      <div className="w-full max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12 z-10">
+    <section className="relative min-h-[80vh] flex items-center pt-12 pb-16 w-full">
+      <div className="section-container z-10">
         
-        {/* Asymmetric Split Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
           
-          {/* Text Content Column (Left) */}
-          <div className="lg:col-span-7 space-y-6 text-left">
+          {/* Text Column */}
+          <div className="lg:col-span-7 space-y-6">
             
-            {/* Status Pill (Emerald Green Pulse for Availability) */}
-            <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-[#121217] border border-[#2d2d3a] text-xs font-mono font-medium shadow-sm">
-              <span className="relative flex h-2.5 w-2.5">
+            {/* Availability Badge */}
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#10b981]/10 border border-[#10b981]/20 text-xs font-medium text-[#10b981]">
+              <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10b981] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#10b981]"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#10b981]"></span>
               </span>
-              <span className="font-bold text-[#fafafa]">Available for Software Engineering Internships & Roles</span>
+              <span>Open to Opportunities</span>
             </div>
 
-            {/* Name & Role Header */}
+            {/* Name */}
             <div className="space-y-2">
-              <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-[#fafafa] leading-[1.1]">
-                Hi, I'm <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#fafafa] via-[#c084fc] to-[#6366f1]">{name}</span>
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#fafafa] leading-[1.1]">
+                {name}
               </h1>
-              <p className="text-xl sm:text-2xl font-bold text-[#6366f1] font-mono tracking-tight flex items-center gap-2">
-                <Code2 className="w-6 h-6 text-[#6366f1] shrink-0" />
-                <span>{role}</span>
+              <p className="text-lg sm:text-xl font-semibold text-[#a5b4fc]">
+                {role}
               </p>
             </div>
 
-            {/* Short Bio */}
-            <p className="text-base sm:text-lg text-[#a1a1aa] leading-relaxed max-w-2xl font-medium">
+            {/* Bio */}
+            <p className="text-base text-[#a1a1aa] leading-relaxed max-w-xl">
               {shortBio}
             </p>
 
-            {/* Primary Action Buttons */}
-            <div className="flex flex-wrap items-center gap-4 pt-2">
+            {/* CTA Buttons */}
+            <div className="flex flex-wrap items-center gap-3 pt-1">
               <a
                 href="#projects"
-                className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-[#6366f1] text-[#fafafa] font-bold text-sm hover:bg-[#c084fc] transition-all hover:scale-105 shadow-[0_0_25px_rgba(99,102,241,0.4)]"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#6366f1] text-white text-sm font-semibold hover:bg-[#7c3aed] transition-colors"
               >
-                <span>Explore Projects</span>
-                <ArrowRight className="w-4 h-4 text-[#fafafa]" />
+                <span>View Projects</span>
+                <ArrowRight className="w-4 h-4" />
               </a>
 
               <a
-                href={resumeUrl || '/Venkata_Siva_Reddy_Resume.pdf'}
+                href={resolveMediaUrl(resumeUrl) || '/Venkata_Siva_Reddy_Resume.pdf'}
                 download="Venkata_Siva_Reddy_Resume.pdf"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-[#121217] hover:bg-[#1a1a22] text-[#fafafa] font-bold text-sm border border-[#2d2d3a] transition-all hover:scale-105"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#18181b] text-[#fafafa] text-sm font-semibold border border-[#27272a] hover:border-[#3f3f46] transition-colors"
               >
-                <Download className="w-4 h-4 text-[#6366f1]" />
-                <span>Download Resume</span>
+                <Download className="w-4 h-4 text-[#a5b4fc]" />
+                <span>Resume</span>
               </a>
             </div>
 
             {/* Social Links */}
-            <div className="flex items-center gap-5 pt-3">
-              <span className="text-xs uppercase font-mono text-[#a1a1aa] tracking-wider font-bold">Connect:</span>
-              <a href={profile?.github || "https://github.com/vasanreddy"} target="_blank" rel="noreferrer" className="text-[#a1a1aa] hover:text-[#06b6d4] transition-colors p-2.5 rounded-xl bg-[#121217] border border-[#2d2d3a] hover:border-[#6366f1]">
+            <div className="flex items-center gap-2 pt-2">
+              <a 
+                href={profile?.github || "https://github.com/vasanreddy"} 
+                target="_blank" 
+                rel="noreferrer" 
+                className="p-2.5 rounded-lg text-[#71717a] hover:text-[#fafafa] hover:bg-[#27272a]/50 transition-all"
+                aria-label="GitHub"
+              >
                 <Github className="w-5 h-5" />
               </a>
-              <a href={profile?.linkedin || "https://www.linkedin.com/in/venkatasiva-reddy/"} target="_blank" rel="noreferrer" className="text-[#a1a1aa] hover:text-[#06b6d4] transition-colors p-2.5 rounded-xl bg-[#121217] border border-[#2d2d3a] hover:border-[#6366f1]">
+              <a 
+                href={profile?.linkedin || "https://www.linkedin.com/in/venkatasiva-reddy/"} 
+                target="_blank" 
+                rel="noreferrer" 
+                className="p-2.5 rounded-lg text-[#71717a] hover:text-[#fafafa] hover:bg-[#27272a]/50 transition-all"
+                aria-label="LinkedIn"
+              >
                 <Linkedin className="w-5 h-5" />
               </a>
-              <a href={`mailto:${profile?.email || 'vasanreddy1331@gmail.com'}`} className="text-[#a1a1aa] hover:text-[#06b6d4] transition-colors p-2.5 rounded-xl bg-[#121217] border border-[#2d2d3a] hover:border-[#6366f1]">
+              <a 
+                href={`mailto:${profile?.email || 'vasanreddy1331@gmail.com'}`} 
+                className="p-2.5 rounded-lg text-[#71717a] hover:text-[#fafafa] hover:bg-[#27272a]/50 transition-all"
+                aria-label="Email"
+              >
                 <Mail className="w-5 h-5" />
               </a>
             </div>
 
           </div>
 
-          {/* Avatar Column (Right Side — Circular with Role Tags) */}
-          <div className="lg:col-span-5 flex justify-center relative">
-            <div className="relative group">
+          {/* Avatar Column */}
+          <div className="lg:col-span-5 flex justify-center">
+            <div className="relative">
+              {/* Subtle glow behind avatar */}
+              <div className="absolute -inset-4 rounded-full bg-gradient-to-br from-[#6366f1]/15 to-[#8b5cf6]/10 blur-2xl" />
               
-              {/* Outer Electric Glow Ring (circle) */}
-              <div className="absolute -inset-3 rounded-full bg-gradient-to-tr from-[#6366f1]/40 via-[#c084fc]/30 to-[#06b6d4]/40 blur-2xl opacity-70 group-hover:opacity-100 transition duration-700"></div>
-              
-              {/* Rotating Border Ring */}
-              <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#6366f1] via-[#c084fc] to-[#06b6d4] opacity-30 group-hover:opacity-60 transition duration-500" style={{ animation: 'spin 8s linear infinite' }}></div>
-              
-              {/* Circular Profile Image Container */}
-              <div className="relative w-72 h-72 sm:w-80 sm:h-80 rounded-full overflow-hidden bg-[#121217] p-1.5 border-2 border-[#2d2d3a] shadow-2xl">
+              {/* Avatar */}
+              <div className="relative w-64 h-64 sm:w-72 sm:h-72 rounded-full overflow-hidden border-2 border-[#27272a] bg-[#18181b]">
                 <img
                   src={avatarImage}
                   alt={name}
-                  className="w-full h-full object-cover rounded-full group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full object-cover"
                 />
               </div>
-
-              {/* Top-Right Tag — Role Badge */}
-              <div className="absolute -top-2 -right-2 sm:top-2 sm:-right-4 bg-[#121217]/95 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-[#6366f1]/50 shadow-[0_0_15px_rgba(99,102,241,0.3)] flex items-center gap-2 max-w-[180px] sm:max-w-[240px] z-20">
-                <Code2 className="w-3.5 h-3.5 text-[#6366f1] shrink-0" />
-                <span className="text-[10px] font-bold font-mono text-[#fafafa] uppercase tracking-wide truncate">
-                  {role}
-                </span>
-              </div>
-
-              {/* Bottom Center — CGPA Marker */}
-              <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-[#121217]/90 backdrop-blur-md px-4 py-2 rounded-2xl border border-[#6366f1]/40 shadow-2xl flex items-center gap-2.5 whitespace-nowrap z-20">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#6366f1] shrink-0"></span>
-                <span className="text-xs font-bold font-mono text-[#fafafa]">{cgpa} CGPA (B.Tech CSE)</span>
-              </div>
-
             </div>
           </div>
 
         </div>
 
       </div>
-
-      {/* CSS for spinning border */}
-      <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
     </section>
   );
 };

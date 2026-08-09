@@ -1,116 +1,188 @@
 import React from 'react';
-import { Briefcase, GraduationCap, Calendar, MapPin, ExternalLink } from 'lucide-react';
+import { Briefcase, GraduationCap, MapPin, Trophy, Code2, ExternalLink } from 'lucide-react';
 
-const ExperienceSection = ({ education = [], experience = [] }) => {
+const ExperienceSection = ({ education = [], experience = [], achievements = [], codingProfiles = [] }) => {
   return (
-    <section id="experience" className="py-20 relative w-full bg-transparent">
-      <div className="w-full max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12">
+    <section id="experience" className="py-16 relative w-full">
+      <div className="section-container">
         
-        {/* Section Heading */}
-        <div className="flex items-center gap-3 mb-16">
-          <div className="w-10 h-10 rounded-xl bg-purple-500/10 dark:bg-[#8b5cf6]/10 border border-purple-500/30 dark:border-[#8b5cf6]/30 flex items-center justify-center text-purple-700 dark:text-[#8b5cf6]">
-            <Briefcase className="w-5 h-5" />
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-10">
+          <div className="w-9 h-9 rounded-lg bg-[#f97316]/10 border border-[#f97316]/20 flex items-center justify-center text-[#f97316]">
+            <Briefcase className="w-4.5 h-4.5" />
           </div>
           <div>
-            <h2 className="text-xs uppercase font-mono font-bold tracking-widest text-purple-700 dark:text-[#8b5cf6]">
+            <h2 className="text-xs uppercase font-mono font-semibold tracking-widest text-[#fdba74]">
               Career & Education
             </h2>
-            <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-[#fafafa]">
-              Timeline & Qualifications
+            <h3 className="text-2xl font-bold text-[#fafafa]">
+              Experience & Qualifications
             </h3>
           </div>
         </div>
 
-        {/* Dual Timeline Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        {/* Two Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           
-          {/* Education Timeline */}
-          <div className="space-y-6">
-            <div className="flex items-center gap-3 border-b border-slate-200 dark:border-[#27272a] pb-4">
-              <GraduationCap className="w-5 h-5 text-sky-600 dark:text-[#38bdf8]" />
-              <h4 className="text-xl font-bold text-slate-900 dark:text-[#fafafa]">Education Journey</h4>
+          {/* Work Experience */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 pb-3 border-b border-[#27272a]">
+              <Briefcase className="w-4 h-4 text-[#f97316]" />
+              <h4 className="text-base font-bold text-[#fafafa]">Work Experience</h4>
             </div>
 
-            <div className="relative pl-6 border-l-2 border-slate-300 dark:border-[#8b5cf6]/30 space-y-8">
-              {education.map((edu) => (
-                <div key={edu._id || edu.degree} className="relative group">
-                  {/* Timeline Dot */}
-                  <div className="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full bg-slate-100 dark:bg-[#09090b] border-2 border-sky-500 dark:border-[#38bdf8] group-hover:scale-125 transition-transform"></div>
-
-                  <div className="glass-card p-6 rounded-2xl border border-slate-200 dark:border-[#27272a] space-y-2">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="text-xs font-mono font-bold text-sky-700 dark:text-[#38bdf8]">
-                        {edu.startYear} — {edu.endYear || 'Present'}
-                      </span>
-                      {edu.grade && (
-                        <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 dark:bg-[#34d399]/10 text-emerald-700 dark:text-[#34d399] border border-emerald-500/20 text-[10px] font-mono font-bold">
-                          {edu.grade}
-                        </span>
-                      )}
-                    </div>
-
-                    <h5 className="text-lg font-bold text-slate-900 dark:text-[#fafafa]">
-                      {edu.degree} {edu.branch && <span className="text-slate-700 dark:text-[#a1a1aa]">({edu.branch})</span>}
-                    </h5>
-
-                    <p className="text-xs font-bold text-slate-800 dark:text-[#a1a1aa] flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5" />
-                      <span>{edu.college}</span>
-                    </p>
-
-                    {edu.description && (
-                      <p className="text-xs text-slate-800 dark:text-[#a1a1aa] leading-relaxed pt-2 border-t border-slate-200 dark:border-[#27272a] font-medium">
-                        {edu.description}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Work / Practical Experience Timeline */}
-          <div className="space-y-6">
-            <div className="flex items-center gap-3 border-b border-slate-200 dark:border-[#27272a] pb-4">
-              <Briefcase className="w-5 h-5 text-orange-600 dark:text-[#f97316]" />
-              <h4 className="text-xl font-bold text-slate-900 dark:text-[#fafafa]">Experience & Roles</h4>
-            </div>
-
-            <div className="relative pl-6 border-l-2 border-slate-300 dark:border-[#8b5cf6]/30 space-y-8">
+            <div className="space-y-3">
               {experience.length > 0 ? (
                 experience.map((exp) => (
-                  <div key={exp._id || exp.role} className="relative group">
-                    <div className="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full bg-slate-100 dark:bg-[#09090b] border-2 border-orange-500 dark:border-[#f97316] group-hover:scale-125 transition-transform"></div>
-
-                    <div className="glass-card p-6 rounded-2xl border border-slate-200 dark:border-[#27272a] space-y-2">
-                      <div className="flex items-center justify-between text-xs font-mono font-bold text-orange-700 dark:text-[#f97316]">
-                        <span>{exp.startDate} — {exp.endDate || 'Present'}</span>
-                        <span className="capitalize">{exp.type}</span>
-                      </div>
-
-                      <h5 className="text-lg font-bold text-slate-900 dark:text-[#fafafa]">
-                        {exp.role} <span className="text-slate-800 dark:text-[#a1a1aa]">@ {exp.company}</span>
-                      </h5>
-
-                      <p className="text-xs text-slate-800 dark:text-[#a1a1aa] leading-relaxed pt-2 border-t border-slate-200 dark:border-[#27272a] font-medium">
-                        {exp.description}
-                      </p>
+                  <div key={exp._id || exp.role} className="glass-card p-5 rounded-xl space-y-2">
+                    <div className="flex items-center justify-between text-[11px] font-mono">
+                      <span className="font-semibold text-[#f97316]">
+                        {exp.startDate} — {exp.endDate || 'Present'}
+                      </span>
+                      <span className="text-[#52525b] capitalize">{exp.type}</span>
                     </div>
+
+                    <h5 className="text-sm font-bold text-[#fafafa]">
+                      {exp.role} <span className="text-[#a1a1aa] font-normal">@ {exp.company}</span>
+                    </h5>
+
+                    <p className="text-xs text-[#a1a1aa] leading-relaxed">
+                      {exp.description}
+                    </p>
+
+                    {exp.technologies && (
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {exp.technologies.map((tech) => (
+                          <span key={tech} className="px-2 py-0.5 rounded-md bg-[#18181b] text-[10px] font-mono text-[#71717a] border border-[#27272a]">
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))
               ) : (
-                <div className="glass-card p-6 rounded-2xl border border-slate-200 dark:border-[#27272a] space-y-3">
-                  <span className="text-xs font-mono font-bold text-orange-700 dark:text-[#f97316] block uppercase">Academic & Project Experience</span>
-                  <h5 className="text-lg font-bold text-slate-900 dark:text-[#fafafa]">Full Stack MERN Developer</h5>
-                  <p className="text-xs text-slate-800 dark:text-[#a1a1aa] leading-relaxed font-medium">
-                    Built 5+ production-grade MERN applications including authentication, admin CMS systems, state management, and cloud APIs. Focused on product-based software engineering benchmarks.
+                <div className="glass-card p-5 rounded-xl space-y-2">
+                  <span className="text-[11px] font-mono font-semibold text-[#f97316]">Academic & Project Experience</span>
+                  <h5 className="text-sm font-bold text-[#fafafa]">Full Stack MERN Developer</h5>
+                  <p className="text-xs text-[#a1a1aa] leading-relaxed">
+                    Built 5+ production-grade MERN applications with authentication, admin systems, state management, and cloud APIs.
                   </p>
                 </div>
               )}
             </div>
           </div>
 
+          {/* Education */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 pb-3 border-b border-[#27272a]">
+              <GraduationCap className="w-4 h-4 text-[#6366f1]" />
+              <h4 className="text-base font-bold text-[#fafafa]">Education</h4>
+            </div>
+
+            <div className="space-y-3">
+              {education.map((edu) => (
+                <div key={edu._id || edu.degree} className="glass-card p-5 rounded-xl space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-mono font-semibold text-[#a5b4fc]">
+                      {edu.startYear} — {edu.endYear || 'Present'}
+                    </span>
+                    {(edu.cgpa || edu.percentage || edu.grade) && (
+                      <span className="px-2 py-0.5 rounded-md bg-[#10b981]/10 text-[#10b981] text-[10px] font-mono font-bold border border-[#10b981]/20">
+                        {edu.cgpa ? `${edu.cgpa} CGPA` : edu.percentage || edu.grade}
+                      </span>
+                    )}
+                  </div>
+                  <h5 className="text-sm font-bold text-[#fafafa]">
+                    {edu.degree} {edu.branch && <span className="text-[#a1a1aa]">({edu.branch})</span>}
+                  </h5>
+                  <p className="text-xs text-[#71717a] flex items-center gap-1">
+                    <MapPin className="w-3 h-3" /> {edu.college}
+                  </p>
+                  {edu.description && (
+                    <p className="text-xs text-[#a1a1aa] leading-relaxed pt-1 border-t border-[#27272a]">
+                      {edu.description}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
         </div>
+
+        {/* Achievements & Coding Profiles — Compact Sub-sections */}
+        {(achievements.length > 0 || codingProfiles.length > 0) && (
+          <div className="mt-10 space-y-6">
+            
+            {/* Achievements */}
+            {achievements.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 pb-3 border-b border-[#27272a] mb-4">
+                  <Trophy className="w-4 h-4 text-[#c4b5fd]" />
+                  <h4 className="text-base font-bold text-[#fafafa]">Achievements</h4>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {achievements.map((item, idx) => (
+                    <div key={item._id || item.title} className="glass-card p-4 rounded-xl space-y-1.5 relative overflow-hidden">
+                      <span className="absolute -right-1 -bottom-2 text-5xl font-extrabold font-mono text-[#27272a]/30 select-none">
+                        {String(idx + 1).padStart(2, '0')}
+                      </span>
+                      <div className="flex items-center justify-between relative z-10">
+                        <span className="text-[10px] font-mono font-bold text-[#c4b5fd] px-2 py-0.5 rounded-md bg-[#8b5cf6]/10 border border-[#8b5cf6]/15">
+                          {item.rank}
+                        </span>
+                        <span className="text-[10px] font-mono text-[#52525b]">{item.year}</span>
+                      </div>
+                      <h5 className="text-xs font-bold text-[#fafafa] relative z-10">{item.title}</h5>
+                      <p className="text-[10px] text-[#71717a] relative z-10">{item.event}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Coding Profiles */}
+            {codingProfiles.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 pb-3 border-b border-[#27272a] mb-4">
+                  <Code2 className="w-4 h-4 text-[#38bdf8]" />
+                  <h4 className="text-base font-bold text-[#fafafa]">Coding Profiles</h4>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {codingProfiles.map((p) => (
+                    <div key={p._id || p.platform} className="glass-card p-4 rounded-xl space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h5 className="text-sm font-bold text-[#fafafa]">{p.platform}</h5>
+                        <a
+                          href={p.profileUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="p-1.5 rounded-md text-[#52525b] hover:text-[#38bdf8] transition-colors"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="text-center">
+                          <span className="text-lg font-bold text-[#38bdf8] font-mono">{p.problemsSolved}</span>
+                          <span className="block text-[9px] font-mono text-[#52525b]">Solved</span>
+                        </div>
+                        {p.rating && (
+                          <div className="text-center">
+                            <span className="text-sm font-bold text-[#c4b5fd] font-mono">{p.rating}</span>
+                            <span className="block text-[9px] font-mono text-[#52525b]">Rating</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+          </div>
+        )}
 
       </div>
     </section>

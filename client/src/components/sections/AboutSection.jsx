@@ -69,7 +69,7 @@ const AboutSection = ({ profile }) => {
                     <GraduationCap className="w-4 h-4 text-sky-600 dark:text-[#38bdf8]" /> College
                   </span>
                   <span className="font-bold text-right text-slate-900 dark:text-[#fafafa] max-w-[200px] truncate">
-                    RGMCET
+                    {profile?.college || 'RGMCET'}
                   </span>
                 </div>
 
@@ -77,21 +77,21 @@ const AboutSection = ({ profile }) => {
                   <span className="text-slate-800 dark:text-[#a1a1aa] font-medium flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-orange-600 dark:text-[#f97316]" /> Expected Graduation
                   </span>
-                  <span className="font-mono font-bold text-slate-900 dark:text-[#f97316]">2027</span>
+                  <span className="font-mono font-bold text-slate-900 dark:text-[#f97316]">{profile?.graduationYear || 2027}</span>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <span className="text-slate-800 dark:text-[#a1a1aa] font-medium flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-[#4ade80]" /> B.Tech CGPA
                   </span>
-                  <span className="font-mono font-bold text-emerald-700 dark:text-[#4ade80]">8.1</span>
+                  <span className="font-mono font-bold text-emerald-700 dark:text-[#4ade80]">{profile?.cgpa || '8.1'}</span>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <span className="text-slate-800 dark:text-[#a1a1aa] font-medium flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-blue-700 dark:text-[#38bdf8]" /> Location
                   </span>
-                  <span className="font-bold text-slate-900 dark:text-[#fafafa]">Andhra Pradesh, India</span>
+                  <span className="font-bold text-slate-900 dark:text-[#fafafa]">{profile?.location || 'Andhra Pradesh, India'}</span>
                 </div>
               </div>
             </div>

@@ -1,145 +1,164 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Sun, Moon, Menu, X, Terminal, ArrowLeft } from 'lucide-react';
-import { useTheme } from '../../context/ThemeContext';
+import { Menu, X, Terminal, ArrowLeft, Github, Linkedin, Download } from 'lucide-react';
 
-const Navbar = () => {
-  const { isDark, toggleTheme } = useTheme();
+const Navbar = ({ resumeUrl }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const isAdmin = location.pathname.startsWith('/admin');
 
   const navLinks = [
-    { name: 'Digital Campus', href: '/#digital-campus' },
-    { name: 'Career Road', href: '/#career-road' },
+    { name: 'About', href: '/#digital-campus' },
     { name: 'Skills', href: '/#skills' },
     { name: 'Projects', href: '/#projects' },
+    { name: 'Timeline', href: '/#career-road' },
     { name: 'Experience', href: '/#experience' },
-    { name: 'Certifications', href: '/#certifications' },
     { name: 'Contact', href: '/#contact' },
   ];
 
   return (
-    <header className="sticky top-0 z-50 glass-nav transition-colors w-full">
-      <div className="w-full max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12">
-        <div className="flex items-center justify-between h-20">
+    <header className="sticky top-0 z-50 glass-nav w-full">
+      <div className="section-container">
+        <div className="flex items-center justify-between h-16">
           
-          {/* Brand Logo & Name */}
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#6366f1] via-[#c084fc] to-[#06b6d4] p-[1px] group-hover:scale-105 transition-transform">
-              <div className="w-full h-full bg-[#09090b] rounded-[11px] flex items-center justify-center">
-                <Terminal className="w-5 h-5 text-[#6366f1]" />
-              </div>
+          {/* Brand */}
+          <Link to="/" className="flex items-center gap-2.5 group shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6366f1] to-[#8b5cf6] flex items-center justify-center">
+              <Terminal className="w-4 h-4 text-white" />
             </div>
-            <div>
-              <span className="font-bold text-lg tracking-tight text-[#fafafa] group-hover:text-[#6366f1] transition-colors">
+            <div className="hidden sm:block">
+              <span className="font-bold text-sm tracking-tight text-[#fafafa] group-hover:text-[#a5b4fc] transition-colors">
                 VENKATA SIVA REDDY
               </span>
-              <span className="block text-[10px] uppercase font-mono tracking-widest text-[#a1a1aa] font-bold">
-                Full Stack & Software Engineer
+              <span className="block text-[10px] font-mono text-[#71717a] tracking-wide">
+                Software Engineer
               </span>
             </div>
           </Link>
 
-          {/* Desktop Nav Links */}
-          <nav className="hidden md:flex items-center gap-6">
+          {/* Desktop Nav */}
+          <nav className="hidden lg:flex items-center gap-1">
             {!isAdmin ? (
               <>
                 {navLinks.map((link) => (
                   <a
                     key={link.name}
                     href={link.href}
-                    className="text-xs font-semibold text-[#a1a1aa] hover:text-[#fafafa] transition-colors"
+                    className="px-3 py-1.5 text-[13px] font-medium text-[#a1a1aa] hover:text-[#fafafa] transition-colors rounded-lg hover:bg-[#27272a]/50"
                   >
                     {link.name}
                   </a>
                 ))}
 
-                {/* My Space Admin Button */}
+                <div className="w-px h-5 bg-[#27272a] mx-2" />
+
+                <a
+                  href="https://github.com/vasanreddy"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="p-2 text-[#71717a] hover:text-[#fafafa] transition-colors"
+                  aria-label="GitHub"
+                >
+                  <Github className="w-4 h-4" />
+                </a>
+                <a
+                  href="https://www.linkedin.com/in/venkatasiva-reddy/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="p-2 text-[#71717a] hover:text-[#fafafa] transition-colors"
+                  aria-label="LinkedIn"
+                >
+                  <Linkedin className="w-4 h-4" />
+                </a>
+
                 <Link
                   to="/admin"
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-[#6366f1]/15 hover:bg-[#6366f1]/30 text-[#6366f1] border border-[#6366f1]/30 hover:border-[#6366f1] transition-all duration-300 shadow-[0_0_15px_rgba(99,102,241,0.2)] hover:shadow-[0_0_20px_rgba(99,102,241,0.4)]"
+                  className="ml-1 p-2 text-[#71717a] hover:text-[#6366f1] transition-colors"
+                  aria-label="Admin"
                 >
-                  <Terminal className="w-3.5 h-3.5" />
-                  <span>My Space</span>
+                  <Terminal className="w-4 h-4" />
                 </Link>
               </>
             ) : (
-              /* Return to Portfolio button */
               <Link
                 to="/"
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-[#6366f1]/10 hover:bg-[#6366f1]/20 text-[#6366f1] border border-[#6366f1]/30 transition-all duration-300"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#a1a1aa] hover:text-[#fafafa] transition-colors"
               >
-                <ArrowLeft className="w-4 h-4 text-[#6366f1]" />
-                <span>Return to Portfolio</span>
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to Portfolio</span>
               </Link>
             )}
-
-            {/* Theme Toggle */}
-            <button
-              onClick={toggleTheme}
-              aria-label="Toggle theme"
-              className="p-2 rounded-xl bg-[#121217] border border-[#2d2d3a] text-[#fafafa] hover:scale-105 transition-all duration-300"
-            >
-              {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-200" />}
-            </button>
           </nav>
 
           {/* Mobile Controls */}
-          <div className="flex md:hidden items-center gap-3">
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-lg bg-[#121217] text-[#fafafa]"
+          <div className="flex lg:hidden items-center gap-2">
+            <a
+              href="https://github.com/vasanreddy"
+              target="_blank"
+              rel="noreferrer"
+              className="p-2 text-[#71717a] hover:text-[#fafafa] transition-colors"
             >
-              {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-200" />}
-            </button>
+              <Github className="w-4 h-4" />
+            </a>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg bg-[#121217] text-[#fafafa]"
+              className="p-2 rounded-lg text-[#a1a1aa] hover:text-[#fafafa]"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
 
         </div>
       </div>
 
-      {/* Mobile Drawer Menu */}
+      {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden glass-modal border-t border-[#2d2d3a] px-6 py-6 space-y-4">
-          {!isAdmin ? (
-            <>
-              {navLinks.map((link) => (
-                <a
-                  key={link.name}
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block text-base font-bold text-[#a1a1aa] hover:text-[#fafafa] py-1"
-                >
-                  {link.name}
-                </a>
-              ))}
+        <div className="lg:hidden border-t border-[#27272a] bg-[#0a0a0c]/98 backdrop-blur-xl">
+          <div className="section-container py-4 space-y-1">
+            {!isAdmin ? (
+              <>
+                {navLinks.map((link) => (
+                  <a
+                    key={link.name}
+                    href={link.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block px-3 py-2.5 text-sm font-medium text-[#a1a1aa] hover:text-[#fafafa] hover:bg-[#27272a]/50 rounded-lg transition-colors"
+                  >
+                    {link.name}
+                  </a>
+                ))}
 
-              {/* My Space Mobile Button */}
+                <div className="h-px bg-[#27272a] my-2" />
+
+                <div className="flex items-center gap-3 px-3 py-2">
+                  <a
+                    href="https://www.linkedin.com/in/venkatasiva-reddy/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="p-2 text-[#71717a] hover:text-[#fafafa] transition-colors"
+                  >
+                    <Linkedin className="w-4 h-4" />
+                  </a>
+                  <Link
+                    to="/admin"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="p-2 text-[#71717a] hover:text-[#6366f1] transition-colors"
+                  >
+                    <Terminal className="w-4 h-4" />
+                  </Link>
+                </div>
+              </>
+            ) : (
               <Link
-                to="/admin"
+                to="/"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-[#6366f1]/15 text-[#6366f1] border border-[#6366f1]/30 font-bold text-sm mt-2"
+                className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-[#a1a1aa] hover:text-[#fafafa]"
               >
-                <Terminal className="w-4 h-4" />
-                <span>My Space</span>
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to Portfolio</span>
               </Link>
-            </>
-          ) : (
-            <Link
-              to="/"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-[#6366f1]/10 text-[#6366f1] border border-[#6366f1]/30 font-bold text-sm"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Return to Portfolio</span>
-            </Link>
-          )}
+            )}
+          </div>
         </div>
       )}
     </header>
