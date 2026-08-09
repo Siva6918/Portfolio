@@ -18,6 +18,7 @@ import {
   getResume, uploadResumeFile, uploadMedia, resolveMediaUrl
 } from '../services/api';
 import PasswordModal from '../components/common/PasswordModal';
+import { openPdfInNewTab } from '../utils/pdfHelpers';
 import Toast from '../components/common/Toast';
 
 // ─── Reusable input styling ─────────────────────────────────────────────
@@ -1015,7 +1016,15 @@ const AdminSpacePage = () => {
               <div>
                 <span className="text-xs font-mono text-[#a1a1aa] block">Currently Active</span>
                 <span className="text-base font-bold text-[#fafafa]">{resume.title || 'Venkata_Siva_Reddy_Resume.pdf'}</span>
-                {resume.url && <a href={resolveMediaUrl(resume.url)} target="_blank" rel="noreferrer" className="text-xs text-[#06b6d4] underline block mt-1">View Current Resume ↗</a>}
+                {resume.url && (
+                  <button
+                    type="button"
+                    onClick={() => openPdfInNewTab(resolveMediaUrl(resume.url))}
+                    className="text-xs text-[#06b6d4] underline block mt-1 hover:text-[#38bdf8] transition-colors"
+                  >
+                    View Current Resume PDF ↗
+                  </button>
+                )}
               </div>
               <label className="cursor-pointer flex items-center gap-2 px-5 py-3 rounded-xl bg-[#6366f1]/10 hover:bg-[#6366f1]/20 text-[#6366f1] border border-[#6366f1]/30 font-bold text-xs transition-all">
                 <Upload className="w-4 h-4" /><span>Upload New Resume PDF (Password Required)</span>

@@ -147,6 +147,13 @@ const uploadResumeHandler = async (req, res) => {
     });
     await newResume.save();
 
+    // Also synchronize profile document's resumeUrl field
+    let profile = await Profile.findOne();
+    if (profile) {
+      profile.resumeUrl = fileUrl;
+      await profile.save();
+    }
+
     res.status(201).json({ success: true, data: newResume, message: 'Resume uploaded successfully.' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

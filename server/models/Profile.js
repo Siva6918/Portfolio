@@ -18,6 +18,7 @@ const profileSchema = new mongoose.Schema({
   branch: { type: String, default: 'Computer Science and Engineering' },
   college: { type: String, default: 'Rajeev Gandhi Memorial College of Engineering and Technology' },
   collegeUrl: { type: String, default: 'https://www.rgmcet.edu.in/' },
+  resumeUrl: { type: String, default: '/Venkata_Siva_Reddy_Resume.pdf' },
   graduationYear: { type: Number, default: 2027 },
   cgpa: { type: Number, default: 8.1 }
 }, { timestamps: true });

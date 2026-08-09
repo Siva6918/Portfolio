@@ -1,12 +1,15 @@
 import React from 'react';
-import { Download, ArrowRight, Github, Linkedin, Mail, User } from 'lucide-react';
+import { Download, ArrowRight, Github, Linkedin, Mail, User, Eye } from 'lucide-react';
 import { resolveMediaUrl } from '../../services/api';
 import ImageWithFallback from '../common/ImageWithFallback';
+import { openPdfInNewTab, downloadPdf } from '../../utils/pdfHelpers';
 
 const HeroSection = ({ profile, resumeUrl }) => {
   const name = profile?.name || 'VENKATA SIVA REDDY';
   const role = profile?.role || 'Full Stack & Software Engineer';
   const shortBio = profile?.shortBio || 'B.Tech CSE Student (2023-2027) building production MERN applications, cloud backend architectures, and AI integrations.';
+
+  const activeResumeTarget = resolveMediaUrl(resumeUrl || profile?.resumeUrl) || '/Venkata_Siva_Reddy_Resume.pdf';
 
   return (
     <section className="relative min-h-[80vh] flex items-center pt-12 pb-16 w-full">
@@ -51,16 +54,27 @@ const HeroSection = ({ profile, resumeUrl }) => {
                 <ArrowRight className="w-4 h-4" />
               </a>
 
-              <a
-                href={resolveMediaUrl(resumeUrl) || '/Venkata_Siva_Reddy_Resume.pdf'}
-                download="Venkata_Siva_Reddy_Resume.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#18181b] text-[#fafafa] text-sm font-semibold border border-[#27272a] hover:border-[#3f3f46] transition-colors"
+              {/* View Resume Button */}
+              <button
+                type="button"
+                onClick={() => openPdfInNewTab(activeResumeTarget)}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#18181b] text-[#fafafa] text-sm font-semibold border border-[#27272a] hover:border-[#6366f1] hover:text-[#a5b4fc] transition-all"
+                aria-label="View Resume PDF in new tab"
+              >
+                <Eye className="w-4 h-4 text-[#a5b4fc]" />
+                <span>View Resume</span>
+              </button>
+
+              {/* Download Resume Button */}
+              <button
+                type="button"
+                onClick={() => downloadPdf(activeResumeTarget, 'Venkata_Siva_Reddy_Resume.pdf')}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#18181b] text-[#fafafa] text-sm font-semibold border border-[#27272a] hover:border-[#3f3f46] hover:text-[#fafafa] transition-all"
+                aria-label="Download Resume PDF"
               >
                 <Download className="w-4 h-4 text-[#a5b4fc]" />
-                <span>Resume</span>
-              </a>
+                <span>Download</span>
+              </button>
             </div>
 
             {/* Social Links */}
