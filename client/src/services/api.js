@@ -1,9 +1,22 @@
 import axios from 'axios';
 
-export const API_BASE = import.meta.env.VITE_API_URL || '/api';
+const rawApiUrl = import.meta.env.VITE_API_URL || '/api';
+export const API_BASE = rawApiUrl.endsWith('/api') ? rawApiUrl : `${rawApiUrl.replace(/\/+$/, '')}/api`;
 
 // Derive the server origin from the API base URL (strip trailing /api)
 const SERVER_ORIGIN = API_BASE.replace(/\/api\/?$/, '');
+
+/**
+ * Builds a clean, fully-qualified API URL for an endpoint path
+ */
+export const buildApiUrl = (endpoint) => {
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const base = API_BASE.replace(/\/+$/, '');
+  if (base.endsWith('/api') && cleanEndpoint.startsWith('/api/')) {
+    return `${base}${cleanEndpoint.substring(4)}`;
+  }
+  return `${base}${cleanEndpoint}`;
+};
 
 /**
  * Resolves a media path (like /uploads/file.jpg or uploads/file.jpg) into a full URL

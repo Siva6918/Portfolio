@@ -42,8 +42,12 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api', apiRoutes);
 
 // Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ status: 'OK', message: 'Venkata Siva Reddy Portfolio API is active.' });
+app.get(['/health', '/api/health'], (req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'portfolio-api',
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Global 404 handler for API

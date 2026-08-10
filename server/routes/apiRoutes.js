@@ -3,10 +3,23 @@ const router = express.Router();
 
 const { verifyAdminPasswordHandler } = require('../controllers/adminController');
 const portfolioController = require('../controllers/portfolioController');
+const aiController = require('../controllers/aiController');
 const { sendContactEmail } = require('../controllers/contactEmailController');
 const { requireAdminAuth } = require('../middleware/authMiddleware');
 const { adminVerifyLimiter } = require('../middleware/rateLimiter');
 const upload = require('../middleware/upload');
+
+// Health Check Endpoint
+router.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'portfolio-api',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// AI & NLP Question-Answering Endpoint
+router.post('/nlp/query', aiController.processNlpQuery);
 
 // Admin Verification
 router.post('/admin/verify', adminVerifyLimiter, verifyAdminPasswordHandler);
