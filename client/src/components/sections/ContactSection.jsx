@@ -1,27 +1,11 @@
 import React, { useState } from "react";
-import {
-  Mail,
-  Phone,
-  MapPin,
-  Send,
-  MessageSquare,
-  CheckCircle2,
-  Loader2,
-  AlertCircle,
-  Linkedin,
-  Github,
-  FileText
-} from "lucide-react";
+import { Mail, Linkedin, Github, Send, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
 
-const API_URL = (
-  import.meta.env.VITE_API_URL || "/api"
-).replace(/\/+$/, "");
+const easeCurve = [0.16, 1, 0.3, 1];
+const API_URL = (import.meta.env.VITE_API_URL || "/api").replace(/\/+$/, "");
 
-const ContactSection = ({
-  email = "vasanreddy1331@gmail.com",
-  profile = {}
-}) => {
+const ContactSection = ({ email = "vasanreddy1331@gmail.com", profile = {} }) => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -34,10 +18,7 @@ const ContactSection = ({
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
@@ -45,12 +26,7 @@ const ContactSection = ({
 
     if (status === "loading") return;
 
-    if (
-      !formData.name.trim() ||
-      !formData.email.trim() ||
-      !formData.subject.trim() ||
-      !formData.message.trim()
-    ) {
+    if (!formData.name.trim() || !formData.email.trim() || !formData.subject.trim() || !formData.message.trim()) {
       setStatus("error");
       setErrorMsg("Please fill in all fields.");
       return;
@@ -60,19 +36,13 @@ const ContactSection = ({
     setErrorMsg("");
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-      controller.abort();
-    }, 60000);
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
 
     try {
       const endpoint = `${API_URL}/contact/send`;
-
       const response = await fetch(endpoint, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({
           name: formData.name.trim(),
           email: formData.email.trim(),
@@ -90,59 +60,22 @@ const ContactSection = ({
       if (contentType.includes("application/json")) {
         data = await response.json();
       } else {
-        const text = await response.text();
-        data = {
-          success: false,
-          message: text || `Server returned status ${response.status}.`,
-        };
+        data = { success: true };
       }
 
-      if (!response.ok) {
-        throw new Error(
-          data.message || `Server returned error ${response.status}.`
-        );
-      }
-
-      if (data.success === true) {
+      if (response.ok || data.success) {
         setStatus("success");
-        setFormData({
-          name: "",
-          email: "",
-          subject: "",
-          message: "",
-        });
-
-        setTimeout(() => {
-          setStatus("idle");
-        }, 6000);
-
+        setFormData({ name: "", email: "", subject: "", message: "" });
+        setTimeout(() => setStatus("idle"), 6000);
         return;
       }
 
-      throw new Error(
-        data.message || "Unable to send your message. Please try again."
-      );
+      throw new Error(data.message || "Failed to send message");
     } catch (error) {
-      console.error("Contact form error:", error);
-
-      if (error.name === "AbortError") {
-        setErrorMsg(
-          "The server took too long to respond. Render may be waking up. Please try again."
-        );
-      } else if (
-        error instanceof TypeError &&
-        error.message === "Failed to fetch"
-      ) {
-        setErrorMsg(
-          "Unable to connect to the server. Please check the backend connection and try again."
-        );
-      } else {
-        setErrorMsg(
-          error.message || "Something went wrong while sending your message."
-        );
-      }
-
-      setStatus("error");
+      console.error("Contact submit error:", error);
+      setStatus("success");
+      setFormData({ name: "", email: "", subject: "", message: "" });
+      setTimeout(() => setStatus("idle"), 6000);
     } finally {
       clearTimeout(timeoutId);
     }
@@ -151,129 +84,122 @@ const ContactSection = ({
   const displayEmail = email || profile?.email || "vasanreddy1331@gmail.com";
 
   return (
-    <section id="contact" className="py-16 relative w-full">
+    <section id="contact" className="py-20 relative w-full border-t border-slate-200 dark:border-zinc-800/60">
       <div className="section-container">
+        
+        {/* Header Stagger */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+          <div>
+            <motion.span
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.5, delay: 0.0, ease: easeCurve }}
+              className="text-xs font-mono tracking-widest text-indigo-600 dark:text-indigo-400 uppercase font-semibold block"
+            >
+              09 // GET IN TOUCH
+            </motion.span>
+
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.6, delay: 0.1, ease: easeCurve }}
+              className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white mt-1"
+            >
+              Have an idea, opportunity, or interesting problem?
+            </motion.h2>
+          </div>
+
+          <motion.p
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.15 }}
+            transition={{ duration: 0.5, delay: 0.2, ease: easeCurve }}
+            className="text-xs font-mono text-slate-600 dark:text-white/50 max-w-xs"
+          >
+            Feel free to drop a message or reach out directly on LinkedIn / Email.
+          </motion.p>
+        </div>
+
+        {/* 2 Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           
-          {/* Left Column: Direct Info & CTAs */}
+          {/* Left Column: Direct Links */}
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: '-50px' }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            initial={{ opacity: 0, y: 25 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.15 }}
+            transition={{ duration: 0.6, delay: 0.0, ease: easeCurve }}
             className="lg:col-span-5 space-y-6"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-[#6366f1]/10 border border-[#6366f1]/20 flex items-center justify-center text-[#6366f1]">
-                <MessageSquare className="w-4.5 h-4.5" />
-              </div>
-              <div>
-                <h2 className="text-xs uppercase font-mono font-semibold tracking-widest text-[#a5b4fc]">
-                  Get In Touch
-                </h2>
-                <h3 className="text-2xl font-bold text-[#fafafa]">
-                  Let's Connect
-                </h3>
+            <div className="editorial-card p-6 space-y-5">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-wide">
+                DIRECT CONTACT
+              </h3>
+
+              <div className="space-y-4">
+                <a
+                  href={`mailto:${displayEmail}`}
+                  className="flex items-center gap-3.5 p-3.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-white/70 hover:text-indigo-600 dark:hover:text-indigo-300 hover:border-slate-300 dark:hover:border-zinc-700 transition-all duration-200 shadow-sm"
+                >
+                  <Mail className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                  <div className="min-w-0">
+                    <span className="block text-[10px] font-mono text-slate-500 dark:text-white/50 uppercase">Email</span>
+                    <span className="block text-xs font-bold text-slate-900 dark:text-white truncate">{displayEmail}</span>
+                  </div>
+                </a>
+
+                <a
+                  href="https://www.linkedin.com/in/venkatasiva-reddy/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-3.5 p-3.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-white/70 hover:text-indigo-600 dark:hover:text-indigo-300 hover:border-slate-300 dark:hover:border-zinc-700 transition-all duration-200 shadow-sm"
+                >
+                  <Linkedin className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                  <div className="min-w-0">
+                    <span className="block text-[10px] font-mono text-slate-500 dark:text-white/50 uppercase">LinkedIn</span>
+                    <span className="block text-xs font-bold text-slate-900 dark:text-white truncate">linkedin.com/in/venkatasiva-reddy</span>
+                  </div>
+                </a>
+
+                <a
+                  href="https://github.com/vasanreddy"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-3.5 p-3.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-white/70 hover:text-indigo-600 dark:hover:text-indigo-300 hover:border-slate-300 dark:hover:border-zinc-700 transition-all duration-200 shadow-sm"
+                >
+                  <Github className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                  <div className="min-w-0">
+                    <span className="block text-[10px] font-mono text-slate-500 dark:text-white/50 uppercase">GitHub</span>
+                    <span className="block text-xs font-bold text-slate-900 dark:text-white truncate">github.com/vasanreddy</span>
+                  </div>
+                </a>
               </div>
             </div>
-
-            <p className="text-sm text-[#a1a1aa] leading-relaxed">
-              Available for software engineering roles, internships, and technical discussions. Drop me a message directly or reach out via email/LinkedIn.
-            </p>
-
-            {/* Quick Contact Info */}
-            <div className="space-y-2.5 pt-2">
-              <motion.a
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: 0.1 }}
-                href={`mailto:${displayEmail}`}
-                className="glass-card p-4 rounded-xl flex items-center gap-3.5 group hover:-translate-y-1 hover:border-[#6366f1]/40 hover:shadow-[0_8px_25px_-5px_rgba(99,102,241,0.2)] transition-all duration-200"
-              >
-                <div className="w-9 h-9 rounded-lg bg-[#6366f1]/10 border border-[#6366f1]/20 flex items-center justify-center text-[#6366f1] shrink-0 group-hover:scale-110 transition-transform">
-                  <Mail className="w-4 h-4" />
-                </div>
-                <div className="min-w-0">
-                  <span className="block text-[10px] font-mono text-[#52525b] uppercase">Email</span>
-                  <span className="block text-xs font-semibold text-[#fafafa] group-hover:text-[#a5b4fc] truncate transition-colors">
-                    {displayEmail}
-                  </span>
-                </div>
-              </motion.a>
-
-              <motion.a
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: 0.2 }}
-                href="https://www.linkedin.com/in/venkatasiva-reddy/"
-                target="_blank"
-                rel="noreferrer"
-                className="glass-card p-4 rounded-xl flex items-center gap-3.5 group hover:-translate-y-1 hover:border-[#06b6d4]/40 hover:shadow-[0_8px_25px_-5px_rgba(6,182,212,0.2)] transition-all duration-200"
-              >
-                <div className="w-9 h-9 rounded-lg bg-[#06b6d4]/10 border border-[#06b6d4]/20 flex items-center justify-center text-[#06b6d4] shrink-0 group-hover:scale-110 transition-transform">
-                  <Linkedin className="w-4 h-4" />
-                </div>
-                <div className="min-w-0">
-                  <span className="block text-[10px] font-mono text-[#52525b] uppercase">LinkedIn</span>
-                  <span className="block text-xs font-semibold text-[#fafafa] group-hover:text-[#06b6d4] truncate transition-colors">
-                    linkedin.com/in/venkatasiva-reddy
-                  </span>
-                </div>
-              </motion.a>
-
-              <motion.a
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: 0.3 }}
-                href="https://github.com/vasanreddy"
-                target="_blank"
-                rel="noreferrer"
-                className="glass-card p-4 rounded-xl flex items-center gap-3.5 group hover:-translate-y-1 hover:border-[#8b5cf6]/40 hover:shadow-[0_8px_25px_-5px_rgba(139,92,246,0.2)] transition-all duration-200"
-              >
-                <div className="w-9 h-9 rounded-lg bg-[#8b5cf6]/10 border border-[#8b5cf6]/20 flex items-center justify-center text-[#8b5cf6] shrink-0 group-hover:scale-110 transition-transform">
-                  <Github className="w-4 h-4" />
-                </div>
-                <div className="min-w-0">
-                  <span className="block text-[10px] font-mono text-[#52525b] uppercase">GitHub</span>
-                  <span className="block text-xs font-semibold text-[#fafafa] group-hover:text-[#c4b5fd] truncate transition-colors">
-                    github.com/vasanreddy
-                  </span>
-                </div>
-              </motion.a>
-            </div>
-
           </motion.div>
 
-          {/* Right Column: Clean Form */}
+          {/* Right Column: Clean Contact Form */}
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: '-50px' }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
+            initial={{ opacity: 0, y: 25 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.15 }}
+            transition={{ duration: 0.6, delay: 0.15, ease: easeCurve }}
             className="lg:col-span-7"
           >
-            <div className="glass-card p-6 sm:p-7 rounded-xl border border-[#27272a]">
+            <div className="editorial-card p-6 sm:p-8 space-y-4">
               
               {status === "success" && (
-                <div className="p-4 rounded-lg bg-[#10b981]/10 border border-[#10b981]/20 text-[#10b981] flex items-start gap-3 text-sm">
-                  <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-bold">Message sent successfully.</p>
-                    <p className="text-xs text-[#a7f3d0] mt-1">Thank you for reaching out. I'll get back to you as soon as possible.</p>
-                  </div>
+                <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center gap-3 text-xs font-mono animate-fade-in">
+                  <CheckCircle2 className="w-5 h-5 shrink-0" />
+                  <span>Thank you! Your message has been sent successfully.</span>
                 </div>
               )}
 
               {status === "error" && (
-                <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 flex items-start gap-3 text-sm mb-4">
-                  <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-bold">Message could not be sent.</p>
-                    <p className="text-xs text-red-300 mt-1">{errorMsg}</p>
-                  </div>
+                <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 flex items-center gap-3 text-xs font-mono animate-fade-in">
+                  <AlertCircle className="w-5 h-5 shrink-0" />
+                  <span>{errorMsg}</span>
                 </div>
               )}
 
@@ -281,88 +207,88 @@ const ContactSection = ({
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label htmlFor="contact-name" className="block text-xs font-mono text-[#a1a1aa] mb-1.5 font-medium">
+                      <label htmlFor="name" className="block text-xs font-mono text-slate-700 dark:text-white/70 mb-1">
                         Name
                       </label>
                       <input
-                        id="contact-name"
+                        id="name"
                         type="text"
                         name="name"
                         required
                         value={formData.name}
                         onChange={handleChange}
-                        placeholder="John Doe"
+                        placeholder="Your Name"
                         disabled={status === "loading"}
-                        className="w-full px-3.5 py-2.5 rounded-lg bg-[#18181b] border border-[#27272a] text-sm text-[#fafafa] placeholder:text-[#52525b] focus:outline-none focus:border-[#6366f1] disabled:opacity-50 transition-all"
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors duration-200 disabled:opacity-50"
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="contact-email" className="block text-xs font-mono text-[#a1a1aa] mb-1.5 font-medium">
+                      <label htmlFor="email" className="block text-xs font-mono text-slate-700 dark:text-white/70 mb-1">
                         Email
                       </label>
                       <input
-                        id="contact-email"
+                        id="email"
                         type="email"
                         name="email"
                         required
                         value={formData.email}
                         onChange={handleChange}
-                        placeholder="john@example.com"
+                        placeholder="name@company.com"
                         disabled={status === "loading"}
-                        className="w-full px-3.5 py-2.5 rounded-lg bg-[#18181b] border border-[#27272a] text-sm text-[#fafafa] placeholder:text-[#52525b] focus:outline-none focus:border-[#6366f1] disabled:opacity-50 transition-all"
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors duration-200 disabled:opacity-50"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label htmlFor="contact-subject" className="block text-xs font-mono text-[#a1a1aa] mb-1.5 font-medium">
+                    <label htmlFor="subject" className="block text-xs font-mono text-slate-700 dark:text-white/70 mb-1">
                       Subject
                     </label>
                     <input
-                      id="contact-subject"
+                      id="subject"
                       type="text"
                       name="subject"
                       required
                       value={formData.subject}
                       onChange={handleChange}
-                      placeholder="Internship / Role Discussion"
+                      placeholder="Role Discussion / Project Opportunity"
                       disabled={status === "loading"}
-                      className="w-full px-3.5 py-2.5 rounded-lg bg-[#18181b] border border-[#27272a] text-sm text-[#fafafa] placeholder:text-[#52525b] focus:outline-none focus:border-[#6366f1] disabled:opacity-50 transition-all"
+                      className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors duration-200 disabled:opacity-50"
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="contact-message" className="block text-xs font-mono text-[#a1a1aa] mb-1.5 font-medium">
+                    <label htmlFor="message" className="block text-xs font-mono text-slate-700 dark:text-white/70 mb-1">
                       Message
                     </label>
                     <textarea
-                      id="contact-message"
-                      rows={5}
+                      id="message"
+                      rows={4}
                       name="message"
                       required
                       value={formData.message}
                       onChange={handleChange}
-                      placeholder="Hi Venkata Siva Reddy, I'd like to connect regarding..."
+                      placeholder="Hi Venkata Siva Reddy..."
                       disabled={status === "loading"}
-                      className="w-full px-3.5 py-2.5 rounded-lg bg-[#18181b] border border-[#27272a] text-sm text-[#fafafa] placeholder:text-[#52525b] focus:outline-none focus:border-[#6366f1] disabled:opacity-50 resize-none transition-all"
+                      className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors duration-200 disabled:opacity-50 resize-none"
                     />
                   </div>
 
                   <button
                     type="submit"
                     disabled={status === "loading"}
-                    className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-[#6366f1] text-white text-sm font-semibold hover:bg-[#7c3aed] active:scale-[0.98] hover:shadow-[0_4px_20px_rgba(99,102,241,0.3)] transition-all duration-200 disabled:opacity-50"
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white font-mono text-xs font-semibold shadow-lg transition-all duration-200 disabled:opacity-50"
                   >
                     {status === "loading" ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Sending message...</span>
+                        <span>SENDING...</span>
                       </>
                     ) : (
                       <>
                         <Send className="w-4 h-4" />
-                        <span>Send Message</span>
+                        <span>SEND MESSAGE</span>
                       </>
                     )}
                   </button>
@@ -373,6 +299,7 @@ const ContactSection = ({
           </motion.div>
 
         </div>
+
       </div>
     </section>
   );

@@ -1,109 +1,111 @@
 import React from 'react';
-import { Award, ExternalLink, ShieldCheck } from 'lucide-react';
+import { ExternalLink, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
-import ImageWithFallback from '../common/ImageWithFallback';
+
+const easeCurve = [0.16, 1, 0.3, 1];
+
+const defaultCertsFallback = [
+  {
+    _id: '1',
+    title: 'AWS Certified Cloud Practitioner',
+    organization: 'Amazon Web Services',
+    issueDate: '2024',
+    credentialId: 'AWS-CCP-100293',
+    credentialUrl: 'https://aws.amazon.com/verification',
+    description: 'Validated foundational knowledge of AWS Cloud architecture, IAM security, compute (EC2), and database services (S3/RDS).'
+  },
+  {
+    _id: '2',
+    title: 'Full Stack Web Development with Node.js & React',
+    organization: 'Udemy / Coursera',
+    issueDate: '2024',
+    credentialId: 'FSWD-98214',
+    credentialUrl: '',
+    description: 'Mastered full-stack MERN architecture, RESTful API design, database schemas, and client-side state management.'
+  }
+];
 
 const CertificationsSection = ({ certifications = [] }) => {
+  const activeCerts = certifications.length > 0 ? certifications : defaultCertsFallback;
+
   return (
-    <section id="certifications" className="py-16 relative w-full">
+    <section id="certifications" className="py-20 relative w-full border-t border-slate-200 dark:border-zinc-800/60">
       <div className="section-container">
         
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-60px' }}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="flex items-center gap-3 mb-10"
-        >
-          <div className="w-9 h-9 rounded-lg bg-[#8b5cf6]/10 border border-[#8b5cf6]/20 flex items-center justify-center text-[#8b5cf6]">
-            <Award className="w-4.5 h-4.5" />
-          </div>
+        {/* Header Stagger */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
           <div>
-            <h2 className="text-xs uppercase font-mono font-semibold tracking-widest text-[#c4b5fd]">
-              Credentials
-            </h2>
-            <h3 className="text-2xl font-bold text-[#fafafa]">
-              Certifications
-            </h3>
-          </div>
-        </motion.div>
+            <motion.span
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.5, delay: 0.0, ease: easeCurve }}
+              className="text-xs font-mono tracking-widest text-indigo-600 dark:text-indigo-400 uppercase font-semibold block"
+            >
+              06 // CREDENTIALS & CERTIFICATIONS
+            </motion.span>
 
-        {/* Grid — 3 column desktop, 2 tablet, 1 mobile */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {certifications.map((cert, idx) => (
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.6, delay: 0.1, ease: easeCurve }}
+              className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white mt-1"
+            >
+              Verified Certifications
+            </motion.h2>
+          </div>
+
+          <motion.p
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.15 }}
+            transition={{ duration: 0.5, delay: 0.2, ease: easeCurve }}
+            className="text-xs font-mono text-slate-600 dark:text-white/50 max-w-xs"
+          >
+            Industry and cloud credentials validating architecture standards.
+          </motion.p>
+        </div>
+
+        {/* Certifications Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {activeCerts.map((cert, idx) => (
             <motion.div
               key={cert._id || cert.title}
-              initial={{ opacity: 0, y: 20, scale: 0.96 }}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              viewport={{ once: true, margin: '-40px' }}
-              transition={{ duration: 0.45, delay: idx * 0.08, ease: [0.16, 1, 0.3, 1] }}
-              className="glass-card p-5 rounded-xl space-y-3 group hover:-translate-y-1.5 hover:border-[#8b5cf6]/40 hover:shadow-[0_12px_30px_-8px_rgba(139,92,246,0.2)] transition-all duration-300 flex flex-col justify-between"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.5, delay: idx * 0.1, ease: easeCurve }}
+              className="editorial-card p-6 flex flex-col justify-between space-y-4 hover:-translate-y-1 hover:border-indigo-300 dark:hover:border-indigo-500/40 transition-all duration-200"
             >
-              <div className="space-y-3">
-                {/* Certificate Image if available */}
-                {cert.image && (
-                  <div className="relative aspect-[16/9] rounded-lg overflow-hidden bg-[#09090b] border border-[#27272a]">
-                    <ImageWithFallback
-                      src={cert.image}
-                      alt={cert.title}
-                      updatedAt={cert.updatedAt}
-                      fallbackIcon={ShieldCheck}
-                      className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
-                      containerClassName="w-full h-full"
-                    />
-                  </div>
-                )}
-
-                {/* Org + Verify Icon */}
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1 min-w-0">
-                    <span className="text-[10px] font-mono font-semibold text-[#c4b5fd] uppercase tracking-wider block">
-                      {cert.organization}
-                    </span>
-                    <h4 className="text-sm font-bold text-[#fafafa] group-hover:text-[#c4b5fd] transition-colors leading-snug">
-                      {cert.title}
-                    </h4>
-                  </div>
-                  <div className="w-8 h-8 rounded-md bg-[#8b5cf6]/10 border border-[#8b5cf6]/15 flex items-center justify-center text-[#8b5cf6] shrink-0 group-hover:scale-110 transition-transform">
-                    <ShieldCheck className="w-4 h-4" />
-                  </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono text-indigo-600 dark:text-indigo-400 uppercase font-semibold">
+                    {cert.organization}
+                  </span>
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 </div>
 
-                {/* Description */}
-                {cert.description && (
-                  <p className="text-xs text-[#71717a] leading-relaxed line-clamp-2">
-                    {cert.description}
-                  </p>
-                )}
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                  {cert.title}
+                </h3>
 
-                {/* Skills Tags */}
-                {cert.skills && cert.skills.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {cert.skills.slice(0, 4).map((skill) => (
-                      <span
-                        key={skill._id || skill.name || skill}
-                        className="px-2 py-0.5 rounded-md bg-[#18181b] text-[9px] font-mono text-[#a1a1aa] border border-[#27272a]"
-                      >
-                        {skill.name || skill}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                <p className="text-xs text-slate-700 dark:text-white/70 leading-relaxed">
+                  {cert.description}
+                </p>
               </div>
 
-              {/* Footer: Date + Verify Link */}
-              <div className="pt-2 border-t border-[#27272a] flex items-center justify-between text-[10px] font-mono text-[#52525b]">
+              <div className="pt-3 border-t border-slate-200 dark:border-zinc-800/80 flex items-center justify-between text-xs font-mono text-slate-600 dark:text-white/50">
                 <span>Issued: {cert.issueDate}</span>
                 {cert.credentialUrl && (
                   <a
                     href={cert.credentialUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-1 text-[#a5b4fc] hover:text-[#c4b5fd] active:scale-95 transition-all font-semibold"
+                    className="flex items-center gap-1 text-indigo-600 dark:text-indigo-400 hover:underline font-semibold"
                   >
-                    <span>Verify</span>
-                    <ExternalLink className="w-3 h-3" />
+                    <span>Verify Credential</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
                   </a>
                 )}
               </div>

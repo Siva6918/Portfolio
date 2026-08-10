@@ -1,279 +1,114 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Trophy, ChevronLeft, ChevronRight, ExternalLink, Award, Sparkles } from 'lucide-react';
-import ImageWithFallback from '../common/ImageWithFallback';
+import React from 'react';
+import { motion } from 'framer-motion';
+
+const easeCurve = [0.16, 1, 0.3, 1];
+
+const defaultAchievementsFallback = [
+  {
+    _id: '1',
+    title: '1st Rank - College Kaggle Competition',
+    rank: '1st Rank',
+    event: 'Annual Kaggle Data Science & Machine Learning Hackathon',
+    organization: 'Rajeev Gandhi Memorial College of Engineering and Technology',
+    year: '2026',
+    description: 'Secured top place by engineering high-accuracy predictive models and data preprocessing pipelines.'
+  },
+  {
+    _id: '2',
+    title: '2nd Rank - College Web Development Event',
+    rank: '2nd Rank',
+    event: 'WebTech Hackathon & UI Engineering Challenge',
+    organization: 'Rajeev Gandhi Memorial College of Engineering and Technology',
+    year: '2025',
+    description: 'Developed an interactive, high-performance web platform under strict time constraints.'
+  },
+  {
+    _id: '3',
+    title: '2nd Rank - College Coding Event',
+    rank: '2nd Rank',
+    event: 'Algorithmic Coding & Problem Solving Contest',
+    organization: 'Rajeev Gandhi Memorial College of Engineering and Technology',
+    year: '2024',
+    description: 'Solved complex Data Structures and Algorithm challenges within competitive speed benchmarks.'
+  }
+];
 
 const AchievementsSection = ({ achievements = [] }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStartX, setDragStartX] = useState(0);
-  const [dragOffset, setDragOffset] = useState(0);
-  const [visibleCount, setVisibleCount] = useState(3);
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-
-  const containerRef = useRef(null);
-
-  // Responsive items per view
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 640) {
-        setVisibleCount(1);
-      } else if (window.innerWidth < 1024) {
-        setVisibleCount(2);
-      } else {
-        setVisibleCount(3);
-      }
-    };
-
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // Check prefers-reduced-motion
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setPrefersReducedMotion(mediaQuery.matches);
-
-    const handleChange = (e) => setPrefersReducedMotion(e.matches);
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
-
-  const totalItems = achievements.length;
-  const maxIndex = Math.max(0, totalItems - visibleCount);
-
-  // Next Slide
-  const nextSlide = useCallback(() => {
-    if (totalItems === 0) return;
-    setCurrentIndex((prevIndex) => (prevIndex >= maxIndex ? 0 : prevIndex + 1));
-  }, [totalItems, maxIndex]);
-
-  // Prev Slide
-  const prevSlide = useCallback(() => {
-    if (totalItems === 0) return;
-    setCurrentIndex((prevIndex) => (prevIndex <= 0 ? maxIndex : prevIndex - 1));
-  }, [totalItems, maxIndex]);
-
-  // Auto-slide timer (4 seconds)
-  useEffect(() => {
-    if (isPaused || prefersReducedMotion || totalItems <= visibleCount) return;
-
-    const timer = setInterval(() => {
-      nextSlide();
-    }, 4000);
-
-    return () => clearInterval(timer);
-  }, [isPaused, prefersReducedMotion, totalItems, visibleCount, nextSlide]);
-
-  // Touch & Drag Handling
-  const handleTouchStart = (e) => {
-    setIsPaused(true);
-    setIsDragging(true);
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    setDragStartX(clientX);
-    setDragOffset(0);
-  };
-
-  const handleTouchMove = (e) => {
-    if (!isDragging) return;
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const deltaX = clientX - dragStartX;
-    setDragOffset(deltaX);
-  };
-
-  const handleTouchEnd = () => {
-    if (!isDragging) return;
-    const threshold = 40; // minimum drag distance in px
-    if (dragOffset < -threshold) {
-      nextSlide();
-    } else if (dragOffset > threshold) {
-      prevSlide();
-    }
-    setIsDragging(false);
-    setDragOffset(0);
-    setIsPaused(false);
-  };
-
-  // Keyboard navigation
-  const handleKeyDown = (e) => {
-    if (e.key === 'ArrowLeft') {
-      prevSlide();
-    } else if (e.key === 'ArrowRight') {
-      nextSlide();
-    }
-  };
-
-  if (totalItems === 0) return null;
+  const activeItems = achievements.length > 0 ? achievements : defaultAchievementsFallback;
 
   return (
-    <section 
-      id="achievements" 
-      className="py-16 relative w-full overflow-hidden"
-      aria-label="Achievements Showcase"
-    >
+    <section id="achievements" className="py-20 relative w-full border-t border-slate-200 dark:border-zinc-800/60">
       <div className="section-container">
         
-        {/* Header with Navigation Controls */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-[#c084fc]/10 border border-[#c084fc]/20 flex items-center justify-center text-[#c084fc]">
-              <Trophy className="w-4.5 h-4.5" />
-            </div>
-            <div>
-              <h2 className="text-xs uppercase font-mono font-semibold tracking-widest text-[#c084fc]">
-                Recognition & Honors
-              </h2>
-              <h3 className="text-2xl font-bold text-[#fafafa]">
-                Achievements & Hackathons
-              </h3>
-            </div>
+        {/* Header Stagger */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+          <div>
+            <motion.span
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.5, delay: 0.0, ease: easeCurve }}
+              className="text-xs font-mono tracking-widest text-indigo-600 dark:text-indigo-400 uppercase font-semibold block"
+            >
+              07 // RECOGNITION & HONORS
+            </motion.span>
+
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.6, delay: 0.1, ease: easeCurve }}
+              className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white mt-1"
+            >
+              Achievements & Competition Ranks
+            </motion.h2>
           </div>
 
-          {/* Prev / Next Buttons */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={prevSlide}
-              aria-label="Previous Achievement"
-              className="p-2 rounded-lg bg-[#18181b] border border-[#27272a] text-[#a1a1aa] hover:text-[#fafafa] hover:border-[#6366f1] transition-all"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              onClick={nextSlide}
-              aria-label="Next Achievement"
-              className="p-2 rounded-lg bg-[#18181b] border border-[#27272a] text-[#a1a1aa] hover:text-[#fafafa] hover:border-[#6366f1] transition-all"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-
-        {/* Carousel Outer Wrapper */}
-        <div
-          ref={containerRef}
-          tabIndex={0}
-          onKeyDown={handleKeyDown}
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => {
-            if (!isDragging) setIsPaused(false);
-          }}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onMouseDown={handleTouchStart}
-          onMouseMove={handleTouchMove}
-          onMouseUp={handleTouchEnd}
-          className="relative w-full overflow-hidden focus:outline-none select-none cursor-grab active:cursor-grabbing"
-          aria-roledescription="carousel"
-          role="region"
-        >
-          {/* Carousel Track */}
-          <div
-            className="flex transition-transform duration-500 ease-out"
-            style={{
-              transform: `translateX(calc(-${currentIndex * (100 / visibleCount)}% + ${dragOffset}px))`,
-              transitionProperty: isDragging ? 'none' : 'transform'
-            }}
+          <motion.p
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.15 }}
+            transition={{ duration: 0.5, delay: 0.2, ease: easeCurve }}
+            className="text-xs font-mono text-slate-600 dark:text-white/50 max-w-xs"
           >
-            {achievements.map((item, idx) => (
-              <div
-                key={item._id || idx}
-                className="shrink-0 px-2.5"
-                style={{ width: `${100 / visibleCount}%` }}
-              >
-                <div className="glass-card p-5 rounded-2xl border border-[#27272a] hover:border-[#c084fc]/40 transition-all duration-300 h-full flex flex-col justify-between group space-y-4 relative overflow-hidden">
-                  
-                  {/* Top Row: Image / Icon + Rank & Year */}
-                  <div className="space-y-3">
-                    <div className="relative aspect-[16/9] rounded-xl overflow-hidden bg-[#09090b] border border-[#27272a]">
-                      {item.image ? (
-                        <ImageWithFallback
-                          src={item.image}
-                          alt={item.title}
-                          updatedAt={item.updatedAt}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          containerClassName="w-full h-full"
-                          fallbackIcon={Trophy}
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#c084fc]/10 to-[#6366f1]/10 text-[#c084fc]">
-                          <Trophy className="w-8 h-8" />
-                        </div>
-                      )}
-
-                      {/* Rank Tag */}
-                      <div className="absolute top-2 left-2">
-                        <span className="px-2.5 py-0.5 rounded-full bg-[#09090b]/85 backdrop-blur-sm border border-[#c084fc]/30 text-[10px] font-mono font-bold text-[#c084fc] uppercase">
-                          {item.rank || 'Honor'}
-                        </span>
-                      </div>
-
-                      {/* Year Badge */}
-                      <div className="absolute top-2 right-2">
-                        <span className="px-2 py-0.5 rounded-full bg-[#09090b]/85 backdrop-blur-sm border border-[#27272a] text-[10px] font-mono text-[#a1a1aa]">
-                          {item.year}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Title & Event */}
-                    <div>
-                      <h4 className="text-base font-bold text-[#fafafa] group-hover:text-[#c084fc] transition-colors leading-snug line-clamp-1">
-                        {item.title}
-                      </h4>
-                      <p className="text-xs font-medium text-[#a5b4fc] mt-0.5 line-clamp-1">
-                        {item.event} {item.organization ? `• ${item.organization}` : ''}
-                      </p>
-                    </div>
-
-                    {/* Description */}
-                    {item.description && (
-                      <p className="text-xs text-[#a1a1aa] leading-relaxed line-clamp-2">
-                        {item.description}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Optional Credential / Link Button */}
-                  {(item.link || item.certificate) && (
-                    <div className="pt-2 border-t border-[#27272a] flex items-center justify-end">
-                      <a
-                        href={item.link || item.certificate}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#a5b4fc] hover:text-[#c084fc] transition-colors"
-                        aria-label={`View details for ${item.title}`}
-                      >
-                        <span>View Details</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    </div>
-                  )}
-
-                </div>
-              </div>
-            ))}
-          </div>
+            Hackathons, competitive algorithmic contests, and data science competitions.
+          </motion.p>
         </div>
 
-        {/* Pagination Dots */}
-        {totalItems > visibleCount && (
-          <div className="flex items-center justify-center gap-1.5 mt-6" aria-label="Carousel Pagination">
-            {Array.from({ length: maxIndex + 1 }).map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => setCurrentIndex(idx)}
-                aria-label={`Go to slide ${idx + 1}`}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  currentIndex === idx
-                    ? 'w-6 bg-[#c084fc]'
-                    : 'w-2 bg-[#27272a] hover:bg-[#52525b]'
-                }`}
-              />
-            ))}
-          </div>
-        )}
+        {/* Editorial Achievements Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {activeItems.map((item, idx) => (
+            <motion.div
+              key={item._id || item.title || idx}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.5, delay: idx * 0.1, ease: easeCurve }}
+              className="editorial-card p-6 flex flex-col justify-between space-y-4 hover:-translate-y-1 hover:border-amber-400 dark:hover:border-amber-500/40 transition-all duration-200 relative overflow-hidden"
+            >
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-300 font-mono text-xs font-bold">
+                    {item.rank}
+                  </span>
+                  <span className="text-xs font-mono text-slate-500 dark:text-white/50">{item.year}</span>
+                </div>
+
+                <h3 className="text-base font-bold text-slate-900 dark:text-white leading-snug">
+                  {item.title}
+                </h3>
+
+                <p className="text-xs text-slate-700 dark:text-white/70 leading-relaxed">
+                  {item.description}
+                </p>
+              </div>
+
+              <div className="pt-3 border-t border-slate-200 dark:border-zinc-800/80 text-[11px] font-mono text-slate-500 dark:text-white/50">
+                <span>{item.event}</span>
+              </div>
+            </motion.div>
+          ))}
+        </div>
 
       </div>
     </section>

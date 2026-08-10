@@ -1,162 +1,241 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FolderGit2, ExternalLink, Github, ArrowUpRight, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowUpRight, Github, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ImageWithFallback from '../common/ImageWithFallback';
+
+const easeCurve = [0.16, 1, 0.3, 1];
+
+const defaultProjectsFallback = [
+  {
+    _id: '1',
+    title: 'NutriCloud Monitor',
+    slug: 'nutricloud-monitor',
+    shortDescription: 'Real-time behavioral intelligence platform for abnormal activity detection and security threat scoring.',
+    problem: 'Traditional security relies on rigid static rules that fail to catch anomalous browsing patterns and credential stuffing.',
+    solution: 'Built a real-time behavioral engine with Next.js, FastAPI, and Redis computing live risk scores from clickstream events.',
+    features: ['JWT IP Tracking', 'Real-time Anomaly Scoring', 'Live Admin Risk Dashboard', 'Suspicious Session Lockout'],
+    technologies: ['Next.js', 'Node.js', 'Express', 'MongoDB', 'Redis', 'FastAPI', 'Python', 'AWS'],
+    category: 'Full Stack / Security / AI',
+    thumbnail: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800',
+    repositoryUrl: 'https://github.com/vasanreddy/NutriCloudMonitor',
+    liveUrl: ''
+  },
+  {
+    _id: '2',
+    title: 'DocSpot Appointment Booking',
+    slug: 'docspot-appointment-booking',
+    shortDescription: 'Full-stack healthcare platform for specialist doctor search, schedule management, and instant booking.',
+    problem: 'Patients face complex processes when finding specialist doctors and scheduling appointments without instant feedback.',
+    solution: 'Created an interactive booking ecosystem with real-time slot availability, Socket.io notifications, and patient record management.',
+    features: ['Specialist Category Filter', 'Interactive Date & Slot Selector', 'Doctor & Patient Portals', 'Socket.io Alerts'],
+    technologies: ['React', 'Node.js', 'Express', 'MongoDB', 'Socket.io', 'Tailwind CSS'],
+    category: 'Healthcare / Full Stack',
+    thumbnail: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=800',
+    repositoryUrl: 'https://github.com/vasanreddy/DocSpot',
+    liveUrl: ''
+  },
+  {
+    _id: '3',
+    title: 'Candidate Rank System',
+    slug: 'candidate-rank-system',
+    shortDescription: 'AI-driven candidate evaluation system using natural language processing to extract and rank applicant profiles.',
+    problem: 'HR teams spend excessive manual hours reviewing resume PDFs without structured metric comparison.',
+    solution: 'Created an intelligent parsing pipeline with spaCy NLP that calculates weighted keyword relevance and presents ranked leaderboards.',
+    features: ['Resume Parsing via spaCy NLP', 'Job Requirement Keyword Matching', 'Applicant Leaderboard', 'Detailed Skill Gap Analysis'],
+    technologies: ['Next.js', 'TypeScript', 'Node.js', 'Express', 'MongoDB', 'Python', 'spaCy'],
+    category: 'Recruitment / AI / NLP',
+    thumbnail: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=800',
+    repositoryUrl: 'https://github.com/vasanreddy/CandidateRankSystem',
+    liveUrl: ''
+  }
+];
 
 const ProjectsSection = ({ projects = [] }) => {
   const [showAll, setShowAll] = useState(false);
 
-  const displayedProjects = showAll ? projects : projects.slice(0, 4);
+  const activeProjects = projects.length > 0 ? projects : defaultProjectsFallback;
+  const displayedProjects = showAll ? activeProjects : activeProjects.slice(0, 3);
 
   return (
-    <section id="projects" className="py-16 relative w-full">
+    <section id="projects" className="py-20 relative w-full border-t border-slate-200 dark:border-zinc-800/60">
       <div className="section-container">
         
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-60px' }}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="flex items-center gap-3 mb-10"
-        >
-          <div className="w-9 h-9 rounded-lg bg-[#8b5cf6]/10 border border-[#8b5cf6]/20 flex items-center justify-center text-[#8b5cf6]">
-            <FolderGit2 className="w-4.5 h-4.5" />
-          </div>
+        {/* Section Header Stagger */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-4">
           <div>
-            <h2 className="text-xs uppercase font-mono font-semibold tracking-widest text-[#c4b5fd]">
-              Selected Work
-            </h2>
-            <h3 className="text-2xl font-bold text-[#fafafa]">
-              Featured Projects
-            </h3>
-          </div>
-        </motion.div>
-
-        {/* Projects Grid — 2 column on desktop */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          {displayedProjects.map((project, idx) => (
-            <motion.div
-              key={project._id || project.slug}
-              initial={{ opacity: 0, y: 25, scale: 0.97 }}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              viewport={{ once: true, margin: '-50px' }}
-              transition={{ duration: 0.5, delay: idx * 0.08, ease: [0.16, 1, 0.3, 1] }}
-              className="glass-card rounded-xl overflow-hidden group hover:-translate-y-1.5 hover:border-[#8b5cf6]/40 hover:shadow-[0_12px_40px_-10px_rgba(139,92,246,0.22)] transition-all duration-300 flex flex-col justify-between"
+            <motion.span
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.5, delay: 0.0, ease: easeCurve }}
+              className="text-xs font-mono tracking-widest text-indigo-600 dark:text-indigo-400 uppercase font-semibold block"
             >
-              <div>
-                {/* Thumbnail */}
-                <div className="relative aspect-[16/9] overflow-hidden bg-[#18181b]">
-                  <ImageWithFallback
-                    src={project.thumbnail}
-                    fallbackSrc="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800"
-                    alt={project.title}
-                    updatedAt={project.updatedAt}
-                    fallbackIcon={FolderGit2}
-                    className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
-                    containerClassName="w-full h-full"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#09090b]/80 via-transparent to-transparent pointer-events-none" />
-                  
-                  {/* Category Badge */}
-                  <div className="absolute top-3 left-3">
-                    <span className="px-2.5 py-1 rounded-md bg-[#09090b]/80 backdrop-blur-sm border border-[#27272a] text-[10px] font-mono text-[#c4b5fd] uppercase tracking-wider font-semibold">
-                      {project.category}
-                    </span>
-                  </div>
-                </div>
+              02 // CASE STUDIES
+            </motion.span>
+            
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.6, delay: 0.1, ease: easeCurve }}
+              className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white mt-1"
+            >
+              Featured Software Engineering Work
+            </motion.h2>
+          </div>
 
-                {/* Content */}
-                <div className="p-5 space-y-3">
-                  <h4 className="text-lg font-bold text-[#fafafa] group-hover:text-[#c4b5fd] transition-colors">
-                    {project.title}
-                  </h4>
-
-                  <p className="text-sm text-[#a1a1aa] leading-relaxed line-clamp-2">
-                    {project.shortDescription}
-                  </p>
-
-                  {/* Tech Chips */}
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    {project.technologies?.slice(0, 6).map((tech) => (
-                      <span
-                        key={tech}
-                        className="px-2 py-0.5 rounded-md bg-[#18181b] text-[10px] font-mono text-[#a1a1aa] border border-[#27272a] group-hover:border-[#8b5cf6]/20 transition-colors"
-                      >
-                        {tech}
-                      </span>
-                    ))}
-                    {project.technologies?.length > 6 && (
-                      <span className="px-2 py-0.5 rounded-md bg-[#18181b] text-[10px] font-mono text-[#52525b] border border-[#27272a]">
-                        +{project.technologies.length - 6}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="px-5 pb-5 pt-2">
-                <div className="flex items-center gap-2 pt-2 border-t border-[#27272a]">
-                  <Link
-                    to={`/projects/${project.slug}`}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-md bg-[#6366f1]/10 text-[#a5b4fc] text-xs font-semibold hover:bg-[#6366f1]/20 active:scale-95 transition-all"
-                  >
-                    <span>Details</span>
-                    <ArrowUpRight className="w-3.5 h-3.5" />
-                  </Link>
-
-                  {project.repositoryUrl && (
-                    <a
-                      href={project.repositoryUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[#71717a] text-xs font-medium hover:text-[#fafafa] hover:bg-[#27272a]/60 active:scale-95 transition-all"
-                    >
-                      <Github className="w-3.5 h-3.5" />
-                      <span>Code</span>
-                    </a>
-                  )}
-
-                  {project.liveUrl && (
-                    <a
-                      href={project.liveUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[#71717a] text-xs font-medium hover:text-[#fafafa] hover:bg-[#27272a]/60 active:scale-95 transition-all"
-                    >
-                      <ExternalLink className="w-3.5 h-3.5" />
-                      <span>Live</span>
-                    </a>
-                  )}
-                </div>
-              </div>
-
-            </motion.div>
-          ))}
+          <motion.p
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.15 }}
+            transition={{ duration: 0.5, delay: 0.2, ease: easeCurve }}
+            className="text-xs font-mono text-slate-600 dark:text-white/50 max-w-sm"
+          >
+            Each project is built to solve a concrete problem, featuring scalable backend architecture and clean UI.
+          </motion.p>
         </div>
 
-        {/* Show More Toggle */}
-        {projects.length > 4 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            className="mt-8 text-center"
-          >
+        {/* Case Studies List */}
+        <div className="space-y-16">
+          {displayedProjects.map((project, idx) => {
+            const isEven = idx % 2 === 0;
+
+            return (
+              <motion.div 
+                key={project._id || project.slug || idx}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.15 }}
+                transition={{ duration: 0.7, delay: idx * 0.1, ease: easeCurve }}
+                className="editorial-card p-6 sm:p-8 hover:-translate-y-1 hover:border-indigo-300 dark:hover:border-zinc-700 transition-all duration-300 group"
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                  
+                  {/* Media Visual Column */}
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true, amount: 0.15 }}
+                    transition={{ duration: 0.6, delay: 0.1, ease: easeCurve }}
+                    className={`lg:col-span-6 ${isEven ? 'lg:order-1' : 'lg:order-2'}`}
+                  >
+                    <div className="relative aspect-[16/10] rounded-xl overflow-hidden border border-slate-200 dark:border-zinc-800 bg-slate-100 dark:bg-zinc-950 shadow-md group-hover:border-indigo-500/40 transition-colors">
+                      <ImageWithFallback
+                        src={project.thumbnail}
+                        fallbackSrc="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800"
+                        alt={project.title}
+                        updatedAt={project.updatedAt}
+                        className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 dark:from-zinc-950/80 via-transparent to-transparent pointer-events-none" />
+                      
+                      <div className="absolute top-4 left-4">
+                        <span className="px-3 py-1 rounded-md bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border border-slate-200 dark:border-zinc-700 text-[11px] font-mono text-indigo-600 dark:text-indigo-300 font-semibold uppercase shadow-sm">
+                          0{idx + 1} // {project.category || 'Engineering Project'}
+                        </span>
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  {/* Content Column with Staggered Internal Elements */}
+                  <div className={`lg:col-span-6 space-y-5 ${isEven ? 'lg:order-2' : 'lg:order-1'}`}>
+                    
+                    <div className="space-y-2">
+                      <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors duration-200">
+                        {project.title}
+                      </h3>
+                      <p className="text-sm text-slate-700 dark:text-white/70 leading-relaxed">
+                        {project.shortDescription}
+                      </p>
+                    </div>
+
+                    {/* Problem & Solution Split */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-200 dark:border-zinc-800/80">
+                      <div>
+                        <span className="text-[11px] font-mono text-slate-500 dark:text-white/50 uppercase tracking-wider block font-semibold mb-1">
+                          Problem
+                        </span>
+                        <p className="text-xs text-slate-600 dark:text-white/60 leading-relaxed line-clamp-3">
+                          {project.problem || project.description}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-[11px] font-mono text-indigo-600 dark:text-indigo-400 uppercase tracking-wider block font-semibold mb-1">
+                          Solution
+                        </span>
+                        <p className="text-xs text-slate-600 dark:text-white/60 leading-relaxed line-clamp-3">
+                          {project.solution || project.description}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Tech Stack Pills */}
+                    <div className="flex flex-wrap gap-1.5 pt-2">
+                      {project.technologies?.map((tech) => (
+                        <span 
+                          key={tech}
+                          className="px-2.5 py-1 rounded-md bg-slate-100 dark:bg-zinc-950 text-[11px] font-mono text-slate-700 dark:text-white/60 border border-slate-200 dark:border-zinc-800"
+                        >
+                          {tech}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Action Link Buttons */}
+                    <div className="flex items-center gap-3 pt-3">
+                      <Link
+                        to={`/projects/${project.slug}`}
+                        className="group/link inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-mono text-xs font-semibold shadow-md active:scale-95 transition-all duration-200"
+                      >
+                        <span>VIEW CASE STUDY</span>
+                        <ArrowUpRight className="w-4 h-4 group-hover/link:translate-x-1 group-hover/link:-translate-y-0.5 transition-transform duration-200" />
+                      </Link>
+
+                      {project.repositoryUrl && (
+                        <a
+                          href={project.repositoryUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-700 dark:text-white/70 hover:text-slate-900 dark:hover:text-white transition-all duration-200 shadow-sm"
+                        >
+                          <Github className="w-3.5 h-3.5" />
+                          <span>SOURCE</span>
+                        </a>
+                      )}
+
+                      {project.liveUrl && (
+                        <a
+                          href={project.liveUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-700 dark:text-white/70 hover:text-slate-900 dark:hover:text-white transition-all duration-200 shadow-sm"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          <span>LIVE</span>
+                        </a>
+                      )}
+                    </div>
+
+                  </div>
+
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* Toggle Show All */}
+        {activeProjects.length > 3 && (
+          <div className="mt-12 text-center">
             <button
               onClick={() => setShowAll(!showAll)}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-[#a1a1aa] border border-[#27272a] hover:border-[#3f3f46] hover:text-[#fafafa] active:scale-95 transition-all"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-700 dark:text-white/70 hover:text-slate-900 dark:hover:text-white active:scale-95 transition-all duration-200 shadow-sm"
             >
-              <span>{showAll ? 'Show Less' : `Show All Projects (${projects.length})`}</span>
-              {showAll ? (
-                <ChevronUp className="w-4 h-4" />
-              ) : (
-                <ChevronDown className="w-4 h-4" />
-              )}
+              <span>{showAll ? 'SHOW FEATURED ONLY' : `VIEW ALL PROJECTS (${activeProjects.length})`}</span>
+              {showAll ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
-          </motion.div>
+          </div>
         )}
 
       </div>

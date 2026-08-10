@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import HeroSection from '../components/sections/HeroSection';
 import DigitalCampusSection from '../components/sections/DigitalCampusSection';
-import CareerRoadSection from '../components/sections/CareerRoadSection';
-import SkillsSection from '../components/sections/SkillsSection';
 import ProjectsSection from '../components/sections/ProjectsSection';
+import PlaygroundSection from '../components/sections/PlaygroundSection';
+import SkillsSection from '../components/sections/SkillsSection';
+import CareerRoadSection from '../components/sections/CareerRoadSection';
 import ExperienceSection from '../components/sections/ExperienceSection';
 import CertificationsSection from '../components/sections/CertificationsSection';
 import AchievementsSection from '../components/sections/AchievementsSection';
+import LearningJournalSection from '../components/sections/LearningJournalSection';
 import ContactSection from '../components/sections/ContactSection';
-import SkeletonLoader from '../components/common/SkeletonLoader';
+
 import { 
   getProfile, getProjects, getSkills, getEducation, 
   getExperience, getCertifications, getAchievements, 
@@ -16,7 +18,6 @@ import {
 } from '../services/api';
 
 const HomePage = () => {
-  const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState({});
   const [projects, setProjects] = useState([]);
   const [skills, setSkills] = useState([]);
@@ -33,7 +34,6 @@ const HomePage = () => {
   }, []);
 
   const fetchPortfolioData = async () => {
-    setLoading(true);
     try {
       const [
         profRes, projRes, skillRes, eduRes, 
@@ -51,62 +51,58 @@ const HomePage = () => {
         getResume()
       ]);
 
-      if (profRes.status === 'fulfilled' && profRes.value.data.data) setProfile(profRes.value.data.data);
-      if (projRes.status === 'fulfilled' && projRes.value.data.data) setProjects(projRes.value.data.data);
-      if (skillRes.status === 'fulfilled' && skillRes.value.data.data) setSkills(skillRes.value.data.data);
-      if (eduRes.status === 'fulfilled' && eduRes.value.data.data) setEducation(eduRes.value.data.data);
-      if (expRes.status === 'fulfilled' && expRes.value.data.data) setExperience(expRes.value.data.data);
-      if (certRes.status === 'fulfilled' && certRes.value.data.data) setCertifications(certRes.value.data.data);
-      if (achRes.status === 'fulfilled' && achRes.value.data.data) setAchievements(achRes.value.data.data);
-      if (codRes.status === 'fulfilled' && codRes.value.data.data) setCodingProfiles(codRes.value.data.data);
-      if (carRes.status === 'fulfilled' && carRes.value.data.data) setCareerNodes(carRes.value.data.data);
-      if (resRes.status === 'fulfilled' && resRes.value.data.data) setResumeUrl(resRes.value.data.data.url);
+      if (profRes.status === 'fulfilled' && profRes.value.data?.data) setProfile(profRes.value.data.data);
+      if (projRes.status === 'fulfilled' && projRes.value.data?.data) setProjects(projRes.value.data.data);
+      if (skillRes.status === 'fulfilled' && skillRes.value.data?.data) setSkills(skillRes.value.data.data);
+      if (eduRes.status === 'fulfilled' && eduRes.value.data?.data) setEducation(eduRes.value.data.data);
+      if (expRes.status === 'fulfilled' && expRes.value.data?.data) setExperience(expRes.value.data.data);
+      if (certRes.status === 'fulfilled' && certRes.value.data?.data) setCertifications(certRes.value.data.data);
+      if (achRes.status === 'fulfilled' && achRes.value.data?.data) setAchievements(achRes.value.data.data);
+      if (codRes.status === 'fulfilled' && codRes.value.data?.data) setCodingProfiles(codRes.value.data.data);
+      if (carRes.status === 'fulfilled' && carRes.value.data?.data) setCareerNodes(carRes.value.data.data);
+      if (resRes.status === 'fulfilled' && resRes.value.data?.data) setResumeUrl(resRes.value.data.data.url);
     } catch (err) {
       console.error('Error fetching home portfolio data:', err);
-    } finally {
-      setLoading(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="max-w-6xl mx-auto px-5 py-20">
-        <SkeletonLoader count={3} />
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-4">
-      {/* 1. HERO */}
+    <div className="w-full space-y-0">
+      {/* 1. HERO & WORKSPACE */}
       <HeroSection profile={profile} resumeUrl={resumeUrl} />
 
-      {/* 2. ABOUT & EDUCATION */}
+      {/* 2. ABOUT & PHILOSOPHY */}
       <DigitalCampusSection profile={profile} education={education} />
 
-      {/* 3. SKILLS & TECH STACK */}
-      <SkillsSection skills={skills} />
-
-      {/* 4. FEATURED PROJECTS */}
+      {/* 3. CASE STUDIES & FEATURED PROJECTS */}
       <ProjectsSection projects={projects} />
 
-      {/* 5. CAREER TIMELINE */}
+      {/* 4. LAB & EXPERIMENTS */}
+      <PlaygroundSection />
+
+      {/* 5. SKILLS & COMPETENCIES */}
+      <SkillsSection skills={skills} />
+
+      {/* 6. CAREER ROAD TIMELINE */}
       <CareerRoadSection careerNodes={careerNodes} />
 
-      {/* 6. EXPERIENCE & CODING PROFILES */}
+      {/* 7. EXPERIENCE & CODING PROFILES */}
       <ExperienceSection 
         education={education} 
         experience={experience}
         codingProfiles={codingProfiles}
       />
 
-      {/* 7. CERTIFICATIONS */}
+      {/* 8. CERTIFICATIONS */}
       <CertificationsSection certifications={certifications} />
 
-      {/* 8. ACHIEVEMENTS CAROUSEL */}
+      {/* 9. ACHIEVEMENTS & HONORS */}
       <AchievementsSection achievements={achievements} />
 
-      {/* 9. CONTACT */}
+      {/* 10. CURRENTLY LEARNING JOURNAL */}
+      <LearningJournalSection />
+
+      {/* 11. CONTACT */}
       <ContactSection email={profile.email} profile={profile} />
     </div>
   );

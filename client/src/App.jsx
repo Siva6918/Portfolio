@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
+import { ModeProvider } from './context/ModeContext';
 
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
@@ -35,10 +36,11 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <Router>
-          <div className="relative min-h-screen flex flex-col bg-[#09090b] text-[#fafafa] font-sans transition-colors duration-300">
-            {/* Top Scroll Indicator */}
-            <ScrollProgressBar />
+        <ModeProvider>
+          <Router>
+            <div className="relative min-h-screen flex flex-col bg-[#f8fafc] text-slate-900 dark:bg-[#09090c] dark:text-zinc-100 font-sans transition-colors duration-300">
+              {/* Top Scroll Indicator */}
+              <ScrollProgressBar />
 
             {/* Scroll restoration on navigation */}
             <ScrollToTop />
@@ -63,8 +65,9 @@ function App() {
             <Footer />
           </div>
         </Router>
-      </AuthProvider>
-    </ThemeProvider>
+      </ModeProvider>
+    </AuthProvider>
+  </ThemeProvider>
   );
 }
 

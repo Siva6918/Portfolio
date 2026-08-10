@@ -1,175 +1,158 @@
 import React from 'react';
-import { User, Target, Cpu, GraduationCap, MapPin, ExternalLink } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+const easeCurve = [0.16, 1, 0.3, 1];
+
 const DigitalCampusSection = ({ profile, education = [] }) => {
-  const longBio = profile?.longBio || 'Computer Science student capable of building scalable full-stack applications, designing robust backend architectures, and integrating AI/ML solutions into modern web platforms.';
-  const careerGoal = profile?.careerGoal || 'Become a strong software engineer capable of building scalable applications and integrating AI-driven solutions into modern web platforms.';
-  const currentFocus = profile?.currentFocus || 'MERN Stack, Data Structures & Algorithms, Cloud Infrastructure, AI Integration';
   const collegeName = profile?.educationSummary?.college || profile?.college || 'Rajeev Gandhi Memorial College of Engineering and Technology';
   const collegeUrl = profile?.collegeUrl || 'https://www.rgmcet.edu.in/';
   const cgpa = profile?.educationSummary?.cgpa || profile?.cgpa || '8.1';
 
   return (
-    <section id="digital-campus" className="py-16 relative w-full">
+    <section id="about" className="py-20 relative w-full border-t border-slate-200 dark:border-zinc-800/60">
       <div className="section-container">
         
-        {/* Section Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-60px' }}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="flex items-center gap-3 mb-10"
-        >
-          <div className="w-9 h-9 rounded-lg bg-[#6366f1]/10 border border-[#6366f1]/20 flex items-center justify-center text-[#6366f1]">
-            <User className="w-4.5 h-4.5" />
-          </div>
-          <div>
-            <h2 className="text-xs uppercase font-mono font-semibold tracking-widest text-[#a5b4fc]">
-              Background
-            </h2>
-            <h3 className="text-2xl font-bold text-[#fafafa]">
-              About & Education
-            </h3>
-          </div>
-        </motion.div>
+        {/* Editorial Section Header Stagger */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+          <div className="space-y-1">
+            <motion.span
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.5, delay: 0.0, ease: easeCurve }}
+              className="text-xs font-mono tracking-widest text-indigo-600 dark:text-indigo-400 uppercase font-semibold block"
+            >
+              01 // BACKGROUND & PHILOSOPHY
+            </motion.span>
 
-        {/* Two Column: Bio + Education */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          
-          {/* Left: Bio */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: '-50px' }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="lg:col-span-7 space-y-5"
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.6, delay: 0.1, ease: easeCurve }}
+              className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white"
+            >
+              Who I Am & How I Work
+            </motion.h2>
+          </div>
+
+          <motion.p
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.15 }}
+            transition={{ duration: 0.5, delay: 0.2, ease: easeCurve }}
+            className="text-xs font-mono text-slate-600 dark:text-white/50 max-w-xs"
           >
-            <div className="glass-card p-6 sm:p-7 rounded-xl space-y-5 hover:border-[#6366f1]/40 transition-all">
-              <p className="text-[15px] text-[#d4d4d8] leading-relaxed">
-                {longBio}
-              </p>
+            Software engineering student focused on building robust products with high craftsmanship.
+          </motion.p>
+        </div>
 
-              <div className="space-y-4 pt-3 border-t border-[#27272a]">
-                <div className="flex items-start gap-3">
-                  <Target className="w-4 h-4 text-[#a5b4fc] mt-1 shrink-0" />
-                  <div>
-                    <span className="block text-[11px] font-mono font-semibold uppercase text-[#71717a] tracking-wider">Career Goal</span>
-                    <p className="text-sm text-[#e4e4e7] mt-0.5">{careerGoal}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <Cpu className="w-4 h-4 text-[#a5b4fc] mt-1 shrink-0" />
-                  <div>
-                    <span className="block text-[11px] font-mono font-semibold uppercase text-[#71717a] tracking-wider">Current Focus</span>
-                    <p className="text-sm text-[#e4e4e7] mt-0.5">{currentFocus}</p>
-                  </div>
-                </div>
+        {/* 3 Editorial Story Columns */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          
+          {/* Column 1: WHO I AM */}
+          <motion.div
+            initial={{ opacity: 0, y: 25 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.15 }}
+            transition={{ duration: 0.6, delay: 0.0, ease: easeCurve }}
+            className="editorial-card p-6 sm:p-8 flex flex-col justify-between space-y-6"
+          >
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-1 rounded-md bg-indigo-500/10 border border-indigo-500/30 text-indigo-600 dark:text-indigo-300 font-mono text-xs font-bold">
+                  01
+                </span>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-wide">WHO I AM</h3>
               </div>
+
+              <p className="text-sm text-slate-700 dark:text-white/70 leading-relaxed">
+                I'm a Computer Science student at Rajeev Gandhi Memorial College (graduating in 2027 with an 8.1 CGPA). 
+                I focus on modern full-stack web architectures, clean API design, and integrating real-time intelligence into products.
+              </p>
+            </div>
+
+            <div className="pt-4 border-t border-slate-200 dark:border-zinc-800/80 flex items-center justify-between text-xs font-mono text-slate-600 dark:text-white/50">
+              <span>Location: Andhra Pradesh, India</span>
+              <span className="text-emerald-600 dark:text-emerald-400 font-bold">CGPA {cgpa}</span>
             </div>
           </motion.div>
 
-          {/* Right: Education + Metrics */}
+          {/* Column 2: WHAT I'M LEARNING */}
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: '-50px' }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
-            className="lg:col-span-5 space-y-4"
+            initial={{ opacity: 0, y: 25 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.15 }}
+            transition={{ duration: 0.6, delay: 0.1, ease: easeCurve }}
+            className="editorial-card p-6 sm:p-8 flex flex-col justify-between space-y-6"
           >
-            
-            {/* Quick Metrics Row */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="glass-card p-4 rounded-xl text-center hover:-translate-y-1 transition-transform duration-200">
-                <span className="block text-2xl font-bold text-[#6366f1] font-mono">{cgpa}</span>
-                <span className="block text-[10px] font-mono text-[#71717a] mt-0.5">CGPA</span>
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-300 font-mono text-xs font-bold">
+                  02
+                </span>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-wide">WHAT I'M LEARNING</h3>
               </div>
-              <div className="glass-card p-4 rounded-xl text-center hover:-translate-y-1 transition-transform duration-200">
-                <span className="block text-2xl font-bold text-[#a5b4fc] font-mono">2027</span>
-                <span className="block text-[10px] font-mono text-[#71717a] mt-0.5">Graduation</span>
-              </div>
-              <div className="glass-card p-4 rounded-xl text-center hover:-translate-y-1 transition-transform duration-200">
-                <span className="block text-2xl font-bold text-[#10b981] font-mono">B.Tech</span>
-                <span className="block text-[10px] font-mono text-[#71717a] mt-0.5">CSE</span>
-              </div>
+
+              <ul className="space-y-2.5 text-sm text-slate-700 dark:text-white/70">
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                  <span>Data Structures & Algorithms (Java)</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                  <span>Production MERN Stack Architecture</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                  <span>System Design & Scalable APIs</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                  <span>AI / ML Fast-API Integration</span>
+                </li>
+              </ul>
             </div>
 
-            {/* Education Cards */}
-            <div className="space-y-3">
-              {education.length > 0 ? education.map((edu, idx) => {
-                const targetUrl = edu.collegeUrl || (edu.college?.includes('Rajeev Gandhi') || edu.college?.includes('RGMCET') ? collegeUrl : null);
-                return (
-                  <motion.div
-                    key={edu._id || edu.degree}
-                    initial={{ opacity: 0, y: 15 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.4, delay: idx * 0.08, ease: [0.16, 1, 0.3, 1] }}
-                    className="glass-card p-5 rounded-xl space-y-2 hover:-translate-y-1 hover:border-[#6366f1]/40 transition-all duration-200"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <GraduationCap className="w-4 h-4 text-[#a5b4fc]" />
-                        <span className="text-xs font-mono font-semibold text-[#a5b4fc]">
-                          {edu.startYear} — {edu.endYear || 'Present'}
-                        </span>
-                      </div>
-                      {(edu.cgpa || edu.percentage || edu.grade) && (
-                        <span className="px-2 py-0.5 rounded-md bg-[#10b981]/10 text-[#10b981] text-[10px] font-mono font-bold border border-[#10b981]/20">
-                          {edu.cgpa ? `${edu.cgpa} CGPA` : edu.percentage || edu.grade}
-                        </span>
-                      )}
-                    </div>
-                    <h5 className="text-sm font-bold text-[#fafafa]">
-                      {edu.degree} {edu.branch && <span className="text-[#a1a1aa]">({edu.branch})</span>}
-                    </h5>
-                    <div className="text-xs text-[#71717a] flex items-center justify-between pt-1">
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        {targetUrl ? (
-                          <a
-                            href={targetUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-[#a1a1aa] hover:text-[#a5b4fc] transition-colors underline-offset-2 hover:underline inline-flex items-center gap-1 font-medium"
-                          >
-                            <span>{edu.college}</span>
-                            <ExternalLink className="w-3 h-3 text-[#a5b4fc]" />
-                          </a>
-                        ) : (
-                          <span>{edu.college}</span>
-                        )}
-                      </span>
-                    </div>
-                  </motion.div>
-                );
-              }) : (
-                <div className="glass-card p-5 rounded-xl space-y-2 hover:-translate-y-1 transition-all duration-200">
-                  <div className="flex items-center gap-2">
-                    <GraduationCap className="w-4 h-4 text-[#a5b4fc]" />
-                    <span className="text-xs font-mono font-semibold text-[#a5b4fc]">2023 — 2027</span>
-                  </div>
-                  <h5 className="text-sm font-bold text-[#fafafa]">B.Tech Computer Science & Engineering</h5>
-                  <div className="text-xs text-[#71717a] flex items-center justify-between pt-1">
-                    <span className="flex items-center gap-1">
-                      <MapPin className="w-3 h-3" />
-                      <a
-                        href={collegeUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[#a1a1aa] hover:text-[#a5b4fc] transition-colors underline-offset-2 hover:underline inline-flex items-center gap-1 font-medium"
-                      >
-                        <span>{collegeName}</span>
-                        <ExternalLink className="w-3 h-3 text-[#a5b4fc]" />
-                      </a>
-                    </span>
-                  </div>
-                </div>
-              )}
+            <div className="pt-4 border-t border-slate-200 dark:border-zinc-800/80 flex items-center justify-between text-xs font-mono text-slate-600 dark:text-white/50">
+              <span>LeetCode: 300+ solved</span>
+              <span className="text-amber-600 dark:text-amber-400 font-bold">HackerRank 5★</span>
+            </div>
+          </motion.div>
+
+          {/* Column 3: WHERE I'M HEADED */}
+          <motion.div
+            initial={{ opacity: 0, y: 25 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.15 }}
+            transition={{ duration: 0.6, delay: 0.2, ease: easeCurve }}
+            className="editorial-card p-6 sm:p-8 flex flex-col justify-between space-y-6"
+          >
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-300 font-mono text-xs font-bold">
+                  03
+                </span>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-wide">WHERE I'M HEADED</h3>
+              </div>
+
+              <p className="text-sm text-slate-700 dark:text-white/70 leading-relaxed">
+                Seeking software engineering roles and internships where I can contribute to core platform features, solve complex algorithmic challenges, and collaborate with high-performance teams.
+              </p>
             </div>
 
+            <div className="pt-4 border-t border-slate-200 dark:border-zinc-800/80">
+              <a
+                href={collegeUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center justify-between text-xs font-mono text-slate-600 dark:text-white/70 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors duration-200"
+              >
+                <span className="truncate max-w-[200px]">{collegeName}</span>
+                <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+              </a>
+            </div>
           </motion.div>
 
         </div>
