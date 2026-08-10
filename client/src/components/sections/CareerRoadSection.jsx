@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { GraduationCap, Cpu, Code2, FlaskConical, Briefcase, Rocket, Trophy, Target, Layers, ArrowRight, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { GraduationCap, Cpu, Code2, FlaskConical, Briefcase, Rocket, Trophy, Target, Eye, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion';
 import CareerRoadDetailModal from '../common/CareerRoadDetailModal';
 
 const easeCurve = [0.16, 1, 0.3, 1];
@@ -46,11 +46,8 @@ const CareerRoadSection = ({ careerNodes = [] }) => {
     setActiveCardIndex((prev) => (prev - 1 + totalCards) % totalCards);
   };
 
-  const topCard = roadNodes[activeCardIndex];
-  const TopIcon = topCard?.icon || Target;
-
   return (
-    <section id="career-road" className="py-20 relative w-full border-t border-slate-200 dark:border-zinc-800/60 overflow-hidden">
+    <section id="career-road" className="py-20 relative w-full border-t border-slate-200 dark:border-zinc-800/60">
       <div className="section-container">
         
         {/* Header Stagger */}
@@ -63,7 +60,7 @@ const CareerRoadSection = ({ careerNodes = [] }) => {
               transition={{ duration: 0.5, delay: 0.0, ease: easeCurve }}
               className="text-xs font-mono tracking-widest text-indigo-600 dark:text-indigo-400 uppercase font-semibold block"
             >
-              05.1 // DECK OF CARDS TIMELINE
+              05.1 // TIMELINE
             </motion.span>
 
             <motion.h2
@@ -73,109 +70,152 @@ const CareerRoadSection = ({ careerNodes = [] }) => {
               transition={{ duration: 0.6, delay: 0.1, ease: easeCurve }}
               className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white mt-1"
             >
-              Engineering Progression Stack
+              Engineering Progression Roadmap
             </motion.h2>
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* View More Modal Trigger Button */}
+          <div className="flex flex-wrap items-center gap-4">
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.5, delay: 0.2, ease: easeCurve }}
+              className="hidden sm:flex items-center gap-4 text-xs font-mono text-slate-600 dark:text-white/50"
+            >
+              <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-indigo-600 dark:bg-indigo-400" /> Done</span>
+              <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500" /> Active</span>
+              <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-slate-300 dark:bg-zinc-700" /> Upcoming</span>
+            </motion.div>
+
             <button
               onClick={() => setIsModalOpen(true)}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-mono text-xs font-semibold shadow-md active:scale-95 transition-all"
             >
               <Eye className="w-3.5 h-3.5" />
-              <span>VIEW FULL ROADMAP ({totalCards})</span>
+              <span>VIEW FULL ROADMAP</span>
             </button>
           </div>
         </div>
 
-        {/* 3D Stacked Deck of Cards Visualization */}
-        <div className="relative max-w-xl mx-auto min-h-[340px] flex flex-col items-center justify-center">
-          <div className="relative w-full aspect-[4/3.1] sm:aspect-[4/2.5] max-h-[300px]">
+        {/* Desktop / Laptop View: Clean Vertical Timeline (as before) */}
+        <div className="hidden sm:block relative max-w-3xl mx-auto">
+          <motion.div
+            initial={{ scaleY: 0 }}
+            whileInView={{ scaleY: 1 }}
+            viewport={{ once: true, amount: 0.1 }}
+            transition={{ duration: 0.9, ease: easeCurve }}
+            className="absolute left-5 top-0 bottom-0 w-px bg-gradient-to-b from-indigo-500 via-emerald-500 to-slate-200 dark:to-zinc-800 origin-top"
+          />
+
+          <div className="space-y-6">
             {roadNodes.map((node, idx) => {
-              // Calculate relative stack offset from active card
+              const IconComp = node.icon || Target;
+              const isActive = node.status === 'active';
+              const isCompleted = node.status === 'completed';
+
+              return (
+                <motion.div
+                  key={node.id}
+                  initial={{ opacity: 0, x: -15, y: 15 }}
+                  whileInView={{ opacity: 1, x: 0, y: 0 }}
+                  viewport={{ once: true, amount: 0.15 }}
+                  transition={{ duration: 0.5, delay: idx * 0.08, ease: easeCurve }}
+                  className="relative flex items-start gap-6 group"
+                >
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center border z-10 shrink-0 shadow-sm transition-transform duration-300 group-hover:scale-105 ${
+                    isActive ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-600 dark:text-emerald-400' :
+                    isCompleted ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-600 dark:text-indigo-400' :
+                    'bg-white dark:bg-zinc-950 border-slate-200 dark:border-zinc-800 text-slate-400 dark:text-zinc-600'
+                  }`}>
+                    <IconComp className="w-4 h-4" />
+                  </div>
+
+                  <div className="editorial-card p-5 flex-1 hover:-translate-y-1 hover:border-slate-300 dark:hover:border-zinc-700 transition-all duration-200">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-mono text-indigo-600 dark:text-indigo-400 font-semibold">{node.year}</span>
+                      {isActive && <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 uppercase font-bold">● ACTIVE</span>}
+                    </div>
+
+                    <h4 className="text-base font-bold text-slate-900 dark:text-white mt-1">{node.title}</h4>
+                    <p className="text-xs font-mono text-slate-600 dark:text-white/50 mt-0.5">{node.subtitle}</p>
+                    <p className="text-xs text-slate-700 dark:text-white/70 mt-2 leading-relaxed">{node.desc || node.description}</p>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Mobile View: Interactive Mobile Deck / Card Stack (sm:hidden) */}
+        <div className="block sm:hidden relative max-w-xl mx-auto min-h-[300px] flex flex-col items-center justify-center">
+          <div className="relative w-full aspect-[4/3] max-h-[280px]">
+            {roadNodes.map((node, idx) => {
               const offset = (idx - activeCardIndex + totalCards) % totalCards;
-              const isVisible = offset < 4; // Show top 4 cards in stack
-              if (!isVisible) return null;
+              if (offset >= 3) return null;
 
               const IconComp = node.icon || Target;
               const isCompleted = node.status === 'completed';
               const isActive = node.status === 'active';
 
-              // Visual stacking math
               const scale = 1 - offset * 0.05;
-              const translateY = offset * 14;
-              const rotate = offset * 2.5 * (idx % 2 === 0 ? 1 : -1);
+              const translateY = offset * 12;
               const zIndex = totalCards - offset;
-              const opacity = 1 - offset * 0.2;
 
               return (
                 <motion.div
                   key={node.id}
                   onClick={() => setActiveCardIndex(idx)}
-                  animate={{
-                    scale,
-                    y: translateY,
-                    rotate,
-                    opacity
-                  }}
-                  transition={{ duration: 0.4, ease: easeCurve }}
+                  animate={{ scale, y: translateY }}
+                  transition={{ duration: 0.3, ease: easeCurve }}
                   style={{ zIndex }}
-                  className={`absolute inset-0 rounded-3xl p-6 sm:p-8 cursor-pointer shadow-xl border backdrop-blur-md flex flex-col justify-between select-none ${
+                  className={`absolute inset-0 rounded-2xl p-5 cursor-pointer shadow-lg border backdrop-blur-md flex flex-col justify-between select-none ${
                     offset === 0
-                      ? 'bg-white dark:bg-zinc-900 border-indigo-500/50 shadow-indigo-500/10'
+                      ? 'bg-white dark:bg-zinc-900 border-indigo-500/50'
                       : 'bg-slate-50/90 dark:bg-zinc-950/90 border-slate-200 dark:border-zinc-800'
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className={`p-2.5 rounded-xl ${
-                        isCompleted ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20' :
-                        isActive ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' :
-                        'bg-slate-200 dark:bg-zinc-800 text-slate-500'
+                      <div className={`p-2 rounded-lg ${
+                        isCompleted ? 'bg-indigo-500/10 text-indigo-500' :
+                        isActive ? 'bg-emerald-500/10 text-emerald-500' :
+                        'bg-slate-200 dark:bg-zinc-800 text-slate-400'
                       }`}>
-                        <IconComp className="w-5 h-5" />
+                        <IconComp className="w-4 h-4" />
                       </div>
-                      <span className="font-mono text-xs font-bold px-2.5 py-1 rounded-md bg-slate-100 dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 border border-slate-200 dark:border-zinc-700">
+                      <span className="font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400">
                         {node.year}
                       </span>
                     </div>
 
-                    <span className={`text-[10px] font-mono font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${
-                      isCompleted ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30' :
-                      isActive ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 animate-pulse' :
-                      'bg-slate-200 dark:bg-zinc-800 text-slate-500'
-                    }`}>
+                    <span className="text-[10px] font-mono font-bold uppercase text-slate-500">
                       {node.status}
                     </span>
                   </div>
 
-                  <div className="space-y-1.5 my-auto">
-                    <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">
+                  <div className="space-y-1 my-auto">
+                    <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
                       {node.title}
                     </h3>
-                    <p className="text-xs font-mono text-indigo-600 dark:text-indigo-400 font-semibold">
+                    <p className="text-xs font-mono text-indigo-500 font-semibold">
                       {node.subtitle}
                     </p>
-                    <p className="text-xs text-slate-600 dark:text-zinc-300 leading-relaxed line-clamp-2">
+                    <p className="text-xs text-slate-600 dark:text-zinc-300 line-clamp-2">
                       {node.desc || node.description}
                     </p>
                   </div>
 
-                  <div className="pt-3 border-t border-slate-200 dark:border-zinc-800 flex items-center justify-between text-xs font-mono">
-                    <span className="text-slate-400 dark:text-zinc-500">
-                      Card {activeCardIndex + 1} of {totalCards}
-                    </span>
+                  <div className="pt-2 border-t border-slate-200 dark:border-zinc-800 flex items-center justify-between text-xs font-mono">
+                    <span className="text-slate-400">Card {activeCardIndex + 1}/{totalCards}</span>
                     <button
-                      type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         setIsModalOpen(true);
                       }}
-                      className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline flex items-center gap-1"
+                      className="text-indigo-500 font-bold hover:underline flex items-center gap-1"
                     >
-                      <span>View Details</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
+                      <span>View All</span>
+                      <ArrowRight className="w-3 h-3" />
                     </button>
                   </div>
                 </motion.div>
@@ -183,26 +223,13 @@ const CareerRoadSection = ({ careerNodes = [] }) => {
             })}
           </div>
 
-          {/* Deck Controls */}
-          <div className="flex items-center justify-center gap-4 mt-6">
-            <button
-              onClick={handlePrevCard}
-              className="p-3 rounded-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors shadow-md"
-              aria-label="Previous Card"
-            >
-              <ChevronLeft className="w-5 h-5" />
+          <div className="flex items-center justify-center gap-4 mt-4">
+            <button onClick={handlePrevCard} className="p-2 rounded-full bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300">
+              <ChevronLeft className="w-4 h-4" />
             </button>
-
-            <span className="font-mono text-xs text-slate-500 dark:text-zinc-400">
-              {activeCardIndex + 1} / {totalCards}
-            </span>
-
-            <button
-              onClick={handleNextCard}
-              className="p-3 rounded-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors shadow-md"
-              aria-label="Next Card"
-            >
-              <ChevronRight className="w-5 h-5" />
+            <span className="font-mono text-xs text-slate-500">{activeCardIndex + 1} / {totalCards}</span>
+            <button onClick={handleNextCard} className="p-2 rounded-full bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300">
+              <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>

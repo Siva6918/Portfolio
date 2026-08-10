@@ -34,11 +34,10 @@ async function getCandidateProfileData() {
 }
 
 /**
- * Perform basic NLP feature extraction (word count, entity extraction, intent categorization)
+ * Perform basic NLP feature extraction (intent categorization & entity extraction)
  */
 function analyzeNlpFeatures(prompt) {
   const cleanPrompt = (prompt || '').trim();
-  const words = cleanPrompt.split(/\s+/).filter(Boolean);
 
   const techKeywords = [
     'React', 'Node.js', 'Express', 'JavaScript', 'Python', 'Java', 'MongoDB', 'MySQL', 'SQL', 'NoSQL',
@@ -68,7 +67,6 @@ function analyzeNlpFeatures(prompt) {
   }
 
   return {
-    wordCount: words.length,
     extractedEntities: Array.from(new Set(extractedEntities)),
     intent
   };
@@ -93,7 +91,7 @@ Provide a clear, accurate, professional 2-4 sentence answer directly addressing 
         }
       ],
       generationConfig: {
-        maxOutputTokens: 300,
+        maxOutputTokens: 1000,
         temperature: 0.2
       }
     });
@@ -138,7 +136,7 @@ Provide a clear, accurate, professional 2-4 sentence answer directly addressing 
  * Call Gemini API with automatic model fallback
  */
 async function callGeminiApi(prompt, apiKey, candidateInfo) {
-  const models = ['gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-2.5-flash-lite', 'gemini-flash-latest'];
+  const models = ['gemini-3.5-flash', 'gemini-3.6-flash', 'gemini-flash-latest'];
   let lastError = null;
 
   for (const model of models) {
@@ -161,46 +159,46 @@ function solveLocalKnowledgeQuery(prompt, candidateInfo) {
 
   // 1. Candidate / Portfolio Queries (Uses real DB candidate data)
   if (p.includes('why should i hire') || p.includes('why hire') || p.includes('hire him')) {
-    return `${candidateInfo.name} is a ${candidateInfo.degree} student (${candidateInfo.graduationYear}) at ${candidateInfo.college}. His practical expertise in full-stack MERN development, REST API design, and AI microservices makes him a strong candidate for software engineering roles.`;
+    return `${candidateInfo.name} is a ${candidateInfo.degree} student (${candidateInfo.graduationYear}) at ${candidateInfo.college}. His practical expertise in full-stack MERN development, REST API design, and AI microservices makes him a strong candidate for software engineering roles. He brings strong problem-solving skills and hands-on experience building scalable applications.`;
   }
 
   if (p.includes('skills') || p.includes('what skills') || p.includes('technologies')) {
-    return `Candidate ${candidateInfo.name}'s core focus includes: ${candidateInfo.focus}.`;
+    return `Candidate ${candidateInfo.name}'s core technical focus includes: ${candidateInfo.focus}. He is proficient in JavaScript, React, Node.js, Express, MongoDB, Java Data Structures, and cloud deployments.`;
   }
 
   if (p.includes('who are you') || p.includes('who is the candidate') || p.includes('tell me about')) {
-    return `${candidateInfo.name} is a ${candidateInfo.role} pursuing his ${candidateInfo.degree} at ${candidateInfo.college}.`;
+    return `${candidateInfo.name} is a ${candidateInfo.role} pursuing his ${candidateInfo.degree} at ${candidateInfo.college}. He specializes in full-stack web engineering and AI product integrations.`;
   }
 
   // 2. Security Questions (Truthful explanation without invented fake risk scores)
   if (p.includes('rapid login') || p.includes('session risk') || p.includes('anomaly') || p.includes('threat')) {
-    return `Session risk assessment requires real-time telemetry such as IP location variance, login attempt frequencies, and device fingerprint headers. Evaluating risk cannot be done from prompt text alone; in production environments, suspicious login spikes trigger automated rate limiting and Multi-Factor Authentication (MFA) challenges.`;
+    return `Session risk assessment evaluates real-time security telemetry including IP location variance, login attempt frequencies, and device fingerprint headers to detect automated credential stuffing or unauthorized session hijacking. Evaluating risk cannot be performed from prompt text alone; in production environments, suspicious login spikes trigger automated rate limiting and Multi-Factor Authentication (MFA) challenges to protect user accounts.`;
   }
 
   if (p.includes('sql injection')) {
-    return `SQL Injection (SQLi) is a security vulnerability where untrusted input is executed as SQL commands. It is prevented using parameterized queries (prepared statements), input validation, and enforcing database principle of least privilege.`;
+    return `SQL Injection (SQLi) is a critical web security vulnerability where untrusted input is improperly concatenated into SQL statements, enabling malicious database query execution. It is prevented by enforcing parameterized queries (prepared statements), rigorous input validation, and applying database principal of least privilege.`;
   }
 
   // 3. Algorithm Questions
   if (p.includes('binary search')) {
-    return `Binary Search is an O(log N) algorithm for finding an element in a sorted array by repeatedly halving the search interval.`;
+    return `Binary Search is an efficient O(log N) divide-and-conquer algorithm used to find the position of a target value within a sorted array. It operates by comparing the target value to the middle element of the array and halving the search space in each iteration until the target is located or the sub-array becomes empty.`;
   }
 
   if (p.includes('quicksort') || p.includes('quick sort')) {
-    return `QuickSort is a divide-and-conquer sorting algorithm with an average time complexity of O(N log N) that partitions arrays around a pivot element.`;
+    return `QuickSort is a highly efficient divide-and-conquer sorting algorithm with an average time complexity of O(N log N). It works by selecting a pivot element from the array, partitioning the remaining elements into two sub-arrays according to whether they are less than or greater than the pivot, and recursively sorting the sub-arrays.`;
   }
 
   // 4. Web Dev & DB Questions
   if (p.includes('mongodb and mysql') || p.includes('mysql and mongodb') || p.includes('sql vs nosql') || p.includes('nosql vs sql')) {
-    return `MySQL is a relational SQL database utilizing fixed schemas and ACID transactions. MongoDB is a NoSQL document database storing flexible BSON documents optimized for dynamic schemas and horizontal scaling.`;
+    return `MySQL is a traditional relational SQL database utilizing strict schemas, structured tables, and ACID transactions suitable for complex relational joins. MongoDB is a NoSQL document-oriented database storing flexible BSON documents, optimized for horizontal scalability, rapid iteration, and dynamic schema requirements.`;
   }
 
   if (p.includes('react')) {
-    return `React is a component-based JavaScript library developed by Meta for building user interfaces using a Virtual DOM for efficient state updates.`;
+    return `React is an open-source component-based JavaScript library developed by Meta for building dynamic user interfaces. It utilizes a Virtual DOM reconciliation algorithm to compute minimal UI state updates, ensuring high performance for modern web applications.`;
   }
 
   if (/\bapi\b/i.test(p) || /\brest api\b/i.test(p)) {
-    return `A REST API is an architectural style for web services using stateless HTTP methods (GET, POST, PUT, DELETE) to exchange structured JSON payloads.`;
+    return `A REST API (Representational State Transfer) is an architectural style for web services that uses stateless HTTP methods (GET, POST, PUT, DELETE) to manage resource states and exchange structured JSON payloads between client applications and server backends.`;
   }
 
   // 5. Truthful Fallback for unsupported / general queries when Gemini is unconfigured
@@ -246,6 +244,7 @@ exports.processNlpQuery = async (req, res) => {
   }
 
   const processingTimeMs = Date.now() - startTime;
+  const wordsCount = answer ? answer.trim().split(/\s+/).filter(Boolean).length : 0;
 
   res.json({
     success: true,
@@ -253,7 +252,7 @@ exports.processNlpQuery = async (req, res) => {
     answer,
     nlpAnalysis: {
       intent: nlpInfo.intent,
-      wordsCount: nlpInfo.wordCount,
+      wordsCount,
       tokensCount: tokenCount,
       extractedEntities: nlpInfo.extractedEntities,
       processingTimeMs,
