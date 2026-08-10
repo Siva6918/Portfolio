@@ -1,5 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Trophy } from 'lucide-react';
+import SwipeableCarousel from '../common/SwipeableCarousel';
 
 const easeCurve = [0.16, 1, 0.3, 1];
 
@@ -75,8 +77,34 @@ const AchievementsSection = ({ achievements = [] }) => {
           </motion.p>
         </div>
 
-        {/* Editorial Achievements Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Mobile View Swipe Carousel (md:hidden) */}
+        <div className="block md:hidden">
+          <SwipeableCarousel showDots={true}>
+            {activeItems.map((item) => (
+              <div key={item._id || item.title} className="editorial-card p-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-300 font-mono text-xs font-bold flex items-center gap-1">
+                    <Trophy className="w-3.5 h-3.5" />
+                    <span>{item.rank}</span>
+                  </span>
+                  <span className="text-xs font-mono text-slate-500">{item.year}</span>
+                </div>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  {item.title}
+                </h3>
+                <p className="text-xs text-slate-700 dark:text-zinc-300 leading-relaxed">
+                  {item.description}
+                </p>
+                <div className="pt-2 border-t border-slate-200 dark:border-zinc-800 text-[11px] font-mono text-slate-500">
+                  <span>{item.event}</span>
+                </div>
+              </div>
+            ))}
+          </SwipeableCarousel>
+        </div>
+
+        {/* Editorial Achievements Grid (hidden on mobile md:grid) */}
+        <div className="hidden md:grid grid-cols-3 gap-6">
           {activeItems.map((item, idx) => (
             <motion.div
               key={item._id || item.title || idx}

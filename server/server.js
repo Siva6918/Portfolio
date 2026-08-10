@@ -11,3 +11,5 @@ connectDB().then(() => {
     console.log(`[Portfolio Server] API base URL: http://localhost:${PORT}/api`);
   });
 });
+// Trigger reload
+

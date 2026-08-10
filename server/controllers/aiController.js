@@ -1,18 +1,50 @@
 const https = require('https');
+const Profile = require('../models/Profile');
 
 /**
- * Perform basic NLP feature extraction (tokenization, entity recognition, intent categorization)
+ * Fetch candidate profile data dynamically from MongoDB or default schema
+ */
+async function getCandidateProfileData() {
+  try {
+    const profile = await Profile.findOne();
+    if (profile) {
+      return {
+        name: profile.name || 'Venkata Siva Reddy',
+        role: profile.role || 'Full Stack Developer & Software Engineer',
+        degree: profile.degree ? `${profile.degree} in ${profile.branch || 'CSE'}` : 'B.Tech in Computer Science and Engineering',
+        graduationYear: profile.graduationYear || 2027,
+        cgpa: profile.cgpa || 8.1,
+        college: profile.college || 'Rajeev Gandhi Memorial College of Engineering and Technology',
+        focus: profile.currentFocus || 'MERN Stack, Data Structures & Algorithms, Cloud Infrastructure, AI Integration'
+      };
+    }
+  } catch (err) {
+    console.warn('[AI Controller] Could not fetch profile from DB, using schema defaults:', err.message);
+  }
+
+  return {
+    name: 'Venkata Siva Reddy',
+    role: 'Full Stack Developer & Software Engineer',
+    degree: 'B.Tech in Computer Science and Engineering',
+    graduationYear: 2027,
+    cgpa: 8.1,
+    college: 'Rajeev Gandhi Memorial College of Engineering and Technology',
+    focus: 'MERN Stack, Data Structures & Algorithms, Cloud Infrastructure, AI Integration'
+  };
+}
+
+/**
+ * Perform basic NLP feature extraction (word count, entity extraction, intent categorization)
  */
 function analyzeNlpFeatures(prompt) {
   const cleanPrompt = (prompt || '').trim();
   const words = cleanPrompt.split(/\s+/).filter(Boolean);
 
-  // Common tech entities & terms to detect
   const techKeywords = [
-    'React', 'Node.js', 'Express', 'JavaScript', 'Python', 'FastAPI', 'MongoDB', 'SQL', 'NoSQL',
-    'MERN', 'spaCy', 'QuickSort', 'Binary Search', 'REST API', 'GraphQL', 'Docker', 'JWT',
-    'Candidate', 'Match', 'Security', 'Anomaly', 'Risk', 'MFA', 'OAuth', 'Data Structures',
-    'Algorithm', 'Frontend', 'Backend', 'Fullstack', 'Venkata Siva Reddy'
+    'React', 'Node.js', 'Express', 'JavaScript', 'Python', 'Java', 'MongoDB', 'MySQL', 'SQL', 'NoSQL',
+    'MERN', 'FastAPI', 'QuickSort', 'Binary Search', 'REST API', 'GraphQL', 'Docker', 'JWT',
+    'Candidate', 'Match', 'Security', 'Anomaly', 'Risk', 'MFA', 'OAuth', 'SQL Injection',
+    'Venkata Siva Reddy', 'Hire', 'Skills', 'TCP', 'UDP', 'Polymorphism', 'HTTPS', 'CAP theorem'
   ];
 
   const extractedEntities = [];
@@ -22,54 +54,54 @@ function analyzeNlpFeatures(prompt) {
     }
   });
 
-  // Determine intent category
-  let intent = 'General Technical Query';
   const lower = cleanPrompt.toLowerCase();
+  let intent = 'General Technical Query';
 
-  if (lower.includes('candidate') || lower.includes('match') || lower.includes('resume') || lower.includes('skill')) {
-    intent = 'Candidate Match & Skill Vector Analysis';
-  } else if (lower.includes('anomaly') || lower.includes('security') || lower.includes('risk') || lower.includes('threat') || lower.includes('mfa')) {
-    intent = 'Security Threat & Behavioral Anomaly Audit';
-  } else if (lower.includes('search') || lower.includes('sort') || lower.includes('algorithm') || lower.includes('binary') || lower.includes('tree')) {
-    intent = 'Algorithmic Complexity & DSA Analysis';
-  } else if (lower.includes('react') || lower.includes('node') || lower.includes('api') || lower.includes('database') || lower.includes('sql') || lower.includes('express')) {
-    intent = 'Full-Stack Architecture & Framework Insight';
+  if (lower.includes('hire') || lower.includes('candidate') || lower.includes('resume') || lower.includes('skill') || lower.includes('who are you') || lower.includes('profile') || lower.includes('why should')) {
+    intent = 'Candidate Portfolio Evaluation';
+  } else if (lower.includes('anomaly') || lower.includes('security') || lower.includes('risk') || lower.includes('threat') || lower.includes('mfa') || lower.includes('injection') || lower.includes('vulnerability') || lower.includes('https')) {
+    intent = 'Security & Threat Anomaly Audit';
+  } else if (lower.includes('search') || lower.includes('sort') || lower.includes('algorithm') || lower.includes('binary') || lower.includes('tree') || lower.includes('quicksort') || lower.includes('recursion') || lower.includes('polymorphism')) {
+    intent = 'Data Structures & Algorithms';
+  } else if (lower.includes('react') || lower.includes('node') || lower.includes('express') || lower.includes('mongodb') || lower.includes('mysql') || lower.includes('sql') || lower.includes('api') || lower.includes('tcp') || lower.includes('udp') || lower.includes('normalization') || lower.includes('cap theorem')) {
+    intent = 'Full-Stack & Web Architecture';
   }
 
   return {
     wordCount: words.length,
     extractedEntities: Array.from(new Set(extractedEntities)),
-    intent,
-    confidenceScore: Math.min(0.85 + (extractedEntities.length * 0.04), 0.99)
+    intent
   };
 }
 
 /**
- * Optional Gemini API Call via HTTPS
+ * Google Gemini LLM Service API Call
  */
-async function callGeminiApi(prompt, apiKey) {
+async function callSingleGeminiModel(prompt, apiKey, candidateInfo, modelName) {
   return new Promise((resolve, reject) => {
+    const systemPrompt = `You are an intelligent AI assistant embedded in ${candidateInfo.name}'s software engineering portfolio.
+Candidate Details: ${candidateInfo.name}, ${candidateInfo.role}, ${candidateInfo.degree} (${candidateInfo.graduationYear}), College: ${candidateInfo.college}, Focus: ${candidateInfo.focus}.
+User Question: "${prompt}"
+
+Provide a clear, accurate, professional 2-4 sentence answer directly addressing the user's question. Do NOT return boilerplate or template code.`;
+
     const postData = JSON.stringify({
       contents: [
         {
           role: 'user',
-          parts: [
-            {
-              text: `You are an AI microservice assistant embedded in Venkata Siva Reddy's software engineering portfolio. Provide a clear, concise, 2-3 sentence accurate technical answer to the user's query.\n\nUser Query: ${prompt}`
-            }
-          ]
+          parts: [{ text: systemPrompt }]
         }
       ],
       generationConfig: {
-        maxOutputTokens: 250,
-        temperature: 0.3
+        maxOutputTokens: 300,
+        temperature: 0.2
       }
     });
 
     const options = {
       hostname: 'generativelanguage.googleapis.com',
       port: 443,
-      path: `/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      path: `/v1beta/models/${modelName}:generateContent?key=${apiKey}`,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -85,9 +117,10 @@ async function callGeminiApi(prompt, apiKey) {
           const json = JSON.parse(body);
           if (json.candidates && json.candidates[0] && json.candidates[0].content) {
             const text = json.candidates[0].content.parts[0].text;
-            resolve(text.trim());
+            const tokenCount = json.usageMetadata ? json.usageMetadata.totalTokenCount : null;
+            resolve({ text: text.trim(), tokenCount });
           } else {
-            reject(new Error(json.error?.message || 'Gemini API response format invalid'));
+            reject(new Error(json.error?.message || `Gemini API response format invalid (${res.statusCode})`));
           }
         } catch (err) {
           reject(err);
@@ -102,45 +135,76 @@ async function callGeminiApi(prompt, apiKey) {
 }
 
 /**
- * Dynamic Knowledge Synthesizer Fallback
+ * Call Gemini API with automatic model fallback
  */
-function synthesizeNlpAnswer(prompt, nlpInfo) {
-  const p = prompt.toLowerCase();
+async function callGeminiApi(prompt, apiKey, candidateInfo) {
+  const models = ['gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-2.5-flash-lite', 'gemini-flash-latest'];
+  let lastError = null;
+
+  for (const model of models) {
+    try {
+      const res = await callSingleGeminiModel(prompt, apiKey, candidateInfo, model);
+      return res;
+    } catch (err) {
+      lastError = err;
+    }
+  }
+
+  throw lastError || new Error('All Gemini models failed');
+}
+
+/**
+ * Portfolio Local Knowledge Engine (Answers supported portfolio/tech topics, or returns truthful unconfigured message)
+ */
+function solveLocalKnowledgeQuery(prompt, candidateInfo) {
+  const p = prompt.toLowerCase().trim();
+
+  // 1. Candidate / Portfolio Queries (Uses real DB candidate data)
+  if (p.includes('why should i hire') || p.includes('why hire') || p.includes('hire him')) {
+    return `${candidateInfo.name} is a ${candidateInfo.degree} student (${candidateInfo.graduationYear}) at ${candidateInfo.college}. His practical expertise in full-stack MERN development, REST API design, and AI microservices makes him a strong candidate for software engineering roles.`;
+  }
+
+  if (p.includes('skills') || p.includes('what skills') || p.includes('technologies')) {
+    return `Candidate ${candidateInfo.name}'s core focus includes: ${candidateInfo.focus}.`;
+  }
+
+  if (p.includes('who are you') || p.includes('who is the candidate') || p.includes('tell me about')) {
+    return `${candidateInfo.name} is a ${candidateInfo.role} pursuing his ${candidateInfo.degree} at ${candidateInfo.college}.`;
+  }
+
+  // 2. Security Questions (Truthful explanation without invented fake risk scores)
+  if (p.includes('rapid login') || p.includes('session risk') || p.includes('anomaly') || p.includes('threat')) {
+    return `Session risk assessment requires real-time telemetry such as IP location variance, login attempt frequencies, and device fingerprint headers. Evaluating risk cannot be done from prompt text alone; in production environments, suspicious login spikes trigger automated rate limiting and Multi-Factor Authentication (MFA) challenges.`;
+  }
+
+  if (p.includes('sql injection')) {
+    return `SQL Injection (SQLi) is a security vulnerability where untrusted input is executed as SQL commands. It is prevented using parameterized queries (prepared statements), input validation, and enforcing database principle of least privilege.`;
+  }
+
+  // 3. Algorithm Questions
+  if (p.includes('binary search')) {
+    return `Binary Search is an O(log N) algorithm for finding an element in a sorted array by repeatedly halving the search interval.`;
+  }
+
+  if (p.includes('quicksort') || p.includes('quick sort')) {
+    return `QuickSort is a divide-and-conquer sorting algorithm with an average time complexity of O(N log N) that partitions arrays around a pivot element.`;
+  }
+
+  // 4. Web Dev & DB Questions
+  if (p.includes('mongodb and mysql') || p.includes('mysql and mongodb') || p.includes('sql vs nosql') || p.includes('nosql vs sql')) {
+    return `MySQL is a relational SQL database utilizing fixed schemas and ACID transactions. MongoDB is a NoSQL document database storing flexible BSON documents optimized for dynamic schemas and horizontal scaling.`;
+  }
 
   if (p.includes('react')) {
-    return 'React is an open-source JavaScript library developed by Meta for building component-based user interfaces. It uses a virtual DOM for efficient UI re-rendering and supports declarative state management through React Hooks.';
-  }
-  if (p.includes('binary search')) {
-    return 'Binary Search is an O(log N) search algorithm that locates an element in a sorted array by repeatedly dividing the search interval in half. It compares the target value to the middle element and narrows the search to the left or right sub-array.';
-  }
-  if (p.includes('quicksort') || p.includes('quick sort')) {
-    return 'QuickSort is an efficient divide-and-conquer sorting algorithm with an average time complexity of O(N log N). It selects a pivot element, partitions the array so smaller elements precede the pivot, and recursively sorts the sub-arrays.';
-  }
-  if (p.includes('candidate') || p.includes('match') || p.includes('score')) {
-    return '[spaCy Vector Matcher]: Extracted candidate skills ["React", "Node.js", "MongoDB", "Express"]. Matched against job requirement vector with an 89.4% similarity index. Weighted bonus applied for 2+ years MERN stack experience.';
-  }
-  if (p.includes('anomaly') || p.includes('risk') || p.includes('threat') || p.includes('security')) {
-    return '[NutriCloud Threat Monitor]: Behavioral anomaly detected. User session navigation frequency is 3.4x higher than standard baseline. Calculated Security Risk Score: 78/100 (HIGH RISK). Triggered automated MFA check.';
-  }
-  if (p.includes('nosql') || p.includes('sql')) {
-    return 'SQL databases (like PostgreSQL and MySQL) use structured, relational tables with strict schemas. NoSQL databases (like MongoDB and Redis) store unstructured or semi-structured data using flexible document or key-value models optimized for rapid horizontal scaling.';
-  }
-  if (p.includes('api') || p.includes('rest')) {
-    return 'A REST API (Representational State Transfer) allows clients to interact with server resources over HTTP using standard methods like GET, POST, PUT, and DELETE. It communicates using stateless JSON payloads with standardized HTTP response status codes.';
-  }
-  if (p.includes('mongodb')) {
-    return 'MongoDB is a popular NoSQL document-oriented database that stores data in flexible, JSON-like BSON documents. It supports dynamic schemas, indexing, aggregation pipelines, and high-performance horizontal sharding.';
-  }
-  if (p.includes('fastapi') || p.includes('spacy')) {
-    return 'FastAPI is a high-performance Python web framework for building APIs with automatic OpenAPI documentation. In combination with spaCy, it enables rapid natural language processing microservices for entity recognition and text analysis.';
-  }
-  if (p.includes('venkata') || p.includes('siva') || p.includes('who are you') || p.includes('portfolio')) {
-    return 'This platform is the interactive portfolio of Venkata Siva Reddy, a Full-Stack MERN & Cloud Engineer specializing in scalable web applications, REST APIs, microservices, and AI integrations.';
+    return `React is a component-based JavaScript library developed by Meta for building user interfaces using a Virtual DOM for efficient state updates.`;
   }
 
-  // Synthesize dynamic answer for general questions
-  const entityList = nlpInfo.extractedEntities.length > 0 ? nlpInfo.extractedEntities.join(', ') : 'Natural Language Tokens';
-  return `[AI Microservice Answer]: Analyzed query "${prompt}". Processed intent [${nlpInfo.intent}] across ${nlpInfo.wordCount} tokens. Extracted entity concepts: [${entityList}]. The request was successfully evaluated through the backend NLP microservice pipeline.`;
+  if (/\bapi\b/i.test(p) || /\brest api\b/i.test(p)) {
+    return `A REST API is an architectural style for web services using stateless HTTP methods (GET, POST, PUT, DELETE) to exchange structured JSON payloads.`;
+  }
+
+  // 5. Truthful Fallback for unsupported / general queries when Gemini is unconfigured
+  return `The cloud generative AI service is currently unconfigured. I can answer questions regarding ${candidateInfo.name}'s portfolio, candidate profile, web development (React, REST APIs, databases), algorithms, and security topics supported in the local knowledge engine.`;
 }
 
 /**
@@ -159,23 +223,26 @@ exports.processNlpQuery = async (req, res) => {
 
   const cleanPrompt = prompt.trim();
   const nlpInfo = analyzeNlpFeatures(cleanPrompt);
+  const candidateInfo = await getCandidateProfileData();
 
   let answer = '';
-  let source = 'Dynamic Knowledge Synthesizer';
+  let source = 'Local Knowledge Engine';
+  let tokenCount = null;
 
-  // Check if server-side Gemini API key is configured
   const apiKey = process.env.GEMINI_API_KEY || process.env.AI_API_KEY;
 
-  if (apiKey && apiKey !== 're_your_api_key_here') {
+  if (apiKey && apiKey !== 're_your_api_key_here' && apiKey !== 'your_api_key_here') {
     try {
-      answer = await callGeminiApi(cleanPrompt, apiKey);
+      const geminiResult = await callGeminiApi(cleanPrompt, apiKey, candidateInfo);
+      answer = geminiResult.text;
+      tokenCount = geminiResult.tokenCount;
       source = 'Google Gemini LLM Service';
     } catch (err) {
-      console.warn('[AI Controller Warning] Gemini API call failed, using fallback synthesizer:', err.message);
-      answer = synthesizeNlpAnswer(cleanPrompt, nlpInfo);
+      console.warn('[AI Controller Warning] Gemini API call failed, using local solver:', err.message);
+      answer = solveLocalKnowledgeQuery(cleanPrompt, candidateInfo);
     }
   } else {
-    answer = synthesizeNlpAnswer(cleanPrompt, nlpInfo);
+    answer = solveLocalKnowledgeQuery(cleanPrompt, candidateInfo);
   }
 
   const processingTimeMs = Date.now() - startTime;
@@ -186,9 +253,9 @@ exports.processNlpQuery = async (req, res) => {
     answer,
     nlpAnalysis: {
       intent: nlpInfo.intent,
-      tokensCount: nlpInfo.wordCount,
+      wordsCount: nlpInfo.wordCount,
+      tokensCount: tokenCount,
       extractedEntities: nlpInfo.extractedEntities,
-      confidenceScore: nlpInfo.confidenceScore,
       processingTimeMs,
       source
     }

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowUpRight, Github, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ImageWithFallback from '../common/ImageWithFallback';
+import SwipeableCarousel from '../common/SwipeableCarousel';
 
 const easeCurve = [0.16, 1, 0.3, 1];
 
@@ -11,27 +12,27 @@ const defaultProjectsFallback = [
     _id: '1',
     title: 'NutriCloud Monitor',
     slug: 'nutricloud-monitor',
-    shortDescription: 'Real-time behavioral intelligence platform for abnormal activity detection and security threat scoring.',
-    problem: 'Traditional security relies on rigid static rules that fail to catch anomalous browsing patterns and credential stuffing.',
-    solution: 'Built a real-time behavioral engine with Next.js, FastAPI, and Redis computing live risk scores from clickstream events.',
-    features: ['JWT IP Tracking', 'Real-time Anomaly Scoring', 'Live Admin Risk Dashboard', 'Suspicious Session Lockout'],
-    technologies: ['Next.js', 'Node.js', 'Express', 'MongoDB', 'Redis', 'FastAPI', 'Python', 'AWS'],
-    category: 'Full Stack / Security / AI',
-    thumbnail: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800',
-    repositoryUrl: 'https://github.com/vasanreddy/NutriCloudMonitor',
+    shortDescription: 'Production IoT-cloud monitoring system for real-time nutritional tracking and environment telemetry.',
+    problem: 'Nutrition labs needed a zero-latency telemetry dashboard for real-time monitoring across distributed nodes.',
+    solution: 'Designed a full-stack MERN platform with Redis caching, WebSockets for sub-100ms updates, and dynamic charts.',
+    features: ['Real-time WebSocket Data Pipeline', 'Redis Caching for Analytics Query Acceleration', 'Role-Based Access Control (RBAC)', 'Interactive Telemetry Visualizations'],
+    technologies: ['React', 'Node.js', 'Express', 'MongoDB', 'Redis', 'WebSockets', 'Tailwind CSS'],
+    category: 'IoT / Full-Stack',
+    thumbnail: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=800',
+    repositoryUrl: 'https://github.com/vasanreddy/NutriCloud',
     liveUrl: ''
   },
   {
     _id: '2',
-    title: 'DocSpot Appointment Booking',
-    slug: 'docspot-appointment-booking',
-    shortDescription: 'Full-stack healthcare platform for specialist doctor search, schedule management, and instant booking.',
-    problem: 'Patients face complex processes when finding specialist doctors and scheduling appointments without instant feedback.',
-    solution: 'Created an interactive booking ecosystem with real-time slot availability, Socket.io notifications, and patient record management.',
-    features: ['Specialist Category Filter', 'Interactive Date & Slot Selector', 'Doctor & Patient Portals', 'Socket.io Alerts'],
-    technologies: ['React', 'Node.js', 'Express', 'MongoDB', 'Socket.io', 'Tailwind CSS'],
-    category: 'Healthcare / Full Stack',
-    thumbnail: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=800',
+    title: 'DocSpot Healthcare Portal',
+    slug: 'docspot-healthcare-portal',
+    shortDescription: 'Comprehensive doctor appointment booking and patient record management system.',
+    problem: 'Patients face complex booking workflows and lack unified medical history access.',
+    solution: 'Engineered an intuitive healthcare portal with real-time slot scheduling and encrypted document storage.',
+    features: ['Real-time Slot Booking Engine', 'JWT Auth & Session Management', 'Patient History Timeline', 'Doctor Availability Management'],
+    technologies: ['React', 'Node.js', 'Express', 'MongoDB', 'JWT', 'Cloudinary'],
+    category: 'Healthcare / Web App',
+    thumbnail: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?q=80&w=800',
     repositoryUrl: 'https://github.com/vasanreddy/DocSpot',
     liveUrl: ''
   },
@@ -62,7 +63,7 @@ const ProjectsSection = ({ projects = [] }) => {
       <div className="section-container">
         
         {/* Section Header Stagger */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-4">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 sm:mb-16 gap-4">
           <div>
             <motion.span
               initial={{ opacity: 0, y: 15 }}
@@ -96,8 +97,49 @@ const ProjectsSection = ({ projects = [] }) => {
           </motion.p>
         </div>
 
-        {/* Case Studies List */}
-        <div className="space-y-16">
+        {/* Mobile View Swipe Carousel (sm:hidden) */}
+        <div className="block sm:hidden mb-8">
+          <SwipeableCarousel showDots={true} showArrows={true}>
+            {displayedProjects.map((project) => (
+              <div key={project._id || project.slug} className="editorial-card p-5 space-y-4">
+                <div className="flex items-center justify-between font-mono text-[10px]">
+                  <span className="px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold border border-indigo-500/20">
+                    {project.category}
+                  </span>
+                  <span className="text-slate-500 dark:text-zinc-400">Swipe for next project →</span>
+                </div>
+                <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
+                  {project.title}
+                </h3>
+                <p className="text-xs text-slate-700 dark:text-zinc-300 leading-relaxed">
+                  {project.shortDescription || project.solution}
+                </p>
+                <div className="flex flex-wrap gap-1 font-mono text-[9px] pt-1">
+                  {project.technologies?.slice(0, 4).map((tech) => (
+                    <span key={tech} className="px-2 py-0.5 rounded bg-slate-100 dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-zinc-800">
+                      {tech}
+                    </span>
+                  ))}
+                </div>
+                <div className="pt-2 border-t border-slate-200 dark:border-zinc-800 flex items-center gap-3 text-xs font-mono">
+                  {project.repositoryUrl && (
+                    <a href={project.repositoryUrl} target="_blank" rel="noreferrer" className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">
+                      GitHub Code
+                    </a>
+                  )}
+                  {project.liveUrl && (
+                    <a href={project.liveUrl} target="_blank" rel="noreferrer" className="text-emerald-600 dark:text-emerald-400 font-bold hover:underline">
+                      Live Demo
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
+          </SwipeableCarousel>
+        </div>
+
+        {/* Desktop & Tablet Case Studies List */}
+        <div className="hidden sm:block space-y-16">
           {displayedProjects.map((project, idx) => {
             const isEven = idx % 2 === 0;
 

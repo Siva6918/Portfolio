@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { resolveMediaUrl } from '../../services/api';
 import { openPdfInNewTab, downloadPdf } from '../../utils/pdfHelpers';
 import HeroWorkspace from './HeroWorkspace';
+import SwipeableCarousel from '../common/SwipeableCarousel';
 
 const easeCurve = [0.16, 1, 0.3, 1];
 
@@ -78,12 +79,58 @@ const HeroSection = ({ profile, resumeUrl }) => {
               I enjoy architecting full-stack applications and experimenting with AI models when they make a product genuinely better.
             </motion.p>
 
-            {/* 5. Action Buttons (400ms delay) */}
+            {/* Mobile View Carousel (sm:hidden) */}
+            <div className="block sm:hidden pt-2">
+              <SwipeableCarousel showDots={true}>
+                {/* Mobile Slide 1: Status & Focus */}
+                <div className="p-4 rounded-2xl bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 space-y-3">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[11px] font-mono text-emerald-600 dark:text-emerald-400">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span>Available for Internships</span>
+                  </div>
+                  <h3 className="text-sm font-bold font-mono text-slate-900 dark:text-white">
+                    Full Stack & AI Engineer
+                  </h3>
+                  <div className="flex flex-wrap gap-1.5 font-mono text-[10px] text-slate-600 dark:text-zinc-400">
+                    <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800">MERN Stack</span>
+                    <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800">FastAPI</span>
+                    <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800">Cloud AI</span>
+                  </div>
+                </div>
+
+                {/* Mobile Slide 2: Bio & Degree */}
+                <div className="p-4 rounded-2xl bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 space-y-2">
+                  <span className="text-[10px] font-mono text-indigo-600 dark:text-indigo-400 uppercase font-semibold">
+                    Academic Background
+                  </span>
+                  <p className="text-xs text-slate-700 dark:text-zinc-300 leading-relaxed">
+                    B.Tech CSE student at Rajeev Gandhi Memorial College of Engineering (graduating 2027), specializing in full-stack architecture and AI integrations.
+                  </p>
+                </div>
+
+                {/* Mobile Slide 3: Quick Social Links */}
+                <div className="p-4 rounded-2xl bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 space-y-3">
+                  <span className="text-[10px] font-mono text-slate-500 uppercase">Connect & Links</span>
+                  <div className="flex items-center gap-4 text-xs font-mono text-slate-700 dark:text-zinc-300">
+                    <a href={profile?.github || "https://github.com/vasanreddy"} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 hover:text-indigo-500">
+                      <Github className="w-3.5 h-3.5" />
+                      <span>GitHub</span>
+                    </a>
+                    <a href={profile?.linkedin || "https://www.linkedin.com/in/venkatasiva-reddy/"} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 hover:text-indigo-500">
+                      <Linkedin className="w-3.5 h-3.5" />
+                      <span>LinkedIn</span>
+                    </a>
+                  </div>
+                </div>
+              </SwipeableCarousel>
+            </div>
+
+            {/* Desktop View Action & Links (hidden on mobile, block on sm) */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4, ease: easeCurve }}
-              className="flex flex-wrap items-center gap-3 pt-2"
+              className="hidden sm:flex flex-wrap items-center gap-3 pt-2"
             >
               <a
                 href="#projects"
@@ -113,12 +160,12 @@ const HeroSection = ({ profile, resumeUrl }) => {
               </button>
             </motion.div>
 
-            {/* 6. Social Links (500ms delay) */}
+            {/* Desktop Social Links */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.5, ease: easeCurve }}
-              className="flex items-center gap-3 pt-2 border-t border-slate-200 dark:border-zinc-800/80 max-w-md"
+              className="hidden sm:flex items-center gap-3 pt-2 border-t border-slate-200 dark:border-zinc-800/80 max-w-md"
             >
               <a
                 href={profile?.github || "https://github.com/vasanreddy"}

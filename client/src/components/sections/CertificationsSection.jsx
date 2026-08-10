@@ -1,6 +1,9 @@
-import React from 'react';
-import { ExternalLink, ShieldCheck } from 'lucide-react';
+import React, { useState } from 'react';
+import { ExternalLink, ShieldCheck, Eye, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+
+import SwipeableCarousel from '../common/SwipeableCarousel';
+import CertificationsDetailModal from '../common/CertificationsDetailModal';
 
 const easeCurve = [0.16, 1, 0.3, 1];
 
@@ -26,6 +29,7 @@ const defaultCertsFallback = [
 ];
 
 const CertificationsSection = ({ certifications = [] }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const activeCerts = certifications.length > 0 ? certifications : defaultCertsFallback;
 
   return (
@@ -56,19 +60,51 @@ const CertificationsSection = ({ certifications = [] }) => {
             </motion.h2>
           </div>
 
-          <motion.p
-            initial={{ opacity: 0, y: 15 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.15 }}
-            transition={{ duration: 0.5, delay: 0.2, ease: easeCurve }}
-            className="text-xs font-mono text-slate-600 dark:text-white/50 max-w-xs"
-          >
-            Industry and cloud credentials validating architecture standards.
-          </motion.p>
+          <div className="flex items-center gap-3">
+            {/* See More Button */}
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-mono text-xs font-semibold shadow-md active:scale-95 transition-all"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span>SEE MORE CERTIFICATIONS ({activeCerts.length})</span>
+            </button>
+          </div>
         </div>
 
-        {/* Certifications Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Mobile View Swipe Carousel (md:hidden) */}
+        <div className="block md:hidden">
+          <SwipeableCarousel showDots={true}>
+            {activeCerts.map((cert) => (
+              <div key={cert._id || cert.title} className="editorial-card p-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono text-indigo-600 dark:text-indigo-400 uppercase font-semibold">
+                    {cert.organization}
+                  </span>
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  {cert.title}
+                </h3>
+                <p className="text-xs text-slate-700 dark:text-zinc-300 leading-relaxed">
+                  {cert.description}
+                </p>
+                <div className="pt-2 border-t border-slate-200 dark:border-zinc-800 flex items-center justify-between text-xs font-mono text-slate-500">
+                  <span>Issued: {cert.issueDate}</span>
+                  <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="text-indigo-500 font-bold hover:underline"
+                  >
+                    See More
+                  </button>
+                </div>
+              </div>
+            ))}
+          </SwipeableCarousel>
+        </div>
+
+        {/* Desktop Certifications Grid (hidden on mobile md:grid) */}
+        <div className="hidden md:grid grid-cols-2 gap-6">
           {activeCerts.map((cert, idx) => (
             <motion.div
               key={cert._id || cert.title}
@@ -97,21 +133,24 @@ const CertificationsSection = ({ certifications = [] }) => {
 
               <div className="pt-3 border-t border-slate-200 dark:border-zinc-800/80 flex items-center justify-between text-xs font-mono text-slate-600 dark:text-white/50">
                 <span>Issued: {cert.issueDate}</span>
-                {cert.credentialUrl && (
-                  <a
-                    href={cert.credentialUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-1 text-indigo-600 dark:text-indigo-400 hover:underline font-semibold"
-                  >
-                    <span>Verify Credential</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
-                )}
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="flex items-center gap-1 text-indigo-600 dark:text-indigo-400 hover:underline font-semibold"
+                >
+                  <span>See Details</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
               </div>
             </motion.div>
           ))}
         </div>
+
+        {/* Certifications Modal */}
+        <CertificationsDetailModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          certifications={activeCerts}
+        />
 
       </div>
     </section>

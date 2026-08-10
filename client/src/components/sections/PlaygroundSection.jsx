@@ -4,8 +4,36 @@ import NlpEngineVisualizer from '../playground/NlpEngineVisualizer';
 import AlgoStepVisualizer from '../playground/AlgoStepVisualizer';
 import ApiBenchmarkVisualizer from '../playground/ApiBenchmarkVisualizer';
 
+const tabs = ['ai-sim', 'algo', 'api'];
+
 const PlaygroundSection = () => {
   const [activeTab, setActiveTab] = useState('ai-sim');
+  const touchStartX = React.useRef(0);
+  const touchEndX = React.useRef(0);
+
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchMove = (e) => {
+    touchEndX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    const diff = touchStartX.current - touchEndX.current;
+    if (Math.abs(diff) > 50) {
+      const currIdx = tabs.indexOf(activeTab);
+      if (diff > 0 && currIdx < tabs.length - 1) {
+        // Swiped Left -> Next Tab
+        setActiveTab(tabs[currIdx + 1]);
+      } else if (diff < 0 && currIdx > 0) {
+        // Swiped Right -> Prev Tab
+        setActiveTab(tabs[currIdx - 1]);
+      }
+    }
+    touchStartX.current = 0;
+    touchEndX.current = 0;
+  };
 
   return (
     <section id="experiments" className="py-20 relative w-full border-t border-slate-200 dark:border-zinc-800/60">
@@ -27,58 +55,66 @@ const PlaygroundSection = () => {
         </div>
 
         {/* Lab Navigation Tabs */}
-        <div className="flex items-center gap-2 mb-8 border-b border-slate-200 dark:border-zinc-800 pb-3 overflow-x-auto">
-          <button
-            onClick={() => setActiveTab('ai-sim')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl font-mono text-xs transition-all ${
-              activeTab === 'ai-sim' 
-                ? 'bg-indigo-600 text-white font-bold shadow-md' 
-                : 'bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-white/50 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            <Cpu className="w-3.5 h-3.5" />
-            <span>01 // NLP Match Engine</span>
-          </button>
+        <div className="flex items-center justify-between gap-2 mb-8 border-b border-slate-200 dark:border-zinc-800 pb-3 overflow-x-auto">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setActiveTab('ai-sim')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-mono text-xs transition-all ${
+                activeTab === 'ai-sim' 
+                  ? 'bg-indigo-600 text-white font-bold shadow-md' 
+                  : 'bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-white/50 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <Cpu className="w-3.5 h-3.5" />
+              <span>01 // NLP Engine</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('algo')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl font-mono text-xs transition-all ${
-              activeTab === 'algo' 
-                ? 'bg-indigo-600 text-white font-bold shadow-md' 
-                : 'bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-white/50 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            <Code2 className="w-3.5 h-3.5" />
-            <span>02 // Algo Step Visualizer</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('algo')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-mono text-xs transition-all ${
+                activeTab === 'algo' 
+                  ? 'bg-indigo-600 text-white font-bold shadow-md' 
+                  : 'bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-white/50 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <Code2 className="w-3.5 h-3.5" />
+              <span>02 // Algo Visualizer</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('api')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl font-mono text-xs transition-all ${
-              activeTab === 'api' 
-                ? 'bg-indigo-600 text-white font-bold shadow-md' 
-                : 'bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-white/50 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            <Zap className="w-3.5 h-3.5" />
-            <span>03 // API Speed Benchmark</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('api')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-mono text-xs transition-all ${
+                activeTab === 'api' 
+                  ? 'bg-indigo-600 text-white font-bold shadow-md' 
+                  : 'bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-white/50 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <Zap className="w-3.5 h-3.5" />
+              <span>03 // API Speed</span>
+            </button>
+          </div>
+
+          <span className="hidden sm:inline text-[10px] font-mono text-slate-400">
+            Swipe ← → to change tabs
+          </span>
         </div>
 
-        {/* Experiment Tab 1: AI / NLP Match Engine */}
-        {activeTab === 'ai-sim' && (
-          <NlpEngineVisualizer />
-        )}
+        {/* Touch Swipeable Tab Container */}
+        <div
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          className="w-full touch-pan-y"
+        >
+          {/* Experiment Tab 1: AI / NLP Match Engine */}
+          {activeTab === 'ai-sim' && <NlpEngineVisualizer />}
 
-        {/* Experiment Tab 2: Algo Step Visualizer */}
-        {activeTab === 'algo' && (
-          <AlgoStepVisualizer />
-        )}
+          {/* Experiment Tab 2: Algo Step Visualizer */}
+          {activeTab === 'algo' && <AlgoStepVisualizer />}
 
-        {/* Experiment Tab 3: API Speed Benchmark */}
-        {activeTab === 'api' && (
-          <ApiBenchmarkVisualizer />
-        )}
+          {/* Experiment Tab 3: API Speed Benchmark */}
+          {activeTab === 'api' && <ApiBenchmarkVisualizer />}
+        </div>
 
       </div>
     </section>

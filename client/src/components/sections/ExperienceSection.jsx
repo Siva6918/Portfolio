@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Briefcase, ExternalLink, Code2, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import SwipeableCarousel from '../common/SwipeableCarousel';
+
 const easeCurve = [0.16, 1, 0.3, 1];
 
 const defaultExperienceFallback = [
@@ -77,8 +79,69 @@ const ExperienceSection = ({ experience = [], codingProfiles = [] }) => {
           </motion.p>
         </div>
 
-        {/* 2 Column */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Mobile View Swipe Carousel (lg:hidden) */}
+        <div className="block lg:hidden space-y-6">
+          <div className="space-y-2">
+            <h3 className="text-xs font-mono text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+              <Briefcase className="w-3.5 h-3.5" />
+              <span>ROLES & INTERNSHIPS</span>
+            </h3>
+            <SwipeableCarousel showDots={true}>
+              {activeExp.map((exp) => (
+                <div key={exp._id || exp.role} className="editorial-card p-5 space-y-3">
+                  <div className="flex items-center justify-between font-mono text-[10px]">
+                    <span className="text-indigo-600 dark:text-indigo-400 font-bold">{exp.startDate} — {exp.endDate || 'Present'}</span>
+                    <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-zinc-900 text-slate-600 dark:text-zinc-400">{exp.type || 'Role'}</span>
+                  </div>
+                  <h4 className="text-base font-bold text-slate-900 dark:text-white">
+                    {exp.role} <span className="text-slate-500 font-normal">@ {exp.company}</span>
+                  </h4>
+                  <p className="text-xs text-slate-700 dark:text-zinc-300 leading-relaxed">
+                    {exp.description}
+                  </p>
+                  {exp.technologies && (
+                    <div className="flex flex-wrap gap-1 font-mono text-[9px] pt-1">
+                      {exp.technologies.map((t) => (
+                        <span key={t} className="px-2 py-0.5 rounded bg-slate-100 dark:bg-zinc-900 text-slate-600 dark:text-zinc-400 border border-slate-200 dark:border-zinc-800">
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </SwipeableCarousel>
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-xs font-mono text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+              <Code2 className="w-3.5 h-3.5" />
+              <span>CODING PROFILES</span>
+            </h3>
+            <SwipeableCarousel showDots={true}>
+              {activeProfiles.map((p) => (
+                <div key={p.platform} className="editorial-card p-5 flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                      <span>{p.platform}</span>
+                      {p.profileUrl && (
+                        <a href={p.profileUrl} target="_blank" rel="noreferrer" className="text-indigo-500">
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                      )}
+                    </h4>
+                    <p className="text-xs font-mono text-slate-600 dark:text-zinc-400 mt-1">
+                      {p.problemsSolved} Problems Solved · {p.rating}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </SwipeableCarousel>
+          </div>
+        </div>
+
+        {/* Desktop 2 Column View (hidden on mobile/tablet lg:grid) */}
+        <div className="hidden lg:grid grid-cols-12 gap-8">
           
           {/* Left: Experience Timeline */}
           <div className="lg:col-span-7 space-y-4">

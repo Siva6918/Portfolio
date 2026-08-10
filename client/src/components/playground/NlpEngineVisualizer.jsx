@@ -101,13 +101,15 @@ const NlpEngineVisualizer = () => {
 
       {/* Quick Presets */}
       <div className="flex flex-wrap items-center gap-2 pt-1">
-        <span className="text-[11px] font-mono text-slate-500 dark:text-white/50">Example Presets:</span>
+        <span className="text-[11px] font-mono text-slate-500 dark:text-white/50">Example Questions:</span>
         {[
-          { label: 'Candidate Match Score', query: 'How do you calculate candidate match score for MERN experience?' },
-          { label: 'Security Threat Risk', query: 'Check session risk score for rapid login anomaly' },
-          { label: 'What is React?', query: 'What is React and how does the virtual DOM work?' },
-          { label: 'Binary Search', query: 'Explain binary search algorithm and its time complexity' },
-          { label: 'What is SQL Injection?', query: 'Explain SQL injection security vulnerability and prevention' }
+          { label: 'Why hire him?', query: 'Why should I hire him?' },
+          { label: 'Candidate Skills', query: 'What skills does this candidate have?' },
+          { label: 'What is React?', query: 'What is React?' },
+          { label: 'Binary Search', query: 'Explain binary search' },
+          { label: 'SQL Injection', query: 'What is SQL injection?' },
+          { label: 'MongoDB vs MySQL', query: 'What is the difference between MongoDB and MySQL?' },
+          { label: 'Security Risk Score', query: 'Check session risk score for rapid login anomaly' }
         ].map((preset) => (
           <button
             key={preset.label}
@@ -173,7 +175,10 @@ const NlpEngineVisualizer = () => {
                 </div>
 
                 <div className="flex items-center gap-3 text-zinc-400">
-                  <span>Tokens: <strong className="text-zinc-200">{aiResponse.nlpAnalysis.tokensCount}</strong></span>
+                  <span>Words: <strong className="text-zinc-200">{aiResponse.nlpAnalysis.wordsCount}</strong></span>
+                  {aiResponse.nlpAnalysis.tokensCount !== null && (
+                    <span>Gemini Tokens: <strong className="text-indigo-300">{aiResponse.nlpAnalysis.tokensCount}</strong></span>
+                  )}
                   <span>Latency: <strong className="text-emerald-400">{aiResponse.nlpAnalysis.processingTimeMs} ms</strong></span>
                   <span className="text-zinc-500 font-mono text-[9px]">{aiResponse.nlpAnalysis.source}</span>
                 </div>

@@ -1,40 +1,41 @@
 import React, { useState } from 'react';
-import { Search, Sparkles } from 'lucide-react';
+import { Search, Sparkles, LayoutGrid, ListFilter } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { resolveMediaUrl } from '../../services/api';
+import SwipeableCarousel from '../common/SwipeableCarousel';
 
 const easeCurve = [0.16, 1, 0.3, 1];
 
 const defaultSkillsFallback = [
   // Languages
-  { name: 'Java', category: 'Programming Languages', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg', proficiency: 'Advanced', yearsOfExperience: '2+ yrs' },
-  { name: 'JavaScript', category: 'Programming Languages', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg', proficiency: 'Advanced', yearsOfExperience: '2+ yrs' },
-  { name: 'Python', category: 'Programming Languages', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg', proficiency: 'Intermediate', yearsOfExperience: '2+ yrs' },
-  { name: 'C++', category: 'Programming Languages', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cplusplus/cplusplus-original.svg', proficiency: 'Intermediate', yearsOfExperience: '1+ yrs' },
+  { name: 'Java', category: 'Programming Languages', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg', proficiency: 'Advanced' },
+  { name: 'JavaScript', category: 'Programming Languages', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg', proficiency: 'Advanced' },
+  { name: 'Python', category: 'Programming Languages', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg', proficiency: 'Intermediate' },
+  { name: 'C++', category: 'Programming Languages', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cplusplus/cplusplus-original.svg', proficiency: 'Intermediate' },
   
   // Frontend
-  { name: 'React', category: 'Frontend', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg', proficiency: 'Advanced', yearsOfExperience: '2+ yrs' },
-  { name: 'Next.js', category: 'Frontend', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg', proficiency: 'Intermediate', yearsOfExperience: '1+ yrs' },
-  { name: 'Tailwind CSS', category: 'Frontend', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tailwindcss/tailwindcss-original.svg', proficiency: 'Advanced', yearsOfExperience: '2+ yrs' },
+  { name: 'React', category: 'Frontend', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg', proficiency: 'Advanced' },
+  { name: 'Next.js', category: 'Frontend', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg', proficiency: 'Intermediate' },
+  { name: 'Tailwind CSS', category: 'Frontend', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tailwindcss/tailwindcss-original.svg', proficiency: 'Advanced' },
 
   // Backend
-  { name: 'Node.js', category: 'Backend', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg', proficiency: 'Advanced', yearsOfExperience: '2+ yrs' },
-  { name: 'Express.js', category: 'Backend', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/express/express-original.svg', proficiency: 'Advanced', yearsOfExperience: '2+ yrs' },
-  { name: 'FastAPI', category: 'Backend', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/fastapi/fastapi-original.svg', proficiency: 'Intermediate', yearsOfExperience: '1+ yrs' },
+  { name: 'Node.js', category: 'Backend', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg', proficiency: 'Advanced' },
+  { name: 'Express.js', category: 'Backend', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/express/express-original.svg', proficiency: 'Advanced' },
+  { name: 'FastAPI', category: 'Backend', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/fastapi/fastapi-original.svg', proficiency: 'Intermediate' },
 
   // Databases
-  { name: 'MongoDB', category: 'Databases', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg', proficiency: 'Advanced', yearsOfExperience: '2+ yrs' },
-  { name: 'MySQL', category: 'Databases', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg', proficiency: 'Intermediate', yearsOfExperience: '2+ yrs' },
-  { name: 'Redis', category: 'Databases', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/redis/redis-original.svg', proficiency: 'Intermediate', yearsOfExperience: '1+ yrs' },
+  { name: 'MongoDB', category: 'Databases', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg', proficiency: 'Advanced' },
+  { name: 'MySQL', category: 'Databases', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg', proficiency: 'Intermediate' },
+  { name: 'Redis', category: 'Databases', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/redis/redis-original.svg', proficiency: 'Intermediate' },
 
   // Cloud & DevOps
-  { name: 'AWS', category: 'Cloud & DevOps', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/amazonwebservices/amazonwebservices-original-wordmark.svg', proficiency: 'Intermediate', yearsOfExperience: '1+ yrs' },
-  { name: 'Docker', category: 'Cloud & DevOps', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg', proficiency: 'Intermediate', yearsOfExperience: '1+ yrs' },
-  { name: 'Git & GitHub', category: 'Cloud & DevOps', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg', proficiency: 'Advanced', yearsOfExperience: '2+ yrs' },
+  { name: 'AWS', category: 'Cloud & DevOps', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/amazonwebservices/amazonwebservices-original-wordmark.svg', proficiency: 'Intermediate' },
+  { name: 'Docker', category: 'Cloud & DevOps', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg', proficiency: 'Intermediate' },
+  { name: 'Git & GitHub', category: 'Cloud & DevOps', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg', proficiency: 'Advanced' },
 
   // Core CS
-  { name: 'Data Structures & Algorithms', category: 'Core CS', logo: '', proficiency: 'Advanced', yearsOfExperience: '2+ yrs' },
-  { name: 'System Design', category: 'Core CS', logo: '', proficiency: 'Intermediate', yearsOfExperience: '1+ yrs' }
+  { name: 'Data Structures & Algorithms', category: 'Core CS', logo: '', proficiency: 'Advanced' },
+  { name: 'System Design', category: 'Core CS', logo: '', proficiency: 'Intermediate' }
 ];
 
 const SkillsSection = ({ skills = [] }) => {
@@ -43,6 +44,7 @@ const SkillsSection = ({ skills = [] }) => {
   const categoryNames = ['All', 'Programming Languages', 'Frontend', 'Backend', 'Databases', 'Cloud & DevOps', 'Core CS'];
   const [selectedCat, setSelectedCat] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState('compact'); // 'compact' or 'grid'
 
   const filteredSkills = activeSkillsList.filter((s) => {
     const matchesCat = selectedCat === 'All' || s.category === selectedCat;
@@ -50,119 +52,193 @@ const SkillsSection = ({ skills = [] }) => {
     return matchesCat && matchesSearch;
   });
 
+  // Group skills by category for compact pillar view
+  const categoriesGrouped = categoryNames
+    .filter((c) => c !== 'All')
+    .map((cat) => ({
+      category: cat,
+      items: activeSkillsList.filter((s) => s.category === cat && s.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    }))
+    .filter((g) => g.items.length > 0);
+
   return (
-    <section id="skills" className="py-20 relative w-full border-t border-slate-200 dark:border-zinc-800/60">
+    <section id="skills" className="py-16 relative w-full border-t border-slate-200 dark:border-zinc-800/60">
       <div className="section-container">
         
-        {/* Header Stagger */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
           <div>
-            <motion.span
-              initial={{ opacity: 0, y: 15 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.15 }}
-              transition={{ duration: 0.5, delay: 0.0, ease: easeCurve }}
-              className="text-xs font-mono tracking-widest text-indigo-600 dark:text-indigo-400 uppercase font-semibold block"
-            >
+            <span className="text-xs font-mono tracking-widest text-indigo-600 dark:text-indigo-400 uppercase font-semibold block">
               04 // STACK & COMPETENCIES
-            </motion.span>
-            
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.15 }}
-              transition={{ duration: 0.6, delay: 0.1, ease: easeCurve }}
-              className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white mt-1"
-            >
-              Technical Architecture & Tools
-            </motion.h2>
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white mt-1">
+              Skills & Tech Stack
+            </h2>
           </div>
 
-          {/* Search Input */}
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.15 }}
-            transition={{ duration: 0.5, delay: 0.2, ease: easeCurve }}
-            className="relative w-full sm:w-72"
-          >
-            <Search className="w-4 h-4 text-slate-400 dark:text-white/40 absolute left-3 top-3" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Filter technologies..."
-              className="w-full pl-9 pr-4 py-2 rounded-xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 shadow-sm transition-colors duration-200"
-            />
-          </motion.div>
-        </div>
-
-        {/* Category Tabs with 80ms Stagger */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-4 scrollbar-none mb-6">
-          {categoryNames.map((cat, idx) => (
-            <motion.button
-              key={cat}
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: idx * 0.08, ease: easeCurve }}
-              onClick={() => setSelectedCat(cat)}
-              className={`px-4 py-2 rounded-xl font-mono text-xs whitespace-nowrap transition-all duration-200 active:scale-95 ${
-                selectedCat === cat
-                  ? 'bg-indigo-600 text-white font-bold shadow-md'
-                  : 'bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-white/50 hover:text-slate-900 dark:hover:text-white shadow-sm'
-              }`}
-            >
-              {cat}
-            </motion.button>
-          ))}
-        </div>
-
-        {/* Skill Cards Grid with Smooth Motion */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          <AnimatePresence mode="popLayout">
-            {filteredSkills.map((skill, idx) => (
-              <motion.div
-                key={skill._id || skill.name || idx}
-                layout
-                initial={{ opacity: 0, scale: 0.96 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.96 }}
-                transition={{ duration: 0.3, delay: (idx % 8) * 0.04, ease: easeCurve }}
-                className="editorial-card p-5 hover:-translate-y-1 hover:border-indigo-300 dark:hover:border-indigo-500/40 transition-all duration-200 group flex items-center justify-between"
+          <div className="flex flex-wrap items-center gap-3">
+            {/* View Mode Toggle */}
+            <div className="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 font-mono text-xs">
+              <button
+                onClick={() => setViewMode('compact')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
+                  viewMode === 'compact'
+                    ? 'bg-indigo-600 text-white font-bold shadow-sm'
+                    : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 flex items-center justify-center shrink-0 p-2 group-hover:border-indigo-500/30 transition-colors">
-                    {skill.logo ? (
-                      <img src={resolveMediaUrl(skill.logo)} alt={skill.name} className="w-6 h-6 object-contain" />
-                    ) : (
-                      <Sparkles className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                    )}
-                  </div>
+                <ListFilter className="w-3.5 h-3.5" />
+                <span>Sleek View</span>
+              </button>
 
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors">
-                      {skill.name}
-                    </h4>
-                    <span className="text-[10px] font-mono text-slate-500 dark:text-white/50">
-                      {skill.category}
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
+                  viewMode === 'grid'
+                    ? 'bg-indigo-600 text-white font-bold shadow-sm'
+                    : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+                <span>Cards</span>
+              </button>
+            </div>
+
+            {/* Search Input */}
+            <div className="relative w-full sm:w-64">
+              <Search className="w-4 h-4 text-slate-400 dark:text-white/40 absolute left-3 top-2.5" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Filter skill..."
+                className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 shadow-sm"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* 1. SLEEK COMPACT PILLAR VIEW (Default - Sleek, non-bulky layout) */}
+        {viewMode === 'compact' && (
+          <>
+            {/* Desktop & Tablet Compact Grid */}
+            <div className="hidden sm:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {categoriesGrouped.map((group) => (
+                <div
+                  key={group.category}
+                  className="editorial-card p-5 space-y-3.5 hover:border-indigo-500/30 transition-colors"
+                >
+                  <div className="flex items-center justify-between border-b border-slate-200 dark:border-zinc-800/80 pb-2">
+                    <h3 className="text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
+                      {group.category}
+                    </h3>
+                    <span className="text-[10px] font-mono text-slate-400">
+                      {group.items.length} skills
                     </span>
                   </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    {group.items.map((skill) => (
+                      <div
+                        key={skill.name}
+                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 hover:border-indigo-500/40 hover:bg-indigo-500/10 text-xs font-semibold text-slate-800 dark:text-zinc-200 transition-all duration-200 group"
+                      >
+                        {skill.logo ? (
+                          <img src={resolveMediaUrl(skill.logo)} alt={skill.name} className="w-4 h-4 object-contain" />
+                        ) : (
+                          <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+                        )}
+                        <span>{skill.name}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
+              ))}
+            </div>
 
-                {skill.proficiency && (
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-md border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-950 text-slate-600 dark:text-white/50">
-                    {skill.proficiency}
-                  </span>
-                )}
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
+            {/* Mobile View Swipe Carousel for Compact View (sm:hidden) */}
+            <div className="block sm:hidden">
+              <SwipeableCarousel showDots={true}>
+                {categoriesGrouped.map((group) => (
+                  <div key={group.category} className="editorial-card p-5 space-y-3">
+                    <div className="flex items-center justify-between border-b border-slate-200 dark:border-zinc-800 pb-2">
+                      <h3 className="text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
+                        {group.category}
+                      </h3>
+                      <span className="text-[10px] font-mono text-slate-400">{group.items.length} items</span>
+                    </div>
 
-        {filteredSkills.length === 0 && (
-          <div className="text-center py-12 font-mono text-xs text-slate-500 dark:text-white/40">
-            No technologies match "{searchTerm}".
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {group.items.map((skill) => (
+                        <div
+                          key={skill.name}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-xs font-semibold text-slate-800 dark:text-zinc-200"
+                        >
+                          {skill.logo ? (
+                            <img src={resolveMediaUrl(skill.logo)} alt={skill.name} className="w-3.5 h-3.5 object-contain" />
+                          ) : (
+                            <Sparkles className="w-3 h-3 text-indigo-500" />
+                          )}
+                          <span>{skill.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </SwipeableCarousel>
+            </div>
+          </>
+        )}
+
+        {/* 2. DETAILED GRID VIEW */}
+        {viewMode === 'grid' && (
+          <div>
+            {/* Category Filter Pills */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-3 scrollbar-none mb-6">
+              {categoryNames.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCat(cat)}
+                  className={`px-3.5 py-1.5 rounded-xl font-mono text-xs whitespace-nowrap transition-all ${
+                    selectedCat === cat
+                      ? 'bg-indigo-600 text-white font-bold shadow-sm'
+                      : 'bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-white/50 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            {/* Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5">
+              {filteredSkills.map((skill, idx) => (
+                <div
+                  key={skill._id || skill.name || idx}
+                  className="editorial-card p-4 flex items-center justify-between hover:border-indigo-500/40 transition-all"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 flex items-center justify-center shrink-0 p-1.5">
+                      {skill.logo ? (
+                        <img src={resolveMediaUrl(skill.logo)} alt={skill.name} className="w-5 h-5 object-contain" />
+                      ) : (
+                        <Sparkles className="w-4 h-4 text-indigo-500" />
+                      )}
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900 dark:text-white">{skill.name}</h4>
+                      <span className="text-[9px] font-mono text-slate-400">{skill.category}</span>
+                    </div>
+                  </div>
+
+                  {skill.proficiency && (
+                    <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-zinc-950 text-slate-500 border border-slate-200 dark:border-zinc-800">
+                      {skill.proficiency}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
