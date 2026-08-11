@@ -1,38 +1,24 @@
 import React, { useState } from 'react';
-import { Cpu, Code2, Zap } from 'lucide-react';
+import { Cpu, Code2, Zap, ChevronLeft, ChevronRight } from 'lucide-react';
 import NlpEngineVisualizer from '../playground/NlpEngineVisualizer';
 import AlgoStepVisualizer from '../playground/AlgoStepVisualizer';
 import ApiBenchmarkVisualizer from '../playground/ApiBenchmarkVisualizer';
 
-const tabs = ['ai-sim', 'algo', 'api'];
+const tabs = [
+  { id: 'ai-sim', label: '01 // NLP Engine', icon: Cpu },
+  { id: 'algo', label: '02 // Algo Visualizer', icon: Code2 },
+  { id: 'api', label: '03 // API Speed', icon: Zap },
+];
 
 const PlaygroundSection = () => {
-  const [activeTab, setActiveTab] = useState('ai-sim');
-  const touchStartX = React.useRef(0);
-  const touchEndX = React.useRef(0);
+  const [activeIndex, setActiveIndex] = useState(0);
 
-  const handleTouchStart = (e) => {
-    touchStartX.current = e.targetTouches[0].clientX;
+  const handlePrev = () => {
+    setActiveIndex((prev) => (prev > 0 ? prev - 1 : prev));
   };
 
-  const handleTouchMove = (e) => {
-    touchEndX.current = e.targetTouches[0].clientX;
-  };
-
-  const handleTouchEnd = () => {
-    const diff = touchStartX.current - touchEndX.current;
-    if (Math.abs(diff) > 50) {
-      const currIdx = tabs.indexOf(activeTab);
-      if (diff > 0 && currIdx < tabs.length - 1) {
-        // Swiped Left -> Next Tab
-        setActiveTab(tabs[currIdx + 1]);
-      } else if (diff < 0 && currIdx > 0) {
-        // Swiped Right -> Prev Tab
-        setActiveTab(tabs[currIdx - 1]);
-      }
-    }
-    touchStartX.current = 0;
-    touchEndX.current = 0;
+  const handleNext = () => {
+    setActiveIndex((prev) => (prev < tabs.length - 1 ? prev + 1 : prev));
   };
 
   return (
@@ -54,66 +40,88 @@ const PlaygroundSection = () => {
           </p>
         </div>
 
-        {/* Lab Navigation Tabs */}
+        {/* Navigation Controls Bar */}
         <div className="flex items-center justify-between gap-2 mb-8 border-b border-slate-200 dark:border-zinc-800 pb-3 overflow-x-auto">
+          {/* Clickable Tab Buttons */}
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setActiveTab('ai-sim')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-mono text-xs transition-all ${
-                activeTab === 'ai-sim' 
-                  ? 'bg-indigo-600 text-white font-bold shadow-md' 
-                  : 'bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-white/50 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <Cpu className="w-3.5 h-3.5" />
-              <span>01 // NLP Engine</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('algo')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-mono text-xs transition-all ${
-                activeTab === 'algo' 
-                  ? 'bg-indigo-600 text-white font-bold shadow-md' 
-                  : 'bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-white/50 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <Code2 className="w-3.5 h-3.5" />
-              <span>02 // Algo Visualizer</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('api')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-mono text-xs transition-all ${
-                activeTab === 'api' 
-                  ? 'bg-indigo-600 text-white font-bold shadow-md' 
-                  : 'bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-white/50 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <Zap className="w-3.5 h-3.5" />
-              <span>03 // API Speed</span>
-            </button>
+            {tabs.map((tab, idx) => {
+              const Icon = tab.icon;
+              const isActive = activeIndex === idx;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveIndex(idx)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl font-mono text-xs transition-all whitespace-nowrap ${
+                    isActive 
+                      ? 'bg-indigo-600 text-white font-bold shadow-md scale-[1.02]' 
+                      : 'bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-white/50 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
           </div>
 
-          <span className="hidden sm:inline text-[10px] font-mono text-slate-400">
-            Swipe ← → to change tabs
-          </span>
+          {/* Previous / Next Slide Click Controls */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              onClick={handlePrev}
+              disabled={activeIndex === 0}
+              aria-label="Previous card"
+              className="p-2 rounded-xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-white/70 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-500/40 disabled:opacity-30 disabled:hover:text-slate-700 disabled:hover:border-slate-200 transition-all"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            
+            <span className="text-[11px] font-mono text-slate-400 dark:text-zinc-500 px-1">
+              {activeIndex + 1} / {tabs.length}
+            </span>
+
+            <button
+              onClick={handleNext}
+              disabled={activeIndex === tabs.length - 1}
+              aria-label="Next card"
+              className="p-2 rounded-xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-white/70 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-500/40 disabled:opacity-30 disabled:hover:text-slate-700 disabled:hover:border-slate-200 transition-all"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
-        {/* Touch Swipeable Tab Container */}
-        <div
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          className="w-full touch-pan-y"
-        >
-          {/* Experiment Tab 1: AI / NLP Match Engine */}
-          {activeTab === 'ai-sim' && <NlpEngineVisualizer />}
+        {/* Sliding Card Container (Swipe Animation via Translate) */}
+        <div className="w-full overflow-hidden rounded-2xl">
+          <div 
+            className="flex transition-transform duration-500 ease-in-out w-full"
+            style={{ transform: `translateX(-${activeIndex * 100}%)` }}
+          >
+            <div className="w-full shrink-0">
+              <NlpEngineVisualizer />
+            </div>
+            <div className="w-full shrink-0">
+              <AlgoStepVisualizer />
+            </div>
+            <div className="w-full shrink-0">
+              <ApiBenchmarkVisualizer />
+            </div>
+          </div>
+        </div>
 
-          {/* Experiment Tab 2: Algo Step Visualizer */}
-          {activeTab === 'algo' && <AlgoStepVisualizer />}
-
-          {/* Experiment Tab 3: API Speed Benchmark */}
-          {activeTab === 'api' && <ApiBenchmarkVisualizer />}
+        {/* Pagination Indicators */}
+        <div className="flex items-center justify-center gap-2 pt-6">
+          {tabs.map((tab, idx) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveIndex(idx)}
+              className={`h-1.5 rounded-full transition-all duration-300 ${
+                activeIndex === idx
+                  ? 'w-8 bg-indigo-600 dark:bg-indigo-400'
+                  : 'w-2 bg-slate-300 dark:bg-zinc-700 hover:bg-slate-400'
+              }`}
+              aria-label={`Go to slide ${idx + 1}`}
+            />
+          ))}
         </div>
 
       </div>
