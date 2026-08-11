@@ -93,17 +93,17 @@ const PlaygroundSection = () => {
         {/* Sliding Card Container (Swipe Animation via Translate) */}
         <div className="w-full overflow-hidden rounded-2xl">
           <div 
-            className="flex transition-transform duration-500 ease-in-out w-full"
+            className="flex items-stretch transition-transform duration-500 ease-in-out w-full"
             style={{ transform: `translateX(-${activeIndex * 100}%)` }}
           >
-            <div className="w-full shrink-0">
-              <NlpEngineVisualizer />
+            <div className="w-full shrink-0 flex flex-col">
+              <NlpEngineVisualizer isActive={activeIndex === 0} className="h-full" />
             </div>
-            <div className="w-full shrink-0">
-              <AlgoStepVisualizer />
+            <div className="w-full shrink-0 flex flex-col">
+              <AlgoStepVisualizer className="h-full" />
             </div>
-            <div className="w-full shrink-0">
-              <ApiBenchmarkVisualizer />
+            <div className="w-full shrink-0 flex flex-col">
+              <ApiBenchmarkVisualizer className="h-full" />
             </div>
           </div>
         </div>

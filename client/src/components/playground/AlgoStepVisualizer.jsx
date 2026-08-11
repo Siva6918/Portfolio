@@ -178,7 +178,7 @@ function generateQuickSortSteps(initialArray) {
 
 const INITIAL_ARRAY = [38, 12, 74, 25, 90, 45, 61];
 
-const AlgoStepVisualizer = () => {
+const AlgoStepVisualizer = ({ className = '' }) => {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(600); // ms per step
@@ -270,7 +270,7 @@ const AlgoStepVisualizer = () => {
   const finalStep = steps[steps.length - 1];
 
   return (
-    <div className="editorial-card p-5 sm:p-8 space-y-6 relative overflow-hidden">
+    <div className={`editorial-card p-5 sm:p-8 space-y-6 relative overflow-hidden flex flex-col justify-between min-h-[540px] sm:min-h-[480px] h-full ${className}`}>
       {/* Top Meta Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 dark:border-zinc-800/80 pb-4 gap-3">
         <div className="flex items-center gap-3">

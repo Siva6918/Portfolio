@@ -4,7 +4,7 @@ import { buildApiUrl } from '../../services/api';
 
 const HEALTH_ENDPOINT = buildApiUrl('/health');
 
-const ApiBenchmarkVisualizer = () => {
+const ApiBenchmarkVisualizer = ({ className = '' }) => {
   const [isRunning, setIsRunning] = useState(false);
   const [currentRequestNum, setCurrentRequestNum] = useState(0);
   const [requestsHistory, setRequestsHistory] = useState([]);
@@ -98,7 +98,7 @@ const ApiBenchmarkVisualizer = () => {
   const rating = getLatencyRating(avgLatency);
 
   return (
-    <div className="editorial-card p-5 sm:p-8 space-y-6">
+    <div className={`editorial-card p-5 sm:p-8 space-y-6 flex flex-col justify-between min-h-[540px] sm:min-h-[480px] h-full ${className}`}>
       {/* Meta Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 dark:border-zinc-800/80 pb-4 gap-3">
         <div>

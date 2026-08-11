@@ -102,18 +102,32 @@ const ProjectsSection = ({ projects = [] }) => {
           <SwipeableCarousel showDots={true} showArrows={true}>
             {displayedProjects.map((project) => (
               <div key={project._id || project.slug} className="editorial-card p-5 space-y-4">
-                <div className="flex items-center justify-between font-mono text-[10px]">
-                  <span className="px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold border border-indigo-500/20">
-                    {project.category}
-                  </span>
-                  <span className="text-slate-500 dark:text-zinc-400">Swipe for next project →</span>
+                {/* Mobile Thumbnail Image */}
+                <div className="relative aspect-[16/10] rounded-xl overflow-hidden border border-slate-200 dark:border-zinc-800 bg-slate-100 dark:bg-zinc-950 shadow-md">
+                  <ImageWithFallback
+                    src={project.thumbnail}
+                    fallbackSrc="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800"
+                    alt={project.title}
+                    updatedAt={project.updatedAt}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 dark:from-zinc-950/80 via-transparent to-transparent pointer-events-none" />
+                  <div className="absolute top-2.5 left-2.5">
+                    <span className="px-2 py-0.5 rounded bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border border-slate-200 dark:border-zinc-700 text-[10px] font-mono text-indigo-600 dark:text-indigo-300 font-semibold shadow-sm">
+                      {project.category}
+                    </span>
+                  </div>
                 </div>
-                <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
-                  {project.title}
-                </h3>
-                <p className="text-xs text-slate-700 dark:text-zinc-300 leading-relaxed">
-                  {project.shortDescription || project.solution}
-                </p>
+
+                <div className="space-y-1.5">
+                  <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
+                    {project.title}
+                  </h3>
+                  <p className="text-xs text-slate-700 dark:text-zinc-300 leading-relaxed">
+                    {project.shortDescription || project.solution}
+                  </p>
+                </div>
+
                 <div className="flex flex-wrap gap-1 font-mono text-[9px] pt-1">
                   {project.technologies?.slice(0, 4).map((tech) => (
                     <span key={tech} className="px-2 py-0.5 rounded bg-slate-100 dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-zinc-800">
@@ -122,14 +136,17 @@ const ProjectsSection = ({ projects = [] }) => {
                   ))}
                 </div>
                 <div className="pt-2 border-t border-slate-200 dark:border-zinc-800 flex items-center gap-3 text-xs font-mono">
+                  <Link to={`/projects/${project.slug}`} className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">
+                    View Case Study →
+                  </Link>
                   {project.repositoryUrl && (
-                    <a href={project.repositoryUrl} target="_blank" rel="noreferrer" className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">
-                      GitHub Code
+                    <a href={project.repositoryUrl} target="_blank" rel="noreferrer" className="text-slate-600 dark:text-zinc-400 font-bold hover:underline">
+                      GitHub
                     </a>
                   )}
                   {project.liveUrl && (
                     <a href={project.liveUrl} target="_blank" rel="noreferrer" className="text-emerald-600 dark:text-emerald-400 font-bold hover:underline">
-                      Live Demo
+                      Live
                     </a>
                   )}
                 </div>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Trophy } from 'lucide-react';
+import { resolveMediaUrl } from '../../services/api';
 import SwipeableCarousel from '../common/SwipeableCarousel';
 
 const easeCurve = [0.16, 1, 0.3, 1];
@@ -82,6 +83,11 @@ const AchievementsSection = ({ achievements = [] }) => {
           <SwipeableCarousel showDots={true}>
             {activeItems.map((item) => (
               <div key={item._id || item.title} className="editorial-card p-5 space-y-3">
+                {(item.image || item.certificate) && (
+                  <div className="w-full h-36 rounded-xl overflow-hidden border border-slate-200 dark:border-zinc-800 bg-slate-100 dark:bg-zinc-950">
+                    <img src={resolveMediaUrl(item.image || item.certificate)} alt={item.title} className="w-full h-full object-cover" />
+                  </div>
+                )}
                 <div className="flex items-center justify-between">
                   <span className="px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-300 font-mono text-xs font-bold flex items-center gap-1">
                     <Trophy className="w-3.5 h-3.5" />
@@ -115,6 +121,11 @@ const AchievementsSection = ({ achievements = [] }) => {
               className="editorial-card p-6 flex flex-col justify-between space-y-4 hover:-translate-y-1 hover:border-amber-400 dark:hover:border-amber-500/40 transition-all duration-200 relative overflow-hidden"
             >
               <div className="space-y-3">
+                {(item.image || item.certificate) && (
+                  <div className="w-full h-40 rounded-xl overflow-hidden border border-slate-200 dark:border-zinc-800 bg-slate-100 dark:bg-zinc-950 shadow-sm">
+                    <img src={resolveMediaUrl(item.image || item.certificate)} alt={item.title} className="w-full h-full object-cover" />
+                  </div>
+                )}
                 <div className="flex items-center justify-between">
                   <span className="px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-300 font-mono text-xs font-bold">
                     {item.rank}

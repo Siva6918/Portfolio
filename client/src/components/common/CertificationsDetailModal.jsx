@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, ShieldCheck, ExternalLink, Search, Award } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { resolveMediaUrl } from '../../services/api';
 
 const CertificationsDetailModal = ({ isOpen, onClose, certifications = [] }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -71,10 +72,15 @@ const CertificationsDetailModal = ({ isOpen, onClose, certifications = [] }) => 
                   >
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-mono text-indigo-600 dark:text-indigo-400 uppercase font-semibold">
-                          {cert.organization}
-                        </span>
-                        <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                        <div className="flex items-center gap-2.5">
+                          {cert.image && (
+                            <img src={resolveMediaUrl(cert.image)} alt={cert.title} className="w-8 h-8 rounded-lg object-cover border border-slate-200 dark:border-zinc-800 shrink-0 shadow-sm" />
+                          )}
+                          <span className="text-xs font-mono text-indigo-600 dark:text-indigo-400 uppercase font-semibold">
+                            {cert.organization}
+                          </span>
+                        </div>
+                        <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                       </div>
 
                       <h3 className="text-base font-bold text-slate-900 dark:text-white">

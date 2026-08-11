@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ExternalLink, ShieldCheck, Eye, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { resolveMediaUrl } from '../../services/api';
 
 import SwipeableCarousel from '../common/SwipeableCarousel';
 import CertificationsDetailModal from '../common/CertificationsDetailModal';
@@ -78,10 +79,15 @@ const CertificationsSection = ({ certifications = [] }) => {
             {activeCerts.map((cert) => (
               <div key={cert._id || cert.title} className="editorial-card p-5 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono text-indigo-600 dark:text-indigo-400 uppercase font-semibold">
-                    {cert.organization}
-                  </span>
-                  <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  <div className="flex items-center gap-2">
+                    {cert.image && (
+                      <img src={resolveMediaUrl(cert.image)} alt={cert.title} className="w-8 h-8 rounded-lg object-cover border border-slate-200 dark:border-zinc-800" />
+                    )}
+                    <span className="text-xs font-mono text-indigo-600 dark:text-indigo-400 uppercase font-semibold">
+                      {cert.organization}
+                    </span>
+                  </div>
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 </div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">
                   {cert.title}
@@ -114,12 +120,17 @@ const CertificationsSection = ({ certifications = [] }) => {
               transition={{ duration: 0.5, delay: idx * 0.1, ease: easeCurve }}
               className="editorial-card p-6 flex flex-col justify-between space-y-4 hover:-translate-y-1 hover:border-indigo-300 dark:hover:border-indigo-500/40 transition-all duration-200"
             >
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono text-indigo-600 dark:text-indigo-400 uppercase font-semibold">
-                    {cert.organization}
-                  </span>
-                  <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  <div className="flex items-center gap-3">
+                    {cert.image && (
+                      <img src={resolveMediaUrl(cert.image)} alt={cert.title} className="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-zinc-800 shrink-0 shadow-sm" />
+                    )}
+                    <span className="text-xs font-mono text-indigo-600 dark:text-indigo-400 uppercase font-semibold">
+                      {cert.organization}
+                    </span>
+                  </div>
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 </div>
 
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">
