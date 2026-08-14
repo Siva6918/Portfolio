@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Lock, AlertCircle, X, CheckCircle, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -7,6 +7,18 @@ const PasswordModal = ({ isOpen, onClose, onSuccess, actionTitle = 'Mutation Act
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { verifyPassword, isAdminAuthorized } = useAuth();
+
+  // Prevent background page scrolling while password modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 

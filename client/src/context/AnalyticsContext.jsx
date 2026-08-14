@@ -70,7 +70,11 @@ export const AnalyticsProvider = ({ children }) => {
       isReturning = false;
     }
 
-    const currentSessionId = generateId('s');
+    let currentSessionId = sessionStorage.getItem('portfolio_session_id');
+    if (!currentSessionId) {
+      currentSessionId = generateId('s');
+      sessionStorage.setItem('portfolio_session_id', currentSessionId);
+    }
     setSessionId(currentSessionId);
 
     const deviceInfo = detectDeviceInfo();
