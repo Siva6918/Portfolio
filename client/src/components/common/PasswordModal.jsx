@@ -32,8 +32,8 @@ const PasswordModal = ({ isOpen, onClose, onSuccess, actionTitle = 'Mutation Act
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-fade-in">
-      <div className="glass-modal w-full max-w-md rounded-2xl p-6 relative border border-slate-700/80 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm overflow-y-auto animate-fade-in">
+      <div className="glass-modal w-full max-w-md rounded-2xl p-6 relative border border-slate-700/80 shadow-2xl my-auto max-h-[90vh] overflow-y-auto">
         
         {/* Close Button */}
         <button
