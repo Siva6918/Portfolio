@@ -74,10 +74,8 @@ const Navbar = () => {
     setMobileMenuOpen(false);
   };
 
-  const isAdminPage = location.pathname.startsWith('/admin') || location.pathname.startsWith('/my-space');
-
   return (
-    <header className={`${isAdminPage ? 'relative' : 'sticky top-0'} z-50 glass-nav w-full transition-all duration-300`}>
+    <header className="sticky top-0 z-50 glass-nav w-full transition-all duration-300">
       <div className="section-container">
         <div className="flex items-center justify-between h-16 sm:h-20">
           
