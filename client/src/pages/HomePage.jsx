@@ -10,6 +10,7 @@ import CertificationsSection from '../components/sections/CertificationsSection'
 import AchievementsSection from '../components/sections/AchievementsSection';
 import LearningJournalSection from '../components/sections/LearningJournalSection';
 import ContactSection from '../components/sections/ContactSection';
+import { useAnalytics } from '../context/AnalyticsContext';
 
 import { 
   getProfile, getProjects, getSkills, getEducation, 
@@ -28,6 +29,8 @@ const HomePage = () => {
   const [codingProfiles, setCodingProfiles] = useState([]);
   const [careerNodes, setCareerNodes] = useState([]);
   const [resumeUrl, setResumeUrl] = useState('');
+
+  const { registerSectionRef } = useAnalytics();
 
   useEffect(() => {
     fetchPortfolioData();
@@ -69,41 +72,63 @@ const HomePage = () => {
   return (
     <div className="w-full space-y-0">
       {/* 1. HERO & WORKSPACE */}
-      <HeroSection profile={profile} resumeUrl={resumeUrl} />
+      <section ref={(el) => registerSectionRef(el, 'Hero')} id="hero">
+        <HeroSection profile={profile} resumeUrl={resumeUrl} />
+      </section>
 
       {/* 2. ABOUT & PHILOSOPHY */}
-      <DigitalCampusSection profile={profile} education={education} />
+      <section ref={(el) => registerSectionRef(el, 'Digital Campus')} id="campus">
+        <DigitalCampusSection profile={profile} education={education} />
+      </section>
 
       {/* 3. CASE STUDIES & FEATURED PROJECTS */}
-      <ProjectsSection projects={projects} />
+      <section ref={(el) => registerSectionRef(el, 'Projects')} id="projects">
+        <ProjectsSection projects={projects} />
+      </section>
 
       {/* 4. LAB & EXPERIMENTS */}
-      <PlaygroundSection />
+      <section ref={(el) => registerSectionRef(el, 'Playground')} id="playground">
+        <PlaygroundSection />
+      </section>
 
       {/* 5. SKILLS & COMPETENCIES */}
-      <SkillsSection skills={skills} />
+      <section ref={(el) => registerSectionRef(el, 'Skills')} id="skills">
+        <SkillsSection skills={skills} />
+      </section>
 
       {/* 6. CAREER ROAD TIMELINE */}
-      <CareerRoadSection careerNodes={careerNodes} />
+      <section ref={(el) => registerSectionRef(el, 'Career Road')} id="career">
+        <CareerRoadSection careerNodes={careerNodes} />
+      </section>
 
       {/* 7. EXPERIENCE & CODING PROFILES */}
-      <ExperienceSection 
-        education={education} 
-        experience={experience}
-        codingProfiles={codingProfiles}
-      />
+      <section ref={(el) => registerSectionRef(el, 'Experience')} id="experience">
+        <ExperienceSection 
+          education={education} 
+          experience={experience}
+          codingProfiles={codingProfiles}
+        />
+      </section>
 
       {/* 8. CERTIFICATIONS */}
-      <CertificationsSection certifications={certifications} />
+      <section ref={(el) => registerSectionRef(el, 'Certifications')} id="certifications">
+        <CertificationsSection certifications={certifications} />
+      </section>
 
       {/* 9. ACHIEVEMENTS & HONORS */}
-      <AchievementsSection achievements={achievements} />
+      <section ref={(el) => registerSectionRef(el, 'Achievements')} id="achievements">
+        <AchievementsSection achievements={achievements} />
+      </section>
 
       {/* 10. CURRENTLY LEARNING JOURNAL */}
-      <LearningJournalSection />
+      <section ref={(el) => registerSectionRef(el, 'Learning Journal')} id="journal">
+        <LearningJournalSection />
+      </section>
 
       {/* 11. CONTACT */}
-      <ContactSection email={profile.email} profile={profile} />
+      <section ref={(el) => registerSectionRef(el, 'Contact')} id="contact">
+        <ContactSection email={profile.email} profile={profile} />
+      </section>
     </div>
   );
 };

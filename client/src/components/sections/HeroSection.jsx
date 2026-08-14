@@ -3,6 +3,7 @@ import { Download, ArrowRight, Github, Linkedin, Mail, Eye } from 'lucide-react'
 import { motion } from 'framer-motion';
 import { resolveMediaUrl } from '../../services/api';
 import { openPdfInNewTab, downloadPdf } from '../../utils/pdfHelpers';
+import { useAnalytics } from '../../context/AnalyticsContext';
 import HeroWorkspace from './HeroWorkspace';
 import SwipeableCarousel from '../common/SwipeableCarousel';
 
@@ -10,6 +11,17 @@ const easeCurve = [0.16, 1, 0.3, 1];
 
 const HeroSection = ({ profile, resumeUrl }) => {
   const activeResumeTarget = resolveMediaUrl(resumeUrl || profile?.resumeUrl) || '/Venkata_Siva_Reddy_Resume.pdf';
+  const { trackInteraction } = useAnalytics();
+
+  const handleViewResume = () => {
+    trackInteraction('view_resume', 'Resume PDF', 'Hero');
+    openPdfInNewTab(activeResumeTarget);
+  };
+
+  const handleDownloadResume = () => {
+    trackInteraction('download_resume', 'Resume PDF', 'Hero');
+    downloadPdf(activeResumeTarget, 'Venkata_Siva_Reddy_Resume.pdf');
+  };
 
   return (
     <section className="relative pt-10 pb-16 sm:pt-16 sm:pb-24 w-full overflow-hidden">
@@ -112,11 +124,23 @@ const HeroSection = ({ profile, resumeUrl }) => {
                 <div className="p-4 rounded-2xl bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 space-y-3">
                   <span className="text-[10px] font-mono text-slate-500 uppercase">Connect & Links</span>
                   <div className="flex items-center gap-4 text-xs font-mono text-slate-700 dark:text-zinc-300">
-                    <a href={profile?.github || "https://github.com/vasanreddy"} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 hover:text-indigo-500">
+                    <a
+                      href={profile?.github || "https://github.com/vasanreddy"}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => trackInteraction('github_click', profile?.github || 'GitHub', 'Hero')}
+                      className="flex items-center gap-1.5 hover:text-indigo-500"
+                    >
                       <Github className="w-3.5 h-3.5" />
                       <span>GitHub</span>
                     </a>
-                    <a href={profile?.linkedin || "https://www.linkedin.com/in/venkatasiva-reddy/"} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 hover:text-indigo-500">
+                    <a
+                      href={profile?.linkedin || "https://www.linkedin.com/in/venkatasiva-reddy/"}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => trackInteraction('linkedin_click', profile?.linkedin || 'LinkedIn', 'Hero')}
+                      className="flex items-center gap-1.5 hover:text-indigo-500"
+                    >
                       <Linkedin className="w-3.5 h-3.5" />
                       <span>LinkedIn</span>
                     </a>
@@ -142,7 +166,7 @@ const HeroSection = ({ profile, resumeUrl }) => {
 
               <button
                 type="button"
-                onClick={() => openPdfInNewTab(activeResumeTarget)}
+                onClick={handleViewResume}
                 className="group inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white dark:bg-[#121217] hover:bg-slate-100 dark:hover:bg-[#1a1a22] border border-slate-200 dark:border-zinc-800 text-slate-800 dark:text-white font-mono text-xs font-semibold active:scale-[0.98] transition-all duration-200 shadow-sm"
               >
                 <Eye className="w-4 h-4 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform duration-200" />
@@ -151,7 +175,7 @@ const HeroSection = ({ profile, resumeUrl }) => {
 
               <button
                 type="button"
-                onClick={() => downloadPdf(activeResumeTarget, 'Venkata_Siva_Reddy_Resume.pdf')}
+                onClick={handleDownloadResume}
                 className="group p-3 rounded-xl bg-white dark:bg-[#121217] hover:bg-slate-100 dark:hover:bg-[#1a1a22] border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-white/50 hover:text-slate-900 dark:hover:text-white active:scale-[0.98] transition-all duration-200 shadow-sm"
                 aria-label="Download Resume"
                 title="Download Resume PDF"
@@ -171,6 +195,7 @@ const HeroSection = ({ profile, resumeUrl }) => {
                 href={profile?.github || "https://github.com/vasanreddy"}
                 target="_blank"
                 rel="noreferrer"
+                onClick={() => trackInteraction('github_click', profile?.github || 'GitHub', 'Hero')}
                 className="flex items-center gap-2 text-xs font-mono text-slate-600 dark:text-white/50 hover:text-slate-900 dark:hover:text-white transition-colors duration-200"
               >
                 <Github className="w-4 h-4" />
@@ -181,6 +206,7 @@ const HeroSection = ({ profile, resumeUrl }) => {
                 href={profile?.linkedin || "https://www.linkedin.com/in/venkatasiva-reddy/"}
                 target="_blank"
                 rel="noreferrer"
+                onClick={() => trackInteraction('linkedin_click', profile?.linkedin || 'LinkedIn', 'Hero')}
                 className="flex items-center gap-2 text-xs font-mono text-slate-600 dark:text-white/50 hover:text-slate-900 dark:hover:text-white transition-colors duration-200"
               >
                 <Linkedin className="w-4 h-4" />
@@ -189,6 +215,7 @@ const HeroSection = ({ profile, resumeUrl }) => {
               <span className="text-slate-300 dark:text-zinc-800">|</span>
               <a
                 href={`mailto:${profile?.email || 'vasanreddy1331@gmail.com'}`}
+                onClick={() => trackInteraction('email_click', profile?.email || 'Email', 'Hero')}
                 className="flex items-center gap-2 text-xs font-mono text-slate-600 dark:text-white/50 hover:text-slate-900 dark:hover:text-white transition-colors duration-200"
               >
                 <Mail className="w-4 h-4" />

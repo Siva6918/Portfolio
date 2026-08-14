@@ -4,7 +4,8 @@ const router = express.Router();
 const { verifyAdminPasswordHandler } = require('../controllers/adminController');
 const portfolioController = require('../controllers/portfolioController');
 const aiController = require('../controllers/aiController');
-const { sendContactEmail } = require('../controllers/contactEmailController');
+const analyticsController = require('../controllers/analyticsController');
+const { sendContactEmail, sendFeedbackEmail } = require('../controllers/contactEmailController');
 const { requireAdminAuth } = require('../middleware/authMiddleware');
 const { adminVerifyLimiter } = require('../middleware/rateLimiter');
 const upload = require('../middleware/upload');
@@ -18,14 +19,29 @@ router.get('/health', (req, res) => {
   });
 });
 
+// Analytics Public Tracking Endpoints
+router.post('/analytics/session', analyticsController.startSession);
+router.post('/analytics/heartbeat', analyticsController.pulseHeartbeat);
+router.post('/analytics/events', analyticsController.recordEvents);
+
+// Analytics Admin Reporting Endpoints
+router.get('/analytics/overview', requireAdminAuth, analyticsController.getOverview);
+router.get('/analytics/engagement', requireAdminAuth, analyticsController.getEngagement);
+router.get('/analytics/traffic-sources', requireAdminAuth, analyticsController.getTrafficSources);
+router.get('/analytics/recruiter-signals', requireAdminAuth, analyticsController.getRecruiterSignals);
+router.get('/analytics/sessions', requireAdminAuth, analyticsController.getSessions);
+router.get('/analytics/realtime', requireAdminAuth, analyticsController.getRealtimeStatus);
+router.get('/analytics/export', requireAdminAuth, analyticsController.exportCsv);
+
 // AI & NLP Question-Answering Endpoint
 router.post('/nlp/query', aiController.processNlpQuery);
 
 // Admin Verification
 router.post('/admin/verify', adminVerifyLimiter, verifyAdminPasswordHandler);
 
-// Contact Email
+// Contact & Feedback Email
 router.post('/contact/send', sendContactEmail);
+router.post('/feedback/send', sendFeedbackEmail);
 
 // Media & File Uploads
 router.post('/upload', requireAdminAuth, upload.single('file'), portfolioController.uploadMedia);

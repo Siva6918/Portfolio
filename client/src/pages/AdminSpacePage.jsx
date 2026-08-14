@@ -3,7 +3,10 @@ import { Link } from 'react-router-dom';
 import {
   Shield, User, FolderGit2, Cpu, GraduationCap, Award, Trophy,
   FileText, Plus, Trash2, Upload, Lock, Pencil, X, Save,
-  Briefcase, Image, Code2, Sparkles, MapPin, Target
+  Briefcase, Image, Code2, Sparkles, MapPin, Target,
+  BarChart3, Activity, Eye, Download, Globe, Clock, Smartphone,
+  RefreshCw, FileSpreadsheet, UserCheck, ChevronRight, Filter,
+  ExternalLink, Mail
 } from 'lucide-react';
 import {
   getProfile, updateProfile,
@@ -15,7 +18,10 @@ import {
   getExperience, createExperience, updateExperience, deleteExperience,
   getCodingProfiles, createCodingProfile, updateCodingProfile, deleteCodingProfile,
   getCareerNodes, createCareerNode, updateCareerNode, deleteCareerNode,
-  getResume, uploadResumeFile, uploadMedia, resolveMediaUrl
+  getResume, uploadResumeFile, uploadMedia, resolveMediaUrl,
+  getAnalyticsOverview, getAnalyticsEngagement, getAnalyticsTrafficSources,
+  getAnalyticsRecruiterSignals, getAnalyticsSessions, getAnalyticsRealtime,
+  exportAnalyticsCsv
 } from '../services/api';
 import PasswordModal from '../components/common/PasswordModal';
 import { openPdfInNewTab } from '../utils/pdfHelpers';
@@ -82,6 +88,15 @@ const AdminSpacePage = () => {
   const [codingProfiles, setCodingProfiles] = useState([]);
   const [careerNodes, setCareerNodes] = useState([]);
 
+  // Analytics state
+  const [analyticsOverview, setAnalyticsOverview] = useState({});
+  const [analyticsEngagement, setAnalyticsEngagement] = useState({});
+  const [analyticsSources, setAnalyticsSources] = useState([]);
+  const [analyticsRecruiter, setAnalyticsRecruiter] = useState([]);
+  const [analyticsSessions, setAnalyticsSessions] = useState([]);
+  const [analyticsRealtime, setAnalyticsRealtime] = useState(0);
+  const [loadingAnalytics, setLoadingAnalytics] = useState(false);
+
   const [modalOpen, setModalOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
   const [toast, setToast] = useState({ message: '', type: 'success' });
@@ -106,7 +121,52 @@ const AdminSpacePage = () => {
   const skillLogoRef = useRef(null);
   const achieveImgRef = useRef(null);
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { 
+    fetchData(); 
+    fetchAnalyticsData();
+  }, []);
+
+  const fetchAnalyticsData = async (pwd) => {
+    setLoadingAnalytics(true);
+    try {
+      const [overRes, engRes, srcRes, recRes, sessRes, rtRes] = await Promise.allSettled([
+        getAnalyticsOverview(pwd),
+        getAnalyticsEngagement(pwd),
+        getAnalyticsTrafficSources(pwd),
+        getAnalyticsRecruiterSignals(pwd),
+        getAnalyticsSessions(pwd, 30, 1),
+        getAnalyticsRealtime(pwd)
+      ]);
+
+      if (overRes.status === 'fulfilled' && overRes.value?.data?.data) setAnalyticsOverview(overRes.value.data.data);
+      if (engRes.status === 'fulfilled' && engRes.value?.data?.data) setAnalyticsEngagement(engRes.value.data.data);
+      if (srcRes.status === 'fulfilled' && srcRes.value?.data?.data) setAnalyticsSources(srcRes.value.data.data);
+      if (recRes.status === 'fulfilled' && recRes.value?.data?.data) setAnalyticsRecruiter(recRes.value.data.data);
+      if (sessRes.status === 'fulfilled' && sessRes.value?.data?.data) setAnalyticsSessions(sessRes.value.data.data);
+      if (rtRes.status === 'fulfilled' && rtRes.value?.data?.activeVisitors !== undefined) setAnalyticsRealtime(rtRes.value.data.activeVisitors);
+    } catch (err) {
+      console.error('Analytics fetch error:', err);
+    } finally {
+      setLoadingAnalytics(false);
+    }
+  };
+
+  const handleExportAnalyticsCsv = async (pwd) => {
+    try {
+      const res = await exportAnalyticsCsv(pwd);
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'portfolio_analytics_export.csv');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setToast({ message: 'Analytics CSV exported successfully!', type: 'success' });
+    } catch (err) {
+      console.error('Export CSV error:', err);
+      setToast({ message: 'Failed to export CSV.', type: 'error' });
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -286,6 +346,7 @@ const AdminSpacePage = () => {
   // ── Tab config ────────────────────────────────────────────────────────────
   const navTabs = [
     { id: 'profile', name: 'Profile', icon: User, count: 1, color: '#6366f1' },
+    { id: 'analytics', name: 'Analytics', icon: BarChart3, count: analyticsOverview.totalVisitors || 0, color: '#10b981' },
     { id: 'experience', name: 'Experience', icon: Briefcase, count: experience.length, color: '#06b6d4' },
     { id: 'projects', name: 'Projects', icon: FolderGit2, count: projects.length, color: '#06b6d4' },
     { id: 'skills', name: 'Skills', icon: Cpu, count: skills.length, color: '#c084fc' },
@@ -328,7 +389,7 @@ const AdminSpacePage = () => {
       </div>
 
       {/* Tab bar */}
-      <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
+      <div className="grid grid-cols-4 sm:grid-cols-11 gap-2">
         {navTabs.map((tab) => {
           const Icon = tab.icon;
           const active = activeTab === tab.id;
@@ -346,6 +407,21 @@ const AdminSpacePage = () => {
 
       {/* Content card */}
       <div className="glass-card p-6 sm:p-8 rounded-3xl border border-[#2d2d3a] space-y-6">
+
+        {/* ─── ANALYTICS ─────────────────────────────────────────── */}
+        {activeTab === 'analytics' && (
+          <AnalyticsView
+            overview={analyticsOverview}
+            engagement={analyticsEngagement}
+            sources={analyticsSources}
+            recruiterSignals={analyticsRecruiter}
+            sessions={analyticsSessions}
+            realtime={analyticsRealtime}
+            onRefresh={() => fetchAnalyticsData()}
+            onExport={() => handleExportAnalyticsCsv()}
+            loading={loadingAnalytics}
+          />
+        )}
 
         {/* ─── PROFILE ───────────────────────────────────────────── */}
         {activeTab === 'profile' && (
@@ -1053,6 +1129,337 @@ const AdminSpacePage = () => {
       <Toast message={toast.message} type={toast.type} onClose={() => setToast({ message: '', type: 'success' })} />
     </div>
   );
+};
+
+// ─── ANALYTICS VIEW COMPONENT ──────────────────────────────────────────────
+const AnalyticsView = ({
+  overview = {}, engagement = {}, sources = [], recruiterSignals = [],
+  sessions = [], realtime = 0, onRefresh, onExport, loading = false
+}) => {
+  const [expandedSession, setExpandedSession] = useState(null);
+  const [filterRecruiter, setFilterRecruiter] = useState(false);
+
+  const displayedSessions = filterRecruiter
+    ? sessions.filter(s => s.isPotentialRecruiter || (s.potentialRecruiterScore || 0) >= 30)
+    : sessions;
+
+  return (
+    <div className="space-y-6">
+      {/* Header with Realtime status & controls */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[#2d2d3a] pb-4">
+        <div>
+          <div className="flex flex-wrap items-center gap-3">
+            <h3 className="text-lg font-bold text-[#fafafa] flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-emerald-400" />
+              <span>Visitor Analytics & Telemetry</span>
+            </h3>
+            {/* Real-time Presence Badge */}
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-xs font-mono text-emerald-400 font-semibold">
+              <span className="relative flex h-2 w-2">
+                {realtime > 0 && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>}
+                <span className={`relative inline-flex rounded-full h-2 w-2 ${realtime > 0 ? 'bg-emerald-500' : 'bg-zinc-600'}`}></span>
+              </span>
+              <span>{realtime > 0 ? `Currently Active Visitors: ${realtime}` : 'No active visitors'}</span>
+            </div>
+          </div>
+          <p className="text-xs text-[#a1a1aa] font-mono mt-1">
+            Privacy-conscious session tracking, section view timing, and recruiter interest telemetry.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onRefresh}
+            disabled={loading}
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#121217] hover:bg-[#1a1a22] border border-[#2d2d3a] text-xs font-mono font-bold text-[#a1a1aa] hover:text-[#fafafa] transition-all"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </button>
+          <button
+            type="button"
+            onClick={onExport}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-xs font-mono font-bold text-emerald-400 transition-all shadow-sm"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5" />
+            <span>Export CSV</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Overview Stat Cards Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+        <StatCard label="Total Visitors" value={overview.totalVisitors || 0} color="#6366f1" />
+        <StatCard label="Unique Visitors" value={overview.uniqueVisitors || 0} color="#38bdf8" />
+        <StatCard label="Returning" value={overview.returningVisitors || 0} color="#c084fc" />
+        <StatCard label="Total Sessions" value={overview.totalSessions || 0} color="#10b981" />
+        <StatCard label="Avg Duration" value={formatDuration(overview.avgSessionDuration || 0)} color="#f59e0b" />
+        <StatCard label="Today" value={overview.todayVisitors || 0} color="#06b6d4" />
+        <StatCard label="This Week" value={overview.weekVisitors || 0} color="#a855f7" />
+        <StatCard label="This Month" value={overview.monthVisitors || 0} color="#ec4899" />
+      </div>
+
+      {/* Engagement & Recruiter Signals Highlights */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Key Action Engagement Cards */}
+        <div className="lg:col-span-7 p-5 rounded-2xl bg-[#121217] border border-[#2d2d3a] space-y-4">
+          <h4 className="text-xs font-mono uppercase font-bold text-[#fafafa] flex items-center gap-2">
+            <Activity className="w-4 h-4 text-[#6366f1]" />
+            <span>Interaction & Goal Engagement</span>
+          </h4>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <MetricBadge label="Resume Views" value={engagement.actions?.resumeViews || 0} icon={Eye} color="#6366f1" />
+            <MetricBadge label="Resume Downloads" value={engagement.actions?.resumeDownloads || 0} icon={Download} color="#10b981" />
+            <MetricBadge label="Project Views" value={engagement.actions?.projectViews || 0} icon={FolderGit2} color="#38bdf8" />
+            <MetricBadge label="GitHub Clicks" value={engagement.actions?.githubClicks || 0} icon={Code2} color="#c084fc" />
+            <MetricBadge label="LinkedIn Clicks" value={engagement.actions?.linkedinClicks || 0} icon={UserCheck} color="#06b6d4" />
+            <MetricBadge label="Email / Contact" value={engagement.actions?.emailClicks || 0} icon={Mail} color="#f59e0b" />
+          </div>
+        </div>
+
+        {/* Potential Recruiter Signals Card */}
+        <div className="lg:col-span-5 p-5 rounded-2xl bg-[#121217] border border-amber-500/30 space-y-3">
+          <div className="flex items-center justify-between">
+            <h4 className="text-xs font-mono uppercase font-bold text-amber-400 flex items-center gap-2">
+              <Sparkles className="w-4 h-4" />
+              <span>Potential Recruiter Interest</span>
+            </h4>
+            <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[10px] font-mono font-bold border border-amber-500/20">
+              {recruiterSignals.length} Flagged
+            </span>
+          </div>
+          <p className="text-[11px] text-[#a1a1aa] leading-relaxed">
+            High-engagement sessions based on observable interaction patterns (Viewed Resume + Downloaded Resume + Projects + LinkedIn).
+          </p>
+
+          <div className="space-y-2 pt-1">
+            {recruiterSignals.length === 0 ? (
+              <p className="text-xs font-mono text-[#a1a1aa] italic py-3">No high-engagement recruiter sessions recorded yet.</p>
+            ) : (
+              recruiterSignals.slice(0, 4).map(s => (
+                <div key={s.sessionId} className="p-2.5 rounded-xl bg-[#09090b] border border-[#2d2d3a] flex items-center justify-between text-xs font-mono">
+                  <div>
+                    <span className="font-bold text-[#fafafa]">#{s.sessionId}</span>
+                    <span className="text-[10px] text-[#a1a1aa] ml-2">{s.country || 'India'} · {s.deviceType}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 text-[10px] font-bold">Score {s.potentialRecruiterScore}</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* SVG Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Section Engagement Bar Chart */}
+        <div className="lg:col-span-7 p-5 rounded-2xl bg-[#121217] border border-[#2d2d3a] space-y-4">
+          <h4 className="text-xs font-mono uppercase font-bold text-[#fafafa] flex items-center justify-between">
+            <span>Most Viewed Sections & Avg Time</span>
+            <span className="text-[10px] text-[#a1a1aa]">IntersectionObserver Telemetry</span>
+          </h4>
+          
+          <div className="space-y-2.5 pt-2">
+            {(engagement.sections || []).length === 0 ? (
+              <p className="text-xs font-mono text-[#a1a1aa] py-6 text-center">No section engagement data collected yet.</p>
+            ) : (
+              engagement.sections.slice(0, 6).map((sec, i) => {
+                const maxViews = Math.max(...engagement.sections.map(s => s.views), 1);
+                const percent = Math.min(100, Math.round((sec.views / maxViews) * 100));
+                return (
+                  <div key={sec.section || i} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs font-mono">
+                      <span className="font-bold text-[#fafafa]">{sec.section}</span>
+                      <span className="text-[#a1a1aa]">{sec.views} views · avg {sec.avgTimeSpentSeconds}s</span>
+                    </div>
+                    <div className="w-full h-2.5 rounded-full bg-[#09090b] overflow-hidden border border-[#2d2d3a]">
+                      <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500" style={{ width: `${percent}%` }} />
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+
+        {/* Traffic Sources Breakdown */}
+        <div className="lg:col-span-5 p-5 rounded-2xl bg-[#121217] border border-[#2d2d3a] space-y-4">
+          <h4 className="text-xs font-mono uppercase font-bold text-[#fafafa]">Traffic Sources Breakdown</h4>
+          <div className="space-y-3 pt-2">
+            {(sources || []).length === 0 ? (
+              <p className="text-xs font-mono text-[#a1a1aa] py-6 text-center">No traffic source data recorded.</p>
+            ) : (
+              sources.map(src => {
+                const total = sources.reduce((sum, s) => sum + s.count, 0) || 1;
+                const pct = Math.round((src.count / total) * 100);
+                return (
+                  <div key={src.source} className="p-3 rounded-xl bg-[#09090b] border border-[#2d2d3a] space-y-1.5">
+                    <div className="flex items-center justify-between text-xs font-mono">
+                      <span className="font-bold text-[#fafafa] flex items-center gap-2">
+                        <Globe className="w-3.5 h-3.5 text-[#38bdf8]" />
+                        {src.source}
+                      </span>
+                      <span className="text-[#a1a1aa] font-bold">{src.count} ({pct}%)</span>
+                    </div>
+                    <div className="w-full h-1.5 rounded-full bg-[#121217]">
+                      <div className="h-full bg-[#38bdf8] rounded-full transition-all" style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Visitor Session Inspector Table & Journey View */}
+      <div className="p-5 rounded-2xl bg-[#121217] border border-[#2d2d3a] space-y-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-[#2d2d3a] pb-3">
+          <div>
+            <h4 className="text-xs font-mono uppercase font-bold text-[#fafafa] flex items-center gap-2">
+              <Clock className="w-4 h-4 text-emerald-400" />
+              <span>Visitor Session Details & Journey Flow</span>
+            </h4>
+            <p className="text-[11px] text-[#a1a1aa] font-mono">
+              Anonymous visitor timelines with step-by-step navigation flow.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setFilterRecruiter(!filterRecruiter)}
+            className={`px-3 py-1.5 rounded-xl border text-xs font-mono font-bold transition-all flex items-center gap-1.5 ${
+              filterRecruiter
+                ? 'bg-amber-500/20 text-amber-400 border-amber-500/40'
+                : 'bg-[#09090b] text-[#a1a1aa] border-[#2d2d3a] hover:text-[#fafafa]'
+            }`}
+          >
+            <Filter className="w-3 h-3" />
+            {filterRecruiter ? 'Showing Recruiter Sessions' : 'Filter Recruiter Sessions'}
+          </button>
+        </div>
+
+        <div className="space-y-3">
+          {displayedSessions.length === 0 ? (
+            <p className="text-xs font-mono text-[#a1a1aa] text-center py-8">No visitor sessions recorded yet.</p>
+          ) : (
+            displayedSessions.map(s => {
+              const isExpanded = expandedSession === s.sessionId;
+              return (
+                <div key={s.sessionId} className="rounded-2xl bg-[#09090b] border border-[#2d2d3a] overflow-hidden transition-all">
+                  <div
+                    onClick={() => setExpandedSession(isExpanded ? null : s.sessionId)}
+                    className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 cursor-pointer hover:bg-[#121217] transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-[#6366f1]/10 border border-[#6366f1]/30 flex items-center justify-center text-[#6366f1] font-mono text-xs font-bold shrink-0">
+                        #{s.sessionId?.substring(2, 6) || s.sessionId}
+                      </div>
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-xs font-bold text-[#fafafa]">
+                            {s.startedAt ? new Date(s.startedAt).toLocaleString() : 'Just now'}
+                          </span>
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#2d2d3a] text-[#a1a1aa]">
+                            {s.isReturningVisitor ? 'Returning' : 'New Visitor'}
+                          </span>
+                          {s.isPotentialRecruiter && (
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 font-bold">
+                              Potential Recruiter
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2 text-[11px] font-mono text-[#a1a1aa] mt-0.5">
+                          <span>📍 {s.country || 'India'}</span>
+                          <span>·</span>
+                          <span>💻 {s.deviceType} ({s.operatingSystem} / {s.browser})</span>
+                          <span>·</span>
+                          <span>🔗 Source: {s.referrerSource || 'Direct'}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 text-xs font-mono">
+                      <div className="text-right">
+                        <span className="block text-[#fafafa] font-bold">Duration: {formatDuration(s.durationSeconds || 0)}</span>
+                        <span className="block text-[10px] text-[#a1a1aa]">Active: {formatDuration(s.activeTimeSeconds || 0)}</span>
+                      </div>
+                      <ChevronRight className={`w-4 h-4 text-[#a1a1aa] transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+                    </div>
+                  </div>
+
+                  {/* Expanded Session Detail & Visual Journey */}
+                  {isExpanded && (
+                    <div className="p-4 bg-[#121217] border-t border-[#2d2d3a] space-y-4 text-xs font-mono">
+                      {/* Visual Journey Flow */}
+                      <div>
+                        <span className="text-[10px] uppercase font-bold text-[#a1a1aa] block mb-2">Visitor Journey Path:</span>
+                        <div className="flex flex-wrap items-center gap-2 pt-1">
+                          {(s.sectionsViewed || ['Hero']).map((sec, idx) => (
+                            <React.Fragment key={idx}>
+                              <span className="px-3 py-1 rounded-xl bg-[#6366f1]/15 text-[#6366f1] border border-[#6366f1]/30 font-bold">
+                                {sec}
+                              </span>
+                              {idx < (s.sectionsViewed?.length || 1) - 1 && <span className="text-[#a1a1aa]">↓</span>}
+                            </React.Fragment>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Actions Performed */}
+                      <div>
+                        <span className="text-[10px] uppercase font-bold text-[#a1a1aa] block mb-1">Key Actions Triggered:</span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {(s.actionsPerformed || []).length === 0 ? (
+                            <span className="text-[#a1a1aa] italic text-[11px]">No explicit link clicks or form actions.</span>
+                          ) : (
+                            s.actionsPerformed.map((act, idx) => (
+                              <span key={idx} className="px-2.5 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold">
+                                ✓ {act}
+                              </span>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Helper mini components for Analytics UI
+const StatCard = ({ label, value, color }) => (
+  <div className="p-3.5 rounded-2xl bg-[#121217] border border-[#2d2d3a]">
+    <span className="text-[10px] font-mono uppercase text-[#a1a1aa] block font-bold truncate">{label}</span>
+    <span className="text-base font-extrabold font-mono mt-1 block" style={{ color }}>{value}</span>
+  </div>
+);
+
+const MetricBadge = ({ label, value, icon: Icon, color }) => (
+  <div className="p-3 rounded-xl bg-[#09090b] border border-[#2d2d3a] flex items-center justify-between">
+    <div>
+      <span className="text-[10px] font-mono text-[#a1a1aa] uppercase font-bold block">{label}</span>
+      <span className="text-lg font-extrabold text-[#fafafa] font-mono mt-0.5 block">{value}</span>
+    </div>
+    <Icon className="w-5 h-5 shrink-0 opacity-80" style={{ color }} />
+  </div>
+);
+
+const formatDuration = (seconds) => {
+  if (!seconds || seconds <= 0) return '0s';
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  if (mins === 0) return `${secs}s`;
+  return `${mins}m ${secs}s`;
 };
 
 export default AdminSpacePage;

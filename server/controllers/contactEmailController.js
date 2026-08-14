@@ -89,8 +89,6 @@ const sendContactEmail = async (req, res) => {
       });
     }
 
-    console.log("[Contact Email Sent]", data);
-
     return res.status(200).json({
       success: true,
       message: "Message sent successfully.",
@@ -106,6 +104,94 @@ const sendContactEmail = async (req, res) => {
   }
 };
 
+/**
+ * POST /api/feedback/send
+ * Sends feedback data directly to the owner's email using Resend API.
+ */
+const sendFeedbackEmail = async (req, res) => {
+  try {
+    const { name, email, feedback } = req.body;
+
+    if (!name || !email || !feedback) {
+      return res.status(400).json({
+        success: false,
+        message: "Name, email, and feedback are required."
+      });
+    }
+
+    const cleanName = name.trim();
+    const cleanEmail = email.trim();
+    const cleanFeedback = feedback.trim();
+
+    if (!process.env.RESEND_API_KEY) {
+      console.error("[Resend Error] RESEND_API_KEY is not set in environment variables.");
+      return res.status(500).json({
+        success: false,
+        message: "Email service is not configured. Please email vasanthavenkatasiva@gmail.com."
+      });
+    }
+
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const toEmail = process.env.CONTACT_TO_EMAIL || "vasanthavenkatasiva@gmail.com";
+
+    const { data, error } = await resend.emails.send({
+      from: "Portfolio Feedback <onboarding@resend.dev>",
+      to: [toEmail],
+      subject: `Portfolio Feedback from ${cleanName}`,
+      replyTo: cleanEmail,
+      html: `
+        <!DOCTYPE html>
+        <html>
+          <body style="margin:0; padding:0; background:#09090B; font-family:Arial, sans-serif; color:#FAFAFA;">
+            <div style="max-width:650px; margin:30px auto; background:#18181B; border:1px solid #27272A; border-radius:16px; overflow:hidden;">
+              <div style="padding:24px; background:#09090B; border-bottom:1px solid #27272A;">
+                <h1 style="margin:0; color:#10B981; font-size:24px;">💬 New Portfolio Feedback</h1>
+                <p style="margin:8px 0 0; color:#A1A1AA;">A visitor submitted feedback on your portfolio footer.</p>
+              </div>
+
+              <div style="padding:24px;">
+                <p><strong style="color:#A1A1AA;">Visitor Name:</strong> <span style="color:#FAFAFA;">${escapeHtml(cleanName)}</span></p>
+                <p><strong style="color:#A1A1AA;">Email Address:</strong> <span style="color:#38BDF8;">${escapeHtml(cleanEmail)}</span></p>
+
+                <div style="margin-top:24px; padding:18px; background:#09090B; border-left:3px solid #10B981; border-radius:8px;">
+                  <p style="margin:0 0 8px 0; color:#A1A1AA; font-size:12px; font-weight:bold; letter-spacing:1px;">VISITOR FEEDBACK</p>
+                  <p style="margin:0; color:#FAFAFA; line-height:1.7; white-space:pre-wrap;">${escapeHtml(cleanFeedback)}</p>
+                </div>
+              </div>
+
+              <div style="padding:18px 24px; border-top:1px solid #27272A; color:#71717A; font-size:12px; text-align:center;">
+                Siva Space Portfolio Feedback System · Reply directly to this email to respond to ${escapeHtml(cleanName)}
+              </div>
+            </div>
+          </body>
+        </html>
+      `
+    });
+
+    if (error) {
+      console.error("[Resend Error]", error);
+      return res.status(500).json({
+        success: false,
+        message: error.message || "Feedback email failed to send."
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Feedback sent successfully.",
+      emailId: data?.id || null
+    });
+
+  } catch (error) {
+    console.error("[Feedback Controller Error]", error);
+    return res.status(500).json({
+      success: false,
+      message: "Unable to send feedback."
+    });
+  }
+};
+
 module.exports = {
-  sendContactEmail
+  sendContactEmail,
+  sendFeedbackEmail
 };

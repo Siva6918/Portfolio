@@ -4,6 +4,7 @@ import { ArrowUpRight, Github, ExternalLink, ChevronDown, ChevronUp } from 'luci
 import { motion } from 'framer-motion';
 import ImageWithFallback from '../common/ImageWithFallback';
 import SwipeableCarousel from '../common/SwipeableCarousel';
+import { useAnalytics } from '../../context/AnalyticsContext';
 
 const easeCurve = [0.16, 1, 0.3, 1];
 
@@ -54,6 +55,7 @@ const defaultProjectsFallback = [
 
 const ProjectsSection = ({ projects = [] }) => {
   const [showAll, setShowAll] = useState(false);
+  const { trackInteraction } = useAnalytics();
 
   const activeProjects = projects.length > 0 ? projects : defaultProjectsFallback;
   const displayedProjects = showAll ? activeProjects : activeProjects.slice(0, 3);
@@ -245,6 +247,7 @@ const ProjectsSection = ({ projects = [] }) => {
                     <div className="flex items-center gap-3 pt-3">
                       <Link
                         to={`/projects/${project.slug}`}
+                        onClick={() => trackInteraction('project_open', project.title, 'Projects')}
                         className="group/link inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-mono text-xs font-semibold shadow-md active:scale-95 transition-all duration-200"
                       >
                         <span>VIEW CASE STUDY</span>
@@ -256,6 +259,7 @@ const ProjectsSection = ({ projects = [] }) => {
                           href={project.repositoryUrl}
                           target="_blank"
                           rel="noreferrer"
+                          onClick={() => trackInteraction('project_github_click', project.title, 'Projects')}
                           className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-700 dark:text-white/70 hover:text-slate-900 dark:hover:text-white transition-all duration-200 shadow-sm"
                         >
                           <Github className="w-3.5 h-3.5" />
@@ -268,6 +272,7 @@ const ProjectsSection = ({ projects = [] }) => {
                           href={project.liveUrl}
                           target="_blank"
                           rel="noreferrer"
+                          onClick={() => trackInteraction('live_demo_click', project.title, 'Projects')}
                           className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-700 dark:text-white/70 hover:text-slate-900 dark:hover:text-white transition-all duration-200 shadow-sm"
                         >
                           <ExternalLink className="w-3.5 h-3.5" />

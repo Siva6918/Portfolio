@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import { Mail, Linkedin, Github, Send, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
+import { useAnalytics } from "../../context/AnalyticsContext";
 
 const easeCurve = [0.16, 1, 0.3, 1];
 const API_URL = (import.meta.env.VITE_API_URL || "/api").replace(/\/+$/, "");
 
 const ContactSection = ({ email = "vasanreddy1331@gmail.com", profile = {} }) => {
+  const { trackInteraction } = useAnalytics();
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -31,6 +34,8 @@ const ContactSection = ({ email = "vasanreddy1331@gmail.com", profile = {} }) =>
       setErrorMsg("Please fill in all fields.");
       return;
     }
+
+    trackInteraction('contact_form_submit', formData.subject.trim() || 'Contact Form', 'Contact');
 
     setStatus("loading");
     setErrorMsg("");
