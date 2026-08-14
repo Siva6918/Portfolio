@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const rawApiUrl = import.meta.env.VITE_API_URL || '/api';
+const defaultDevUrl = 'http://localhost:5000/api';
+const defaultProdUrl = 'https://siva-space-api.onrender.com/api';
+const rawApiUrl = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? defaultDevUrl : defaultProdUrl);
 export const API_BASE = rawApiUrl.endsWith('/api') ? rawApiUrl : `${rawApiUrl.replace(/\/+$/, '')}/api`;
 
 // Derive the server origin from the API base URL (strip trailing /api)

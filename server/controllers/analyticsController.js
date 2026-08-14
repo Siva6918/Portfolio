@@ -145,17 +145,24 @@ exports.pulseHeartbeat = async (req, res) => {
       return res.status(400).json({ success: false, message: 'sessionId required' });
     }
 
-    const session = await AnalyticsSession.findOne({ sessionId });
+    let session = await AnalyticsSession.findOne({ sessionId });
+    const now = new Date();
+
     if (!session) {
-      return res.status(404).json({ success: false, message: 'Session not found' });
+      session = new AnalyticsSession({
+        sessionId,
+        visitorId: `v_auto_${sessionId}`,
+        startedAt: now,
+        lastActivityAt: now,
+        isLive: true
+      });
     }
 
-    const now = new Date();
-    const durationSeconds = Math.max(0, Math.floor((now.getTime() - new Date(session.startedAt).getTime()) / 1000));
+    const durationSeconds = Math.max(0, Math.floor((now.getTime() - new Date(session.startedAt || now).getTime()) / 1000));
 
     session.lastActivityAt = now;
     session.durationSeconds = durationSeconds;
-    if (activeTimeSeconds > session.activeTimeSeconds) {
+    if (activeTimeSeconds > (session.activeTimeSeconds || 0)) {
       session.activeTimeSeconds = activeTimeSeconds;
     }
     if (exitPage) {
@@ -210,30 +217,38 @@ exports.recordEvents = async (req, res) => {
     await AnalyticsEvent.insertMany(formattedEvents);
 
     // Update aggregate lists on AnalyticsSession
-    const session = await AnalyticsSession.findOne({ sessionId });
-    if (session) {
-      const newSections = formattedEvents
-        .filter(e => e.eventType === 'section_view' && e.section)
-        .map(e => e.section);
-      
-      const newActions = formattedEvents
-        .filter(e => e.eventType === 'interaction' && e.action)
-        .map(e => e.action);
-
-      const updatedSections = Array.from(new Set([...(session.sectionsViewed || []), ...newSections]));
-      const updatedActions = Array.from(new Set([...(session.actionsPerformed || []), ...newActions]));
-
-      const score = calculateRecruiterScore(updatedSections, updatedActions);
-
-      session.sectionsViewed = updatedSections;
-      session.actionsPerformed = updatedActions;
-      session.potentialRecruiterScore = score;
-      session.isPotentialRecruiter = score >= 45;
-      session.lastActivityAt = new Date();
-      session.isLive = true;
-
-      await session.save();
+    let session = await AnalyticsSession.findOne({ sessionId });
+    if (!session) {
+      session = new AnalyticsSession({
+        sessionId,
+        visitorId: `v_auto_${sessionId}`,
+        startedAt: new Date(),
+        lastActivityAt: new Date(),
+        isLive: true
+      });
     }
+
+    const newSections = formattedEvents
+      .filter(e => e.eventType === 'section_view' && e.section)
+      .map(e => e.section);
+    
+    const newActions = formattedEvents
+      .filter(e => e.eventType === 'interaction' && e.action)
+      .map(e => e.action);
+
+    const updatedSections = Array.from(new Set([...(session.sectionsViewed || []), ...newSections]));
+    const updatedActions = Array.from(new Set([...(session.actionsPerformed || []), ...newActions]));
+
+    const score = calculateRecruiterScore(updatedSections, updatedActions);
+
+    session.sectionsViewed = updatedSections;
+    session.actionsPerformed = updatedActions;
+    session.potentialRecruiterScore = score;
+    session.isPotentialRecruiter = score >= 45;
+    session.lastActivityAt = new Date();
+    session.isLive = true;
+
+    await session.save();
 
     return res.status(200).json({ success: true, recorded: formattedEvents.length });
   } catch (error) {

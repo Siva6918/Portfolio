@@ -30,6 +30,7 @@ app.use(cors({
 }));
 
 app.use(express.json({ limit: '15mb' }));
+app.use(express.text({ type: ['text/plain*', 'application/json*'], limit: '15mb' }));
 app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 
 // Apply general API rate limiter

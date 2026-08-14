@@ -55,6 +55,12 @@ export const AnalyticsProvider = ({ children }) => {
 
   // 1. Initialize Visitor & Session
   useEffect(() => {
+    // Exclude admin control room routes from being tracked as public portfolio visitors
+    const currentPath = window.location.pathname;
+    if (currentPath.startsWith('/admin') || currentPath.startsWith('/my-space')) {
+      return;
+    }
+
     let visitorId = localStorage.getItem('portfolio_visitor_id');
     let isReturning = true;
 
@@ -68,8 +74,18 @@ export const AnalyticsProvider = ({ children }) => {
     setSessionId(currentSessionId);
 
     const deviceInfo = detectDeviceInfo();
-    const referrer = document.referrer || 'Direct';
-    const landingPage = window.location.pathname;
+    let referrer = document.referrer || 'Direct';
+
+    // Parse URL parameters for referrer query info (e.g. ?utm_source=linkedin)
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const utmSource = urlParams.get('utm_source') || urlParams.get('ref') || urlParams.get('source');
+      if (utmSource) {
+        referrer = `https://${utmSource}.com`;
+      }
+    } catch (e) {}
+
+    const landingPage = window.location.pathname || '/';
 
     const payload = {
       sessionId: currentSessionId,
@@ -80,13 +96,19 @@ export const AnalyticsProvider = ({ children }) => {
       landingPage
     };
 
+    if (import.meta.env.DEV) {
+      console.log('[Analytics] Initialized visitor session:', currentSessionId, payload);
+    }
+
     // Non-blocking asynchronous session initialization
     try {
       fetch(buildApiUrl('/analytics/session'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
-      }).catch(() => {});
+      }).catch((err) => {
+        if (import.meta.env.DEV) console.warn('[Analytics Error] startSession fetch failed:', err);
+      });
     } catch (e) {
       // Silent failure
     }
@@ -171,6 +193,10 @@ export const AnalyticsProvider = ({ children }) => {
       events: eventsToSend
     });
 
+    if (import.meta.env.DEV) {
+      console.log(`[Analytics] Flushing ${eventsToSend.length} events for #${sId}:`, eventsToSend);
+    }
+
     try {
       if (isUnload && navigator.sendBeacon) {
         const blob = new Blob([payload], { type: 'application/json' });
@@ -200,6 +226,10 @@ export const AnalyticsProvider = ({ children }) => {
       metadata
     };
     eventBufferRef.current.push(event);
+
+    if (import.meta.env.DEV) {
+      console.log(`[Analytics Track] ${action} (${targetName}):`, event);
+    }
 
     if (eventBufferRef.current.length >= 5) {
       flushEvents(sessionId);

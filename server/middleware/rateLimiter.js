@@ -14,6 +14,7 @@ const adminVerifyLimiter = rateLimit({
 const apiLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
   max: 120, // 120 requests per minute
+  skip: (req) => req.path.includes('/analytics'),
   message: {
     success: false,
     message: 'Too many requests from this IP. Please wait a moment.'
