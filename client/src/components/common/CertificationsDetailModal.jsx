@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { X, ShieldCheck, ExternalLink, Search, Award } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { resolveMediaUrl } from '../../services/api';
+import { useAnalytics } from '../../context/AnalyticsContext';
 
 const CertificationsDetailModal = ({ isOpen, onClose, certifications = [] }) => {
+  const { trackInteraction } = useAnalytics();
   const [searchQuery, setSearchQuery] = useState('');
 
   if (!isOpen) return null;
@@ -99,6 +101,7 @@ const CertificationsDetailModal = ({ isOpen, onClose, certifications = [] }) => 
                           href={cert.credentialUrl}
                           target="_blank"
                           rel="noreferrer"
+                          onClick={() => trackInteraction('certification_click', cert.title, 'Certifications', { url: cert.credentialUrl })}
                           className="flex items-center gap-1 text-indigo-600 dark:text-indigo-400 font-bold hover:underline"
                         >
                           <span>Verify</span>

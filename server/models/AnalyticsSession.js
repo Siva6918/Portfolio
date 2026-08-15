@@ -12,9 +12,19 @@ const analyticsSessionSchema = new mongoose.Schema({
     required: true,
     index: true
   },
+  period: {
+    type: String,
+    required: true,
+    index: true // e.g. "2026-08"
+  },
   isReturningVisitor: {
     type: Boolean,
     default: false
+  },
+  isBot: {
+    type: Boolean,
+    default: false,
+    index: true
   },
   startedAt: {
     type: Date,
@@ -63,6 +73,10 @@ const analyticsSessionSchema = new mongoose.Schema({
     type: String,
     default: 'Direct / Unknown'
   },
+  city: {
+    type: String,
+    default: 'Unknown'
+  },
   region: {
     type: String,
     default: ''
@@ -101,5 +115,12 @@ const analyticsSessionSchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
+
+// Optimized Compound Indexes for High-Performance Queries & Rollover Aggregation
+analyticsSessionSchema.index({ period: 1, startedAt: -1 });
+analyticsSessionSchema.index({ period: 1, isBot: 1, visitorId: 1 });
+analyticsSessionSchema.index({ period: 1, isPotentialRecruiter: 1 });
+analyticsSessionSchema.index({ period: 1, isLive: 1 });
+analyticsSessionSchema.index({ lastActivityAt: -1 });
 
 module.exports = mongoose.model('AnalyticsSession', analyticsSessionSchema);

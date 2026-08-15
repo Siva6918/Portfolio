@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Briefcase, ExternalLink, Code2, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { resolveMediaUrl } from '../../services/api';
+import { useAnalytics } from '../../context/AnalyticsContext';
 
 import SwipeableCarousel from '../common/SwipeableCarousel';
 
@@ -37,9 +38,22 @@ const defaultCodingProfilesFallback = [
 ];
 
 const ExperienceSection = ({ experience = [], codingProfiles = [] }) => {
+  const { trackInteraction } = useAnalytics();
   const activeExp = experience.length > 0 ? experience : defaultExperienceFallback;
   const activeProfiles = codingProfiles.length > 0 ? codingProfiles : defaultCodingProfilesFallback;
   const [expandedId, setExpandedId] = useState(activeExp[0]?._id || '1');
+
+  const handleProfileClick = (platform, url) => {
+    trackInteraction('coding_profile_click', platform, 'Experience', { url });
+  };
+
+  const handleRoleToggle = (exp) => {
+    const nextId = expandedId === exp._id ? null : exp._id;
+    if (nextId) {
+      trackInteraction('role_expand', `${exp.role} @ ${exp.company}`, 'Experience');
+    }
+    setExpandedId(nextId);
+  };
 
   return (
     <section id="experience" className="py-20 relative w-full border-t border-slate-200 dark:border-zinc-800/60">
@@ -135,7 +149,13 @@ const ExperienceSection = ({ experience = [], codingProfiles = [] }) => {
                       <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <span>{p.platform}</span>
                         {p.profileUrl && (
-                          <a href={p.profileUrl} target="_blank" rel="noreferrer" className="text-indigo-500">
+                          <a
+                            href={p.profileUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={() => handleProfileClick(p.platform, p.profileUrl)}
+                            className="text-indigo-500"
+                          >
                             <ExternalLink className="w-3.5 h-3.5" />
                           </a>
                         )}
@@ -173,7 +193,7 @@ const ExperienceSection = ({ experience = [], codingProfiles = [] }) => {
                     viewport={{ once: true, amount: 0.15 }}
                     transition={{ duration: 0.5, delay: idx * 0.1, ease: easeCurve }}
                     className="editorial-card p-6 cursor-pointer hover:border-indigo-300 dark:hover:border-zinc-700 transition-all duration-200"
-                    onClick={() => setExpandedId(isExpanded ? null : exp._id)}
+                    onClick={() => handleRoleToggle(exp)}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
@@ -253,7 +273,13 @@ const ExperienceSection = ({ experience = [], codingProfiles = [] }) => {
                       <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <span>{p.platform}</span>
                         {p.profileUrl && (
-                          <a href={p.profileUrl} target="_blank" rel="noreferrer" className="text-slate-400 dark:text-white/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                          <a
+                            href={p.profileUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={() => handleProfileClick(p.platform, p.profileUrl)}
+                            className="text-slate-400 dark:text-white/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                          >
                             <ExternalLink className="w-3.5 h-3.5" />
                           </a>
                         )}

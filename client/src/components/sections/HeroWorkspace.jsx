@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Terminal, Laptop, BookOpen, Cpu, Sparkles, ExternalLink, Code2, User } from 'lucide-react';
 import { useMode } from '../../context/ModeContext';
+import { useAnalytics } from '../../context/AnalyticsContext';
 
 const HeroWorkspace = ({ profile }) => {
   const { isPlayMode } = useMode();
+  const { trackInteraction } = useAnalytics();
   const [activeItem, setActiveItem] = useState(null);
 
   const workspaceItems = [
@@ -55,8 +57,10 @@ const HeroWorkspace = ({ profile }) => {
 
   const handleAction = (item) => {
     if (item.actionUrl) {
+      trackInteraction('github_click', 'Workspace Terminal GitHub', 'Hero', { url: item.actionUrl });
       window.open(item.actionUrl, '_blank', 'noopener,noreferrer');
     } else if (item.actionTarget) {
+      trackInteraction('workspace_nav_click', item.title, 'Hero', { target: item.actionTarget });
       const target = document.querySelector(item.actionTarget);
       if (target) {
         target.scrollIntoView({ behavior: 'smooth' });

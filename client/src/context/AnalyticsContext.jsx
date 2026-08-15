@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
 import { buildApiUrl } from '../services/api';
 
 const AnalyticsContext = createContext({
@@ -9,7 +9,7 @@ const AnalyticsContext = createContext({
 
 export const useAnalytics = () => useContext(AnalyticsContext);
 
-// Utility to generate compact random ID (e.g. A8F3 or v_8f2a)
+// Utility to generate compact random ID (e.g. s_A8F3 or v_8f2a)
 const generateId = (prefix = 's') => {
   const chars = '0123456789ABCDEF';
   let result = '';
@@ -17,6 +17,11 @@ const generateId = (prefix = 's') => {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return `${prefix}_${result}`;
+};
+
+// Generate unique event ID
+const generateEventId = () => {
+  return `evt_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
 };
 
 // Parse coarse device & browser info
@@ -50,8 +55,44 @@ export const AnalyticsProvider = ({ children }) => {
   const activeTimeRef = useRef(0);
   const lastUserActivityRef = useRef(Date.now());
   const eventBufferRef = useRef([]);
-  const sectionTimersRef = useRef({}); // section -> { startTime, totalSpent, firstViewed }
+  const sectionTimersRef = useRef({}); // section -> { startTime, totalSpent, recordedFirstView }
   const observerRef = useRef(null);
+  const hasInitializedSessionRef = useRef(false);
+  const lastInteractionRef = useRef({ signature: '', timestamp: 0 });
+
+  // Flush buffer to server (declared with useCallback for stable reference)
+  const flushEvents = useCallback((activeSessionId, isUnload = false) => {
+    const sId = activeSessionId || sessionId;
+    if (!sId || eventBufferRef.current.length === 0) return;
+
+    const eventsToSend = [...eventBufferRef.current];
+    eventBufferRef.current = []; // Clear buffer immediately to prevent duplicate sends
+
+    const payload = JSON.stringify({
+      sessionId: sId,
+      events: eventsToSend
+    });
+
+    if (import.meta.env.DEV) {
+      console.log(`[Analytics] Flushing ${eventsToSend.length} events for #${sId}:`, eventsToSend);
+    }
+
+    try {
+      if (isUnload && navigator.sendBeacon) {
+        const blob = new Blob([payload], { type: 'application/json' });
+        navigator.sendBeacon(buildApiUrl('/analytics/events'), blob);
+      } else {
+        fetch(buildApiUrl('/analytics/events'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload,
+          keepalive: true
+        }).catch(() => {});
+      }
+    } catch (e) {
+      // Silent fail
+    }
+  }, [sessionId]);
 
   // 1. Initialize Visitor & Session
   useEffect(() => {
@@ -61,6 +102,7 @@ export const AnalyticsProvider = ({ children }) => {
       return;
     }
 
+    // Persist visitor ID in localStorage across browser restarts
     let visitorId = localStorage.getItem('portfolio_visitor_id');
     let isReturning = true;
 
@@ -70,6 +112,7 @@ export const AnalyticsProvider = ({ children }) => {
       isReturning = false;
     }
 
+    // Persist session ID in sessionStorage across page views within current browser tab
     let currentSessionId = sessionStorage.getItem('portfolio_session_id');
     if (!currentSessionId) {
       currentSessionId = generateId('s');
@@ -100,21 +143,24 @@ export const AnalyticsProvider = ({ children }) => {
       landingPage
     };
 
-    if (import.meta.env.DEV) {
-      console.log('[Analytics] Initialized visitor session:', currentSessionId, payload);
-    }
+    // Deduplicate initialization caused by React 18 StrictMode double-mounting
+    if (!hasInitializedSessionRef.current) {
+      hasInitializedSessionRef.current = true;
 
-    // Non-blocking asynchronous session initialization
-    try {
-      fetch(buildApiUrl('/analytics/session'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      }).catch((err) => {
-        if (import.meta.env.DEV) console.warn('[Analytics Error] startSession fetch failed:', err);
-      });
-    } catch (e) {
-      // Silent failure
+      if (import.meta.env.DEV) {
+        console.log('[Analytics] Initialized visitor session:', currentSessionId, payload);
+      }
+
+      // Send non-blocking session initialization
+      try {
+        fetch(buildApiUrl('/analytics/session'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).catch((err) => {
+          if (import.meta.env.DEV) console.warn('[Analytics Error] startSession fetch failed:', err);
+        });
+      } catch (e) {}
     }
 
     // 2. Activity listeners & active time counter
@@ -124,6 +170,7 @@ export const AnalyticsProvider = ({ children }) => {
       if (now - lastUserActivityRef.current > 30 * 60 * 1000) {
         // Reset to new session if returning after 30+ min idle
         const newSessionId = generateId('s');
+        sessionStorage.setItem('portfolio_session_id', newSessionId);
         setSessionId(newSessionId);
         activeTimeRef.current = 0;
       }
@@ -135,7 +182,7 @@ export const AnalyticsProvider = ({ children }) => {
 
     // Active duration ticker (increments active time when window focused and recently active)
     const activeTicker = setInterval(() => {
-      const isFocused = document.hasFocus();
+      const isFocused = typeof document.hasFocus === 'function' ? document.hasFocus() : true;
       const isActiveRecently = (Date.now() - lastUserActivityRef.current) < 60000;
       if (isFocused && isActiveRecently) {
         activeTimeRef.current += 1;
@@ -165,12 +212,13 @@ export const AnalyticsProvider = ({ children }) => {
 
     // Page Unload / Hide Flush via sendBeacon
     const handleVisibilityOrUnload = () => {
-      if (document.visibilityState === 'hidden' || document.visibilityState === 'unloaded') {
+      if (document.visibilityState === 'hidden') {
         flushEvents(currentSessionId, true);
       }
     };
 
     window.addEventListener('visibilitychange', handleVisibilityOrUnload);
+    window.addEventListener('pagehide', handleVisibilityOrUnload);
     window.addEventListener('beforeunload', handleVisibilityOrUnload);
 
     return () => {
@@ -179,49 +227,30 @@ export const AnalyticsProvider = ({ children }) => {
       clearInterval(heartbeatTicker);
       clearInterval(flushTicker);
       window.removeEventListener('visibilitychange', handleVisibilityOrUnload);
+      window.removeEventListener('pagehide', handleVisibilityOrUnload);
       window.removeEventListener('beforeunload', handleVisibilityOrUnload);
       flushEvents(currentSessionId, true);
     };
-  }, []);
+  }, [flushEvents]);
 
-  // Flush buffer to server
-  const flushEvents = (activeSessionId, isUnload = false) => {
-    const sId = activeSessionId || sessionId;
-    if (!sId || eventBufferRef.current.length === 0) return;
+  // Helper to record interaction events with client-side 500ms debounce deduplication
+  const trackInteraction = useCallback((action, targetName = '', section = 'General', metadata = {}) => {
+    const sId = sessionId || sessionStorage.getItem('portfolio_session_id');
+    if (!sId) return;
 
-    const eventsToSend = [...eventBufferRef.current];
-    eventBufferRef.current = []; // Clear buffer
-
-    const payload = JSON.stringify({
-      sessionId: sId,
-      events: eventsToSend
-    });
-
-    if (import.meta.env.DEV) {
-      console.log(`[Analytics] Flushing ${eventsToSend.length} events for #${sId}:`, eventsToSend);
+    // Deduplicate rapid identical double-clicks (within 500ms)
+    const now = Date.now();
+    const signature = `${action}_${targetName}_${section}`;
+    if (
+      lastInteractionRef.current.signature === signature &&
+      (now - lastInteractionRef.current.timestamp) < 500
+    ) {
+      return;
     }
+    lastInteractionRef.current = { signature, timestamp: now };
 
-    try {
-      if (isUnload && navigator.sendBeacon) {
-        const blob = new Blob([payload], { type: 'application/json' });
-        navigator.sendBeacon(buildApiUrl('/analytics/events'), blob);
-      } else {
-        fetch(buildApiUrl('/analytics/events'), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: payload,
-          keepalive: true
-        }).catch(() => {});
-      }
-    } catch (e) {
-      // Silent fail
-    }
-  };
-
-  // Helper to record interaction events (e.g. view resume, download resume, github, linkedin)
-  const trackInteraction = (action, targetName = '', section = 'General', metadata = {}) => {
-    if (!sessionId) return;
     const event = {
+      eventId: generateEventId(),
       eventType: 'interaction',
       action,
       targetName,
@@ -235,23 +264,26 @@ export const AnalyticsProvider = ({ children }) => {
       console.log(`[Analytics Track] ${action} (${targetName}):`, event);
     }
 
-    if (eventBufferRef.current.length >= 5) {
-      flushEvents(sessionId);
+    if (eventBufferRef.current.length >= 4) {
+      flushEvents(sId);
     }
-  };
+  }, [sessionId, flushEvents]);
 
-  // 3. Setup IntersectionObserver for Section Tracking
+  // 3. Setup IntersectionObserver for Section Tracking (~50% threshold)
   useEffect(() => {
     if (!('IntersectionObserver' in window)) return;
 
     observerRef.current = new IntersectionObserver((entries) => {
       const now = Date.now();
+      const sId = sessionId || sessionStorage.getItem('portfolio_session_id');
+      if (!sId) return;
+
       entries.forEach(entry => {
         const sectionName = entry.target.getAttribute('data-section') || entry.target.id;
         if (!sectionName) return;
 
         if (entry.isIntersecting) {
-          // Section entered viewport
+          // Section entered viewport (crossed ~50% threshold)
           if (!sectionTimersRef.current[sectionName]) {
             sectionTimersRef.current[sectionName] = {
               startTime: now,
@@ -263,10 +295,11 @@ export const AnalyticsProvider = ({ children }) => {
             sectionTimersRef.current[sectionName].startTime = now;
           }
 
-          // Record first view event if not recorded yet
+          // Record first view event once per section
           if (!sectionTimersRef.current[sectionName].recordedFirstView) {
             sectionTimersRef.current[sectionName].recordedFirstView = true;
             eventBufferRef.current.push({
+              eventId: generateEventId(),
               eventType: 'section_view',
               section: sectionName,
               action: 'section_reached',
@@ -283,37 +316,41 @@ export const AnalyticsProvider = ({ children }) => {
             timerData.totalSpent += spent;
             timerData.startTime = null;
 
-            eventBufferRef.current.push({
-              eventType: 'section_view',
-              section: sectionName,
-              action: 'section_leave',
-              firstViewedAt: timerData.firstViewedAt,
-              timestamp: new Date().toISOString(),
-              timeSpentSeconds: spent
-            });
+            // Only log leave event if meaningful time spent (> 1 sec)
+            if (spent >= 1) {
+              eventBufferRef.current.push({
+                eventId: generateEventId(),
+                eventType: 'section_view',
+                section: sectionName,
+                action: 'section_leave',
+                firstViewedAt: timerData.firstViewedAt,
+                timestamp: new Date().toISOString(),
+                timeSpentSeconds: spent
+              });
 
-            if (eventBufferRef.current.length >= 5) {
-              flushEvents(sessionId);
+              if (eventBufferRef.current.length >= 4) {
+                flushEvents(sId);
+              }
             }
           }
         }
       });
-    }, { threshold: 0.25 }); // 25% visible threshold
+    }, { threshold: 0.50 }); // 50% visible threshold per Phase 1 spec
 
     return () => {
       if (observerRef.current) {
         observerRef.current.disconnect();
       }
     };
-  }, [sessionId]);
+  }, [sessionId, flushEvents]);
 
   // Method for components to attach IntersectionObserver to section elements
-  const registerSectionRef = (node, sectionName) => {
+  const registerSectionRef = useCallback((node, sectionName) => {
     if (node && observerRef.current) {
       node.setAttribute('data-section', sectionName);
       observerRef.current.observe(node);
     }
-  };
+  }, []);
 
   return (
     <AnalyticsContext.Provider value={{ sessionId, trackInteraction, registerSectionRef }}>

@@ -1,15 +1,21 @@
 import React from 'react';
 import { ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useAnalytics } from '../../context/AnalyticsContext';
 
 import SwipeableCarousel from '../common/SwipeableCarousel';
 
 const easeCurve = [0.16, 1, 0.3, 1];
 
 const DigitalCampusSection = ({ profile, education = [] }) => {
+  const { trackInteraction } = useAnalytics();
   const collegeName = profile?.educationSummary?.college || profile?.college || 'Rajeev Gandhi Memorial College of Engineering and Technology';
   const collegeUrl = profile?.collegeUrl || 'https://www.rgmcet.edu.in/';
   const cgpa = profile?.educationSummary?.cgpa || profile?.cgpa || '8.1';
+
+  const handleCollegeClick = () => {
+    trackInteraction('college_click', collegeName, 'Digital Campus', { url: collegeUrl });
+  };
 
   return (
     <section id="about" className="py-20 relative w-full border-t border-slate-200 dark:border-zinc-800/60">
@@ -109,7 +115,7 @@ const DigitalCampusSection = ({ profile, education = [] }) => {
                 </p>
               </div>
               <div className="pt-4 border-t border-slate-200 dark:border-zinc-800/80">
-                <a href={collegeUrl} target="_blank" rel="noreferrer" className="flex items-center justify-between text-xs font-mono text-slate-600 dark:text-white/70">
+                <a href={collegeUrl} target="_blank" rel="noreferrer" onClick={handleCollegeClick} className="flex items-center justify-between text-xs font-mono text-slate-600 dark:text-white/70">
                   <span className="truncate max-w-[180px]">{collegeName}</span>
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
@@ -217,6 +223,7 @@ const DigitalCampusSection = ({ profile, education = [] }) => {
                 href={collegeUrl}
                 target="_blank"
                 rel="noreferrer"
+                onClick={handleCollegeClick}
                 className="flex items-center justify-between text-xs font-mono text-slate-600 dark:text-white/70 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors duration-200"
               >
                 <span className="truncate max-w-[200px]">{collegeName}</span>

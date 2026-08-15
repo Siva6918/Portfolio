@@ -1,5 +1,26 @@
 const AnalyticsSession = require('../models/AnalyticsSession');
 const AnalyticsEvent = require('../models/AnalyticsEvent');
+const { isBot } = require('../utils/botDetector');
+const { resolveCoarseLocation } = require('../utils/geoIp');
+
+/**
+ * Compute current UTC period formatted as YYYY-MM (e.g. 2026-08)
+ */
+const getCurrentPeriod = (date = new Date()) => {
+  const d = new Date(date);
+  const year = d.getUTCFullYear();
+  const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+  return `${year}-${month}`;
+};
+
+/**
+ * Generate a unique event ID (e.g. evt_1723700000000_a8f3b9c)
+ */
+const generateEventId = () => {
+  const ts = Date.now();
+  const rand = Math.random().toString(36).substring(2, 9);
+  return `evt_${ts}_${rand}`;
+};
 
 /**
  * Categorize referrer string into a standardized traffic source
@@ -17,10 +38,12 @@ const parseReferrerSource = (referrer) => {
  * Derive user agent details if not explicitly passed by client
  */
 const parseUserAgent = (uaString = '') => {
-  const ua = uaString.toLowerCase();
+  const ua = (uaString || '').toLowerCase();
   let deviceType = 'desktop';
-  if (/mobile|android|iphone|ipad|phone/i.test(ua)) {
-    deviceType = /ipad|tablet/i.test(ua) ? 'tablet' : 'mobile';
+  if (/mobile|android|iphone|phone/i.test(ua)) {
+    deviceType = 'mobile';
+  } else if (/ipad|tablet/i.test(ua)) {
+    deviceType = 'tablet';
   }
 
   let browser = 'Unknown';
@@ -38,21 +61,6 @@ const parseUserAgent = (uaString = '') => {
   else if (ua.includes('iphone') || ua.includes('ipad')) operatingSystem = 'iOS';
 
   return { deviceType, browser, operatingSystem };
-};
-
-/**
- * Coarse country identification from headers
- */
-const getCoarseCountry = (req) => {
-  const headerCountry = req.headers['cf-ipcountry'] || 
-                        req.headers['x-vercel-ip-country'] || 
-                        req.headers['x-appengine-country'] || 
-                        req.headers['x-country'];
-
-  if (headerCountry && headerCountry !== 'XX' && headerCountry !== 'T1') {
-    return headerCountry;
-  }
-  return 'India'; // Default coarse region fallback for display consistency
 };
 
 /**
@@ -79,7 +87,7 @@ const calculateRecruiterScore = (sectionsViewed = [], actionsPerformed = []) => 
 
 /**
  * POST /api/analytics/session
- * Initialize or update visitor session
+ * Initialize or update visitor session with period, bot detection, and coarse location
  */
 exports.startSession = async (req, res) => {
   try {
@@ -99,22 +107,29 @@ exports.startSession = async (req, res) => {
       return res.status(400).json({ success: false, message: 'sessionId and visitorId are required.' });
     }
 
-    const uaFallback = parseUserAgent(req.headers['user-agent']);
+    const userAgent = req.headers['user-agent'] || '';
+    const botDetected = isBot(userAgent);
+    const uaFallback = parseUserAgent(userAgent);
     const referrerSource = parseReferrerSource(referrer);
-    const country = getCoarseCountry(req);
+    const { country, city } = await resolveCoarseLocation(req);
+    const now = new Date();
+    const period = getCurrentPeriod(now);
 
     const sessionData = {
       sessionId,
       visitorId,
+      period,
       isReturningVisitor: Boolean(isReturningVisitor),
-      startedAt: new Date(),
-      lastActivityAt: new Date(),
+      isBot: botDetected,
+      startedAt: now,
+      lastActivityAt: now,
       isLive: true,
       deviceType: deviceType || uaFallback.deviceType,
       browser: browser || uaFallback.browser,
       operatingSystem: operatingSystem || uaFallback.operatingSystem,
       screenSize: screenSize || 'Unknown',
-      country,
+      country: country || 'Direct / Unknown',
+      city: city || 'Unknown',
       referrer,
       referrerSource,
       landingPage,
@@ -145,13 +160,26 @@ exports.pulseHeartbeat = async (req, res) => {
       return res.status(400).json({ success: false, message: 'sessionId required' });
     }
 
-    let session = await AnalyticsSession.findOne({ sessionId });
     const now = new Date();
+    const period = getCurrentPeriod(now);
+    let session = await AnalyticsSession.findOne({ sessionId });
 
     if (!session) {
+      const userAgent = req.headers['user-agent'] || '';
+      const botDetected = isBot(userAgent);
+      const uaFallback = parseUserAgent(userAgent);
+      const { country, city } = await resolveCoarseLocation(req);
+
       session = new AnalyticsSession({
         sessionId,
         visitorId: `v_auto_${sessionId}`,
+        period,
+        isBot: botDetected,
+        deviceType: uaFallback.deviceType,
+        browser: uaFallback.browser,
+        operatingSystem: uaFallback.operatingSystem,
+        country: country || 'Direct / Unknown',
+        city: city || 'Unknown',
         startedAt: now,
         lastActivityAt: now,
         isLive: true
@@ -168,6 +196,9 @@ exports.pulseHeartbeat = async (req, res) => {
     if (exitPage) {
       session.exitPage = exitPage;
     }
+    if (!session.period) {
+      session.period = period;
+    }
     session.isLive = true;
 
     await session.save();
@@ -181,7 +212,7 @@ exports.pulseHeartbeat = async (req, res) => {
 
 /**
  * POST /api/analytics/events
- * Batched event recording (section views and user interactions)
+ * Batched event recording (section views and user interactions) with eventId and period
  */
 exports.recordEvents = async (req, res) => {
   try {
@@ -202,28 +233,67 @@ exports.recordEvents = async (req, res) => {
       return res.status(200).json({ success: true, recorded: 0 });
     }
 
-    const formattedEvents = events.map(evt => ({
-      sessionId,
-      eventType: evt.eventType || (evt.action ? 'interaction' : 'section_view'),
-      timestamp: evt.timestamp ? new Date(evt.timestamp) : new Date(),
-      section: evt.section || 'General',
-      action: evt.action || 'view',
-      targetName: evt.targetName || '',
-      timeSpentSeconds: evt.timeSpentSeconds || 0,
-      firstViewedAt: evt.firstViewedAt ? new Date(evt.firstViewedAt) : null,
-      metadata: evt.metadata || {}
-    }));
+    const now = new Date();
+    const defaultPeriod = getCurrentPeriod(now);
 
-    await AnalyticsEvent.insertMany(formattedEvents);
+    // Filter and format events with eventId, period, and validate structure
+    const formattedEvents = [];
+    const seenSignatures = new Set();
+
+    for (const evt of events) {
+      const eventTimestamp = evt.timestamp ? new Date(evt.timestamp) : now;
+      const period = evt.period || getCurrentPeriod(eventTimestamp) || defaultPeriod;
+      const eventType = evt.eventType || (evt.action ? 'interaction' : 'section_view');
+      const action = evt.action || 'view';
+      const targetName = evt.targetName || '';
+      const section = evt.section || 'General';
+
+      // Deduplicate rapid identical events in the same batch
+      const signature = `${sessionId}_${eventType}_${action}_${targetName}_${section}_${Math.floor(eventTimestamp.getTime() / 1000)}`;
+      if (seenSignatures.has(signature)) {
+        continue;
+      }
+      seenSignatures.add(signature);
+
+      formattedEvents.push({
+        eventId: evt.eventId || generateEventId(),
+        sessionId,
+        period,
+        eventType,
+        timestamp: eventTimestamp,
+        section,
+        action,
+        targetName,
+        timeSpentSeconds: Math.max(0, Number(evt.timeSpentSeconds) || 0),
+        firstViewedAt: evt.firstViewedAt ? new Date(evt.firstViewedAt) : null,
+        metadata: evt.metadata || {}
+      });
+    }
+
+    if (formattedEvents.length > 0) {
+      await AnalyticsEvent.insertMany(formattedEvents);
+    }
 
     // Update aggregate lists on AnalyticsSession
     let session = await AnalyticsSession.findOne({ sessionId });
     if (!session) {
+      const userAgent = req.headers['user-agent'] || '';
+      const botDetected = isBot(userAgent);
+      const uaFallback = parseUserAgent(userAgent);
+      const { country, city } = await resolveCoarseLocation(req);
+
       session = new AnalyticsSession({
         sessionId,
         visitorId: `v_auto_${sessionId}`,
-        startedAt: new Date(),
-        lastActivityAt: new Date(),
+        period: defaultPeriod,
+        isBot: botDetected,
+        deviceType: uaFallback.deviceType,
+        browser: uaFallback.browser,
+        operatingSystem: uaFallback.operatingSystem,
+        country: country || 'Direct / Unknown',
+        city: city || 'Unknown',
+        startedAt: now,
+        lastActivityAt: now,
         isLive: true
       });
     }
@@ -245,8 +315,11 @@ exports.recordEvents = async (req, res) => {
     session.actionsPerformed = updatedActions;
     session.potentialRecruiterScore = score;
     session.isPotentialRecruiter = score >= 45;
-    session.lastActivityAt = new Date();
+    session.lastActivityAt = now;
     session.isLive = true;
+    if (!session.period) {
+      session.period = defaultPeriod;
+    }
 
     await session.save();
 
@@ -264,11 +337,14 @@ exports.recordEvents = async (req, res) => {
  */
 exports.getOverview = async (req, res) => {
   try {
-    const totalSessions = await AnalyticsSession.countDocuments();
-    const uniqueVisitorsList = await AnalyticsSession.distinct('visitorId');
+    const currentPeriod = req.query.period || getCurrentPeriod();
+    const query = { isBot: { $ne: true } };
+
+    const totalSessions = await AnalyticsSession.countDocuments(query);
+    const uniqueVisitorsList = await AnalyticsSession.distinct('visitorId', query);
     const uniqueVisitors = uniqueVisitorsList.length;
 
-    const returningVisitorsList = await AnalyticsSession.distinct('visitorId', { isReturningVisitor: true });
+    const returningVisitorsList = await AnalyticsSession.distinct('visitorId', { ...query, isReturningVisitor: true });
     const returningVisitors = returningVisitorsList.length;
 
     const now = new Date();
@@ -276,15 +352,16 @@ exports.getOverview = async (req, res) => {
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-    const todayVisitors = await AnalyticsSession.countDocuments({ startedAt: { $gte: startOfToday } });
-    const weekVisitors = await AnalyticsSession.countDocuments({ startedAt: { $gte: sevenDaysAgo } });
-    const monthVisitors = await AnalyticsSession.countDocuments({ startedAt: { $gte: thirtyDaysAgo } });
+    const todayVisitors = await AnalyticsSession.countDocuments({ ...query, startedAt: { $gte: startOfToday } });
+    const weekVisitors = await AnalyticsSession.countDocuments({ ...query, startedAt: { $gte: sevenDaysAgo } });
+    const monthVisitors = await AnalyticsSession.countDocuments({ ...query, startedAt: { $gte: thirtyDaysAgo } });
 
-    // Calculate Average Session Duration
+    // Calculate Average Session Duration (active seconds preferred)
     const avgResult = await AnalyticsSession.aggregate([
-      { $group: { _id: null, avgDuration: { $avg: '$durationSeconds' } } }
+      { $match: query },
+      { $group: { _id: null, avgDuration: { $avg: '$durationSeconds' }, avgActive: { $avg: '$activeTimeSeconds' } } }
     ]);
-    const avgSessionDuration = avgResult[0] ? Math.round(avgResult[0].avgDuration) : 0;
+    const avgSessionDuration = avgResult[0] ? Math.round(avgResult[0].avgActive || avgResult[0].avgDuration || 0) : 0;
 
     return res.status(200).json({
       success: true,
@@ -310,7 +387,6 @@ exports.getOverview = async (req, res) => {
  */
 exports.getEngagement = async (req, res) => {
   try {
-    // Section Engagement aggregation
     const sectionStats = await AnalyticsEvent.aggregate([
       { $match: { eventType: 'section_view' } },
       {
@@ -324,7 +400,6 @@ exports.getEngagement = async (req, res) => {
       { $sort: { viewsCount: -1 } }
     ]);
 
-    // Key Action Counts
     const actionCounts = await AnalyticsEvent.aggregate([
       { $match: { eventType: 'interaction' } },
       { $group: { _id: '$action', count: { $sum: 1 } } }
@@ -351,7 +426,10 @@ exports.getEngagement = async (req, res) => {
           githubClicks: actionMap['github_click'] || (actionMap['project_github_click'] || 0),
           linkedinClicks: actionMap['linkedin_click'] || 0,
           emailClicks: actionMap['email_click'] || (actionMap['contact_click'] || 0),
-          contactSubmits: actionMap['contact_form_submit'] || 0
+          contactSubmits: actionMap['contact_form_submit'] || 0,
+          collegeClicks: actionMap['college_click'] || 0,
+          codingProfileClicks: actionMap['coding_profile_click'] || 0,
+          certClicks: actionMap['certification_click'] || 0
         }
       }
     });
@@ -367,6 +445,7 @@ exports.getEngagement = async (req, res) => {
 exports.getTrafficSources = async (req, res) => {
   try {
     const sources = await AnalyticsSession.aggregate([
+      { $match: { isBot: { $ne: true } } },
       { $group: { _id: '$referrerSource', count: { $sum: 1 } } },
       { $sort: { count: -1 } }
     ]);
@@ -390,6 +469,7 @@ exports.getTrafficSources = async (req, res) => {
 exports.getRecruiterSignals = async (req, res) => {
   try {
     const sessions = await AnalyticsSession.find({
+      isBot: { $ne: true },
       $or: [
         { isPotentialRecruiter: true },
         { potentialRecruiterScore: { $gte: 30 } }
@@ -415,14 +495,15 @@ exports.getSessions = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const skip = (page - 1) * limit;
 
-    const total = await AnalyticsSession.countDocuments();
-    const sessions = await AnalyticsSession.find()
+    const query = { isBot: { $ne: true } };
+
+    const total = await AnalyticsSession.countDocuments(query);
+    const sessions = await AnalyticsSession.find(query)
       .sort({ startedAt: -1 })
       .skip(skip)
       .limit(limit)
       .lean();
 
-    // Attach event timeline to each session
     const sessionIds = sessions.map(s => s.sessionId);
     const events = await AnalyticsEvent.find({ sessionId: { $in: sessionIds } })
       .sort({ timestamp: 1 })
@@ -462,6 +543,7 @@ exports.getRealtimeStatus = async (req, res) => {
   try {
     const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
     const activeCount = await AnalyticsSession.countDocuments({
+      isBot: { $ne: true },
       lastActivityAt: { $gte: twoMinutesAgo }
     });
 
@@ -481,10 +563,11 @@ exports.getRealtimeStatus = async (req, res) => {
  */
 exports.exportCsv = async (req, res) => {
   try {
-    const sessions = await AnalyticsSession.find().sort({ startedAt: -1 }).lean();
+    const sessions = await AnalyticsSession.find({ isBot: { $ne: true } }).sort({ startedAt: -1 }).lean();
 
     const headers = [
       'Session ID',
+      'Period',
       'Started At',
       'Last Activity',
       'Duration (s)',
@@ -495,6 +578,7 @@ exports.exportCsv = async (req, res) => {
       'OS',
       'Screen Size',
       'Country',
+      'City',
       'Referrer',
       'Source',
       'Landing Page',
@@ -507,6 +591,7 @@ exports.exportCsv = async (req, res) => {
 
     const rows = sessions.map(s => [
       `"${s.sessionId || ''}"`,
+      `"${s.period || ''}"`,
       `"${s.startedAt ? new Date(s.startedAt).toISOString() : ''}"`,
       `"${s.lastActivityAt ? new Date(s.lastActivityAt).toISOString() : ''}"`,
       s.durationSeconds || 0,
@@ -517,6 +602,7 @@ exports.exportCsv = async (req, res) => {
       `"${s.operatingSystem || 'Unknown'}"`,
       `"${s.screenSize || 'Unknown'}"`,
       `"${s.country || 'Direct / Unknown'}"`,
+      `"${s.city || 'Unknown'}"`,
       `"${(s.referrer || '').replace(/"/g, '""')}"`,
       `"${s.referrerSource || 'Direct'}"`,
       `"${s.landingPage || '/'}"`,

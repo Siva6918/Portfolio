@@ -3,9 +3,11 @@ import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Terminal, ArrowLeft, Github, Linkedin, Sparkles, Eye, Sun, Moon } from 'lucide-react';
 import { useMode } from '../../context/ModeContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useAnalytics } from '../../context/AnalyticsContext';
 import { getProfile, resolveMediaUrl } from '../../services/api';
 
 const Navbar = () => {
+  const { trackInteraction } = useAnalytics();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileImage, setProfileImage] = useState('/Avatar.png');
   const [activeSection, setActiveSection] = useState('');
@@ -164,6 +166,7 @@ const Navbar = () => {
                   href="https://github.com/vasanreddy"
                   target="_blank"
                   rel="noreferrer"
+                  onClick={() => trackInteraction('github_click', 'Navbar GitHub', 'Navigation')}
                   className="p-2 text-slate-600 dark:text-white/50 hover:text-slate-900 dark:hover:text-white transition-colors duration-200"
                   aria-label="GitHub"
                 >
@@ -173,6 +176,7 @@ const Navbar = () => {
                   href="https://www.linkedin.com/in/venkatasiva-reddy/"
                   target="_blank"
                   rel="noreferrer"
+                  onClick={() => trackInteraction('linkedin_click', 'Navbar LinkedIn', 'Navigation')}
                   className="p-2 text-slate-600 dark:text-white/50 hover:text-slate-900 dark:hover:text-white transition-colors duration-200"
                   aria-label="LinkedIn"
                 >
@@ -255,6 +259,7 @@ const Navbar = () => {
                       href="https://github.com/vasanreddy"
                       target="_blank"
                       rel="noreferrer"
+                      onClick={() => trackInteraction('github_click', 'Mobile Navbar GitHub', 'Navigation')}
                       className="p-2.5 rounded-xl border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-white/50 hover:text-slate-900 dark:hover:text-white"
                     >
                       <Github className="w-4 h-4" />
@@ -263,6 +268,7 @@ const Navbar = () => {
                       href="https://www.linkedin.com/in/venkatasiva-reddy/"
                       target="_blank"
                       rel="noreferrer"
+                      onClick={() => trackInteraction('linkedin_click', 'Mobile Navbar LinkedIn', 'Navigation')}
                       className="p-2.5 rounded-xl border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-white/50 hover:text-slate-900 dark:hover:text-white"
                     >
                       <Linkedin className="w-4 h-4" />

@@ -146,6 +146,7 @@ const ContactSection = ({ email = "vasanreddy1331@gmail.com", profile = {} }) =>
               <div className="space-y-4">
                 <a
                   href={`mailto:${displayEmail}`}
+                  onClick={() => trackInteraction('email_click', displayEmail, 'Contact')}
                   className="flex items-center gap-3.5 p-3.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-white/70 hover:text-indigo-600 dark:hover:text-indigo-300 hover:border-slate-300 dark:hover:border-zinc-700 transition-all duration-200 shadow-sm"
                 >
                   <Mail className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
@@ -159,6 +160,7 @@ const ContactSection = ({ email = "vasanreddy1331@gmail.com", profile = {} }) =>
                   href="https://www.linkedin.com/in/venkatasiva-reddy/"
                   target="_blank"
                   rel="noreferrer"
+                  onClick={() => trackInteraction('linkedin_click', 'LinkedIn Profile', 'Contact')}
                   className="flex items-center gap-3.5 p-3.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-white/70 hover:text-indigo-600 dark:hover:text-indigo-300 hover:border-slate-300 dark:hover:border-zinc-700 transition-all duration-200 shadow-sm"
                 >
                   <Linkedin className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
@@ -172,6 +174,7 @@ const ContactSection = ({ email = "vasanreddy1331@gmail.com", profile = {} }) =>
                   href="https://github.com/vasanreddy"
                   target="_blank"
                   rel="noreferrer"
+                  onClick={() => trackInteraction('github_click', 'GitHub Profile', 'Contact')}
                   className="flex items-center gap-3.5 p-3.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-white/70 hover:text-indigo-600 dark:hover:text-indigo-300 hover:border-slate-300 dark:hover:border-zinc-700 transition-all duration-200 shadow-sm"
                 >
                   <Github className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
