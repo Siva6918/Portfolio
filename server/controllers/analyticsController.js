@@ -2,15 +2,36 @@ const AnalyticsSession = require('../models/AnalyticsSession');
 const AnalyticsEvent = require('../models/AnalyticsEvent');
 const { isBot } = require('../utils/botDetector');
 const { resolveCoarseLocation } = require('../utils/geoIp');
+const { getCurrentPeriod, ensureActivePeriod } = require('../utils/periodManager');
+const { emitAnalyticsUpdate } = require('../utils/socket');
+const { verifyAdminPassword } = require('../middleware/authMiddleware');
+const jwt = require('jsonwebtoken');
 
 /**
- * Compute current UTC period formatted as YYYY-MM (e.g. 2026-08)
+ * Check if the incoming request has valid admin credentials
  */
-const getCurrentPeriod = (date = new Date()) => {
-  const d = new Date(date);
-  const year = d.getUTCFullYear();
-  const month = String(d.getUTCMonth() + 1).padStart(2, '0');
-  return `${year}-${month}`;
+const checkAdminAuth = async (req) => {
+  try {
+    const directPassword = req.headers['x-admin-password'];
+    if (directPassword) {
+      const isValid = await verifyAdminPassword(directPassword);
+      if (isValid) return true;
+    }
+
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'super_secret_jwt_key');
+        if (decoded && decoded.isAdmin) return true;
+      } catch (e) {
+        return false;
+      }
+    }
+  } catch (err) {
+    return false;
+  }
+  return false;
 };
 
 /**
@@ -107,18 +128,18 @@ exports.startSession = async (req, res) => {
       return res.status(400).json({ success: false, message: 'sessionId and visitorId are required.' });
     }
 
+    const activePeriod = await ensureActivePeriod();
     const userAgent = req.headers['user-agent'] || '';
     const botDetected = isBot(userAgent);
     const uaFallback = parseUserAgent(userAgent);
     const referrerSource = parseReferrerSource(referrer);
     const { country, city } = await resolveCoarseLocation(req);
     const now = new Date();
-    const period = getCurrentPeriod(now);
 
     const sessionData = {
       sessionId,
       visitorId,
-      period,
+      period: activePeriod,
       isReturningVisitor: Boolean(isReturningVisitor),
       isBot: botDetected,
       startedAt: now,
@@ -142,6 +163,9 @@ exports.startSession = async (req, res) => {
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
+    // Emit live update to connected dashboard clients
+    emitAnalyticsUpdate({ type: 'session_start', sessionId, period: activePeriod });
+
     return res.status(200).json({ success: true, data: session });
   } catch (error) {
     console.error('[Analytics Error] startSession:', error.message);
@@ -160,8 +184,8 @@ exports.pulseHeartbeat = async (req, res) => {
       return res.status(400).json({ success: false, message: 'sessionId required' });
     }
 
+    const activePeriod = await ensureActivePeriod();
     const now = new Date();
-    const period = getCurrentPeriod(now);
     let session = await AnalyticsSession.findOne({ sessionId });
 
     if (!session) {
@@ -173,7 +197,7 @@ exports.pulseHeartbeat = async (req, res) => {
       session = new AnalyticsSession({
         sessionId,
         visitorId: `v_auto_${sessionId}`,
-        period,
+        period: activePeriod,
         isBot: botDetected,
         deviceType: uaFallback.deviceType,
         browser: uaFallback.browser,
@@ -197,11 +221,13 @@ exports.pulseHeartbeat = async (req, res) => {
       session.exitPage = exitPage;
     }
     if (!session.period) {
-      session.period = period;
+      session.period = activePeriod;
     }
     session.isLive = true;
 
     await session.save();
+
+    emitAnalyticsUpdate({ type: 'heartbeat', sessionId });
 
     return res.status(200).json({ success: true, isLive: true });
   } catch (error) {
@@ -233,8 +259,8 @@ exports.recordEvents = async (req, res) => {
       return res.status(200).json({ success: true, recorded: 0 });
     }
 
+    const activePeriod = await ensureActivePeriod();
     const now = new Date();
-    const defaultPeriod = getCurrentPeriod(now);
 
     // Filter and format events with eventId, period, and validate structure
     const formattedEvents = [];
@@ -242,7 +268,7 @@ exports.recordEvents = async (req, res) => {
 
     for (const evt of events) {
       const eventTimestamp = evt.timestamp ? new Date(evt.timestamp) : now;
-      const period = evt.period || getCurrentPeriod(eventTimestamp) || defaultPeriod;
+      const period = evt.period || getCurrentPeriod(eventTimestamp) || activePeriod;
       const eventType = evt.eventType || (evt.action ? 'interaction' : 'section_view');
       const action = evt.action || 'view';
       const targetName = evt.targetName || '';
@@ -285,7 +311,7 @@ exports.recordEvents = async (req, res) => {
       session = new AnalyticsSession({
         sessionId,
         visitorId: `v_auto_${sessionId}`,
-        period: defaultPeriod,
+        period: activePeriod,
         isBot: botDetected,
         deviceType: uaFallback.deviceType,
         browser: uaFallback.browser,
@@ -318,15 +344,236 @@ exports.recordEvents = async (req, res) => {
     session.lastActivityAt = now;
     session.isLive = true;
     if (!session.period) {
-      session.period = defaultPeriod;
+      session.period = activePeriod;
     }
 
     await session.save();
+
+    emitAnalyticsUpdate({
+      type: 'events_recorded',
+      sessionId,
+      count: formattedEvents.length
+    });
 
     return res.status(200).json({ success: true, recorded: formattedEvents.length });
   } catch (error) {
     console.error('[Analytics Error] recordEvents:', error.message);
     return res.status(500).json({ success: false, message: 'Failed to record events.' });
+  }
+};
+
+/**
+ * GET /api/analytics/dashboard
+ * Unified aggregation endpoint returning public summary for all, and detailed telemetry for authenticated admin.
+ */
+exports.getDashboard = async (req, res) => {
+  try {
+    const isAuthorized = await checkAdminAuth(req);
+    const activePeriod = await ensureActivePeriod();
+    const targetPeriod = req.query.period || activePeriod;
+
+    const sessionMatch = { period: targetPeriod, isBot: { $ne: true } };
+    const eventMatch = { period: targetPeriod };
+
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const twoMinutesAgo = new Date(now.getTime() - 2 * 60 * 1000);
+
+    // Summary Pipeline (Always Executed for Public Tier)
+    const sessionSummaryPipeline = AnalyticsSession.aggregate([
+      { $match: sessionMatch },
+      {
+        $facet: {
+          totalSessions: [{ $count: 'count' }],
+          uniqueVisitors: [{ $group: { _id: '$visitorId' } }, { $count: 'count' }],
+          returningVisitors: [{ $match: { isReturningVisitor: true } }, { $group: { _id: '$visitorId' } }, { $count: 'count' }],
+          todayVisitors: [{ $match: { startedAt: { $gte: startOfToday } } }, { $count: 'count' }],
+          weekVisitors: [{ $match: { startedAt: { $gte: sevenDaysAgo } } }, { $count: 'count' }],
+          monthVisitors: [{ $match: { startedAt: { $gte: thirtyDaysAgo } } }, { $count: 'count' }],
+          activeVisitors: [{ $match: { lastActivityAt: { $gte: twoMinutesAgo } } }, { $count: 'count' }],
+          durationStats: [
+            {
+              $group: {
+                _id: null,
+                avgDuration: { $avg: '$durationSeconds' },
+                avgActive: { $avg: '$activeTimeSeconds' }
+              }
+            }
+          ]
+        }
+      }
+    ]);
+
+    // If Unauthenticated: Return ONLY Public Summary Tier (Never execute or expose deep queries)
+    if (!isAuthorized) {
+      const [sessionSummaryResult] = await Promise.all([sessionSummaryPipeline]);
+      const facets = sessionSummaryResult[0] || {};
+      const totalSessions = facets.totalSessions?.[0]?.count || 0;
+      const uniqueVisitors = facets.uniqueVisitors?.[0]?.count || 0;
+      const returningVisitors = facets.returningVisitors?.[0]?.count || 0;
+      const todayVisitors = facets.todayVisitors?.[0]?.count || 0;
+      const weekVisitors = facets.weekVisitors?.[0]?.count || 0;
+      const monthVisitors = facets.monthVisitors?.[0]?.count || 0;
+      const activeVisitors = facets.activeVisitors?.[0]?.count || 0;
+      const durationStats = facets.durationStats?.[0] || {};
+      const avgSessionDuration = Math.round(durationStats.avgActive || durationStats.avgDuration || 0);
+
+      return res.status(200).json({
+        success: true,
+        isAuthorized: false,
+        period: targetPeriod,
+        activePeriod,
+        summary: {
+          totalVisitors: uniqueVisitors,
+          uniqueVisitors,
+          returningVisitors,
+          totalSessions,
+          avgSessionDuration,
+          activeVisitors,
+          todayVisitors,
+          weekVisitors,
+          monthVisitors
+        },
+        engagement: null,
+        sections: null,
+        traffic: null,
+        recruiterInterest: null,
+        sessions: null
+      });
+    }
+
+    // If Authenticated: Parallel Aggregation of All Detail Pipelines
+    const [
+      sessionSummaryResult,
+      actionCountsResult,
+      sectionStatsResult,
+      trafficSourcesResult,
+      recruiterSessionsResult,
+      recentSessionsResult
+    ] = await Promise.all([
+      sessionSummaryPipeline,
+
+      // 2. Engagement Actions
+      AnalyticsEvent.aggregate([
+        { $match: { ...eventMatch, eventType: 'interaction' } },
+        { $group: { _id: '$action', count: { $sum: 1 } } }
+      ]),
+
+      // 3. Sections Stats
+      AnalyticsEvent.aggregate([
+        { $match: { ...eventMatch, eventType: 'section_view' } },
+        {
+          $group: {
+            _id: '$section',
+            viewsCount: { $sum: 1 },
+            totalTimeSpent: { $sum: '$timeSpentSeconds' },
+            avgTimeSpent: { $avg: '$timeSpentSeconds' }
+          }
+        },
+        { $sort: { viewsCount: -1 } }
+      ]),
+
+      // 4. Traffic Sources
+      AnalyticsSession.aggregate([
+        { $match: sessionMatch },
+        { $group: { _id: '$referrerSource', count: { $sum: 1 } } },
+        { $sort: { count: -1 } }
+      ]),
+
+      // 5. Observable Recruiter Interest
+      AnalyticsSession.find({
+        ...sessionMatch,
+        $or: [
+          { isPotentialRecruiter: true },
+          { potentialRecruiterScore: { $gte: 30 } }
+        ]
+      })
+      .sort({ potentialRecruiterScore: -1, startedAt: -1 })
+      .limit(20)
+      .lean(),
+
+      // 6. Recent Sessions
+      AnalyticsSession.find(sessionMatch)
+      .sort({ startedAt: -1 })
+      .limit(30)
+      .lean()
+    ]);
+
+    // Format Session Summary
+    const facets = sessionSummaryResult[0] || {};
+    const totalSessions = facets.totalSessions?.[0]?.count || 0;
+    const uniqueVisitors = facets.uniqueVisitors?.[0]?.count || 0;
+    const returningVisitors = facets.returningVisitors?.[0]?.count || 0;
+    const todayVisitors = facets.todayVisitors?.[0]?.count || 0;
+    const weekVisitors = facets.weekVisitors?.[0]?.count || 0;
+    const monthVisitors = facets.monthVisitors?.[0]?.count || 0;
+    const activeVisitors = facets.activeVisitors?.[0]?.count || 0;
+    const durationStats = facets.durationStats?.[0] || {};
+    const avgSessionDuration = Math.round(durationStats.avgActive || durationStats.avgDuration || 0);
+
+    // Format Actions
+    const actionMap = {};
+    actionCountsResult.forEach(a => {
+      actionMap[a._id] = a.count;
+    });
+
+    const engagement = {
+      actions: {
+        resumeViews: actionMap['view_resume'] || 0,
+        resumeDownloads: actionMap['download_resume'] || 0,
+        projectViews: actionMap['project_open'] || 0,
+        githubClicks: actionMap['github_click'] || (actionMap['project_github_click'] || 0),
+        linkedinClicks: actionMap['linkedin_click'] || 0,
+        emailClicks: actionMap['email_click'] || (actionMap['contact_click'] || 0),
+        contactSubmits: actionMap['contact_form_submit'] || 0,
+        collegeClicks: actionMap['college_click'] || 0,
+        codingProfileClicks: actionMap['coding_profile_click'] || 0,
+        certClicks: actionMap['certification_click'] || 0,
+        totalInteractions: Object.values(actionMap).reduce((a, b) => a + b, 0)
+      }
+    };
+
+    // Format Sections
+    const sections = sectionStatsResult.map(s => ({
+      section: s._id,
+      views: s.viewsCount,
+      totalTimeSpentSeconds: Math.round(s.totalTimeSpent || 0),
+      avgTimeSpentSeconds: Math.round(s.avgTimeSpent || 0)
+    }));
+
+    // Format Traffic
+    const traffic = trafficSourcesResult.map(t => ({
+      source: t._id || 'Direct',
+      count: t.count
+    }));
+
+    return res.status(200).json({
+      success: true,
+      isAuthorized: true,
+      period: targetPeriod,
+      activePeriod,
+      summary: {
+        totalVisitors: uniqueVisitors,
+        uniqueVisitors,
+        returningVisitors,
+        totalSessions,
+        avgSessionDuration,
+        activeVisitors,
+        todayVisitors,
+        weekVisitors,
+        monthVisitors
+      },
+      engagement,
+      sections,
+      traffic,
+      recruiterInterest: recruiterSessionsResult,
+      sessions: recentSessionsResult
+    });
+  } catch (error) {
+    console.error('[Analytics Error] getDashboard:', error.message);
+    return res.status(500).json({ success: false, message: 'Failed to fetch dashboard analytics aggregation.' });
   }
 };
 
@@ -337,8 +584,9 @@ exports.recordEvents = async (req, res) => {
  */
 exports.getOverview = async (req, res) => {
   try {
-    const currentPeriod = req.query.period || getCurrentPeriod();
-    const query = { isBot: { $ne: true } };
+    const activePeriod = await ensureActivePeriod();
+    const currentPeriod = req.query.period || activePeriod;
+    const query = { period: currentPeriod, isBot: { $ne: true } };
 
     const totalSessions = await AnalyticsSession.countDocuments(query);
     const uniqueVisitorsList = await AnalyticsSession.distinct('visitorId', query);
@@ -387,8 +635,11 @@ exports.getOverview = async (req, res) => {
  */
 exports.getEngagement = async (req, res) => {
   try {
+    const activePeriod = await ensureActivePeriod();
+    const currentPeriod = req.query.period || activePeriod;
+
     const sectionStats = await AnalyticsEvent.aggregate([
-      { $match: { eventType: 'section_view' } },
+      { $match: { period: currentPeriod, eventType: 'section_view' } },
       {
         $group: {
           _id: '$section',
@@ -401,7 +652,7 @@ exports.getEngagement = async (req, res) => {
     ]);
 
     const actionCounts = await AnalyticsEvent.aggregate([
-      { $match: { eventType: 'interaction' } },
+      { $match: { period: currentPeriod, eventType: 'interaction' } },
       { $group: { _id: '$action', count: { $sum: 1 } } }
     ]);
 
@@ -444,8 +695,11 @@ exports.getEngagement = async (req, res) => {
  */
 exports.getTrafficSources = async (req, res) => {
   try {
+    const activePeriod = await ensureActivePeriod();
+    const currentPeriod = req.query.period || activePeriod;
+
     const sources = await AnalyticsSession.aggregate([
-      { $match: { isBot: { $ne: true } } },
+      { $match: { period: currentPeriod, isBot: { $ne: true } } },
       { $group: { _id: '$referrerSource', count: { $sum: 1 } } },
       { $sort: { count: -1 } }
     ]);
@@ -468,7 +722,11 @@ exports.getTrafficSources = async (req, res) => {
  */
 exports.getRecruiterSignals = async (req, res) => {
   try {
+    const activePeriod = await ensureActivePeriod();
+    const currentPeriod = req.query.period || activePeriod;
+
     const sessions = await AnalyticsSession.find({
+      period: currentPeriod,
       isBot: { $ne: true },
       $or: [
         { isPotentialRecruiter: true },
@@ -491,11 +749,14 @@ exports.getRecruiterSignals = async (req, res) => {
  */
 exports.getSessions = async (req, res) => {
   try {
+    const activePeriod = await ensureActivePeriod();
+    const currentPeriod = req.query.period || activePeriod;
+
     const limit = parseInt(req.query.limit) || 30;
     const page = parseInt(req.query.page) || 1;
     const skip = (page - 1) * limit;
 
-    const query = { isBot: { $ne: true } };
+    const query = { period: currentPeriod, isBot: { $ne: true } };
 
     const total = await AnalyticsSession.countDocuments(query);
     const sessions = await AnalyticsSession.find(query)
@@ -505,7 +766,7 @@ exports.getSessions = async (req, res) => {
       .lean();
 
     const sessionIds = sessions.map(s => s.sessionId);
-    const events = await AnalyticsEvent.find({ sessionId: { $in: sessionIds } })
+    const events = await AnalyticsEvent.find({ sessionId: { $in: sessionIds }, period: currentPeriod })
       .sort({ timestamp: 1 })
       .lean();
 
@@ -563,7 +824,13 @@ exports.getRealtimeStatus = async (req, res) => {
  */
 exports.exportCsv = async (req, res) => {
   try {
-    const sessions = await AnalyticsSession.find({ isBot: { $ne: true } }).sort({ startedAt: -1 }).lean();
+    const activePeriod = await ensureActivePeriod();
+    const currentPeriod = req.query.period || activePeriod;
+
+    const sessions = await AnalyticsSession.find({
+      period: currentPeriod,
+      isBot: { $ne: true }
+    }).sort({ startedAt: -1 }).lean();
 
     const headers = [
       'Session ID',
@@ -616,7 +883,7 @@ exports.exportCsv = async (req, res) => {
     const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
 
     res.setHeader('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', 'attachment; filename=portfolio_analytics_export.csv');
+    res.setHeader('Content-Disposition', `attachment; filename=portfolio_analytics_${currentPeriod}.csv`);
     return res.status(200).send(csvContent);
   } catch (error) {
     console.error('[Analytics Error] exportCsv:', error.message);

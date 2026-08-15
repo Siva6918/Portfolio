@@ -148,19 +148,24 @@ export const uploadResumeFile = (formData, pwd) => api.post('/resume/upload', fo
 });
 
 // Analytics API Endpoints
+export const getAnalyticsDashboard = (period, pwd) => {
+  const params = period ? { period } : {};
+  return api.get('/analytics/dashboard', { params, ...authHeader(pwd) });
+};
 export const getAnalyticsOverview = (pwd) => api.get('/analytics/overview', authHeader(pwd));
 export const getAnalyticsEngagement = (pwd) => api.get('/analytics/engagement', authHeader(pwd));
 export const getAnalyticsTrafficSources = (pwd) => api.get('/analytics/traffic-sources', authHeader(pwd));
 export const getAnalyticsRecruiterSignals = (pwd) => api.get('/analytics/recruiter-signals', authHeader(pwd));
 export const getAnalyticsSessions = (pwd, limit = 30, page = 1) => api.get(`/analytics/sessions?limit=${limit}&page=${page}`, authHeader(pwd));
 export const getAnalyticsRealtime = (pwd) => api.get('/analytics/realtime', authHeader(pwd));
-export const exportAnalyticsCsv = (pwd) => {
+export const exportAnalyticsCsv = (pwd, period) => {
   const token = sessionStorage.getItem('admin_token');
   const headers = {};
   if (pwd) headers['x-admin-password'] = pwd;
   if (token) headers['Authorization'] = `Bearer ${token}`;
+  const url = buildApiUrl(period ? `/analytics/export?period=${period}` : '/analytics/export');
   
-  return axios.get(buildApiUrl('/analytics/export'), {
+  return axios.get(url, {
     headers,
     responseType: 'blob'
   });

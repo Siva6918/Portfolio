@@ -19,10 +19,9 @@ import {
   getCodingProfiles, createCodingProfile, updateCodingProfile, deleteCodingProfile,
   getCareerNodes, createCareerNode, updateCareerNode, deleteCareerNode,
   getResume, uploadResumeFile, uploadMedia, resolveMediaUrl,
-  getAnalyticsOverview, getAnalyticsEngagement, getAnalyticsTrafficSources,
-  getAnalyticsRecruiterSignals, getAnalyticsSessions, getAnalyticsRealtime,
-  exportAnalyticsCsv
+  getAnalyticsDashboard, exportAnalyticsCsv
 } from '../services/api';
+import { getSocket } from '../services/socket';
 import PasswordModal from '../components/common/PasswordModal';
 import { openPdfInNewTab } from '../utils/pdfHelpers';
 import Toast from '../components/common/Toast';
@@ -95,6 +94,9 @@ const AdminSpacePage = () => {
   const [analyticsRecruiter, setAnalyticsRecruiter] = useState([]);
   const [analyticsSessions, setAnalyticsSessions] = useState([]);
   const [analyticsRealtime, setAnalyticsRealtime] = useState(0);
+  const [selectedPeriod, setSelectedPeriod] = useState('');
+  const [isLiveConnected, setIsLiveConnected] = useState(false);
+  const [isAnalyticsAuthorized, setIsAnalyticsAuthorized] = useState(false);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -124,47 +126,102 @@ const AdminSpacePage = () => {
   useEffect(() => { 
     fetchData(); 
     fetchAnalyticsData();
-  }, []);
 
-  const fetchAnalyticsData = async (pwd) => {
-    setLoadingAnalytics(true);
-    try {
-      const [overRes, engRes, srcRes, recRes, sessRes, rtRes] = await Promise.allSettled([
-        getAnalyticsOverview(pwd),
-        getAnalyticsEngagement(pwd),
-        getAnalyticsTrafficSources(pwd),
-        getAnalyticsRecruiterSignals(pwd),
-        getAnalyticsSessions(pwd, 30, 1),
-        getAnalyticsRealtime(pwd)
-      ]);
+    // Socket.io Live Updates Subscription
+    const socket = getSocket();
 
-      if (overRes.status === 'fulfilled' && overRes.value?.data?.data) setAnalyticsOverview(overRes.value.data.data);
-      if (engRes.status === 'fulfilled' && engRes.value?.data?.data) setAnalyticsEngagement(engRes.value.data.data);
-      if (srcRes.status === 'fulfilled' && srcRes.value?.data?.data) setAnalyticsSources(srcRes.value.data.data);
-      if (recRes.status === 'fulfilled' && recRes.value?.data?.data) setAnalyticsRecruiter(recRes.value.data.data);
-      if (sessRes.status === 'fulfilled' && sessRes.value?.data?.data) setAnalyticsSessions(sessRes.value.data.data);
-      if (rtRes.status === 'fulfilled' && rtRes.value?.data?.activeVisitors !== undefined) setAnalyticsRealtime(rtRes.value.data.activeVisitors);
-    } catch (err) {
-      console.error('Analytics fetch error:', err);
-    } finally {
-      setLoadingAnalytics(false);
+    const handleConnect = () => {
+      setIsLiveConnected(true);
+      socket.emit('subscribe:analytics');
+    };
+
+    const handleDisconnect = () => {
+      setIsLiveConnected(false);
+    };
+
+    const handleAnalyticsUpdate = (payload) => {
+      if (import.meta.env.DEV) {
+        console.log('[Dashboard Live Update Received]:', payload);
+      }
+      fetchAnalyticsData(undefined, true);
+    };
+
+    socket.on('connect', handleConnect);
+    socket.on('disconnect', handleDisconnect);
+    socket.on('analytics:update', handleAnalyticsUpdate);
+
+    if (socket.connected) {
+      handleConnect();
     }
+
+    // Fallback polling every 12 seconds in case socket is disconnected
+    const fallbackPoll = setInterval(() => {
+      if (!socket.connected) {
+        fetchAnalyticsData(undefined, true);
+      }
+    }, 12000);
+
+    return () => {
+      socket.off('connect', handleConnect);
+      socket.off('disconnect', handleDisconnect);
+      socket.off('analytics:update', handleAnalyticsUpdate);
+      socket.emit('unsubscribe:analytics');
+      clearInterval(fallbackPoll);
+    };
+  }, [selectedPeriod]);
+
+  const fetchAnalyticsData = async (pwd, silent = false) => {
+    if (!silent) setLoadingAnalytics(true);
+    try {
+      const activePwd = pwd || sessionStorage.getItem('admin_password');
+      const res = await getAnalyticsDashboard(selectedPeriod, activePwd);
+      if (res.data?.success) {
+        const d = res.data;
+        setIsAnalyticsAuthorized(Boolean(d.isAuthorized));
+        setAnalyticsOverview(d.summary || {});
+        setAnalyticsEngagement(d.engagement || {});
+        setAnalyticsSources(d.traffic || []);
+        setAnalyticsRecruiter(d.recruiterInterest || []);
+        setAnalyticsSessions(d.sessions || []);
+        setAnalyticsRealtime(d.summary?.activeVisitors || 0);
+        if (!selectedPeriod && d.period) {
+          setSelectedPeriod(d.period);
+        }
+      }
+    } catch (err) {
+      console.error('Analytics dashboard fetch error:', err);
+    } finally {
+      if (!silent) setLoadingAnalytics(false);
+    }
+  };
+
+  const handleUnlockAnalytics = (pwd) => {
+    sessionStorage.setItem('admin_password', pwd);
+    fetchAnalyticsData(pwd);
+    setToast({ message: 'Detailed analytics unlocked successfully!', type: 'success' });
+  };
+
+  const handleLockAnalytics = () => {
+    sessionStorage.removeItem('admin_password');
+    fetchAnalyticsData('');
+    setToast({ message: 'Detailed telemetry locked.', type: 'info' });
   };
 
   const handleExportAnalyticsCsv = async (pwd) => {
     try {
-      const res = await exportAnalyticsCsv(pwd);
+      const activePwd = pwd || sessionStorage.getItem('admin_password');
+      const res = await exportAnalyticsCsv(activePwd, selectedPeriod);
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', 'portfolio_analytics_export.csv');
+      link.setAttribute('download', `portfolio_analytics_${selectedPeriod || 'export'}.csv`);
       document.body.appendChild(link);
       link.click();
       link.remove();
       setToast({ message: 'Analytics CSV exported successfully!', type: 'success' });
     } catch (err) {
       console.error('Export CSV error:', err);
-      setToast({ message: 'Failed to export CSV.', type: 'error' });
+      setToast({ message: 'Failed to export CSV. Admin password required.', type: 'error' });
     }
   };
 
@@ -417,8 +474,23 @@ const AdminSpacePage = () => {
             recruiterSignals={analyticsRecruiter}
             sessions={analyticsSessions}
             realtime={analyticsRealtime}
+            isLiveConnected={isLiveConnected}
+            selectedPeriod={selectedPeriod}
+            isAuthorized={isAnalyticsAuthorized}
+            onUnlock={() => {
+              setPendingAction(() => (pwd) => handleUnlockAnalytics(pwd));
+              setModalOpen(true);
+            }}
+            onLock={handleLockAnalytics}
             onRefresh={() => fetchAnalyticsData()}
-            onExport={() => handleExportAnalyticsCsv()}
+            onExport={() => {
+              if (isAnalyticsAuthorized) {
+                handleExportAnalyticsCsv();
+              } else {
+                setPendingAction(() => (pwd) => handleExportAnalyticsCsv(pwd));
+                setModalOpen(true);
+              }
+            }}
             loading={loadingAnalytics}
           />
         )}
@@ -1134,14 +1206,16 @@ const AdminSpacePage = () => {
 // ─── ANALYTICS VIEW COMPONENT ──────────────────────────────────────────────
 const AnalyticsView = ({
   overview = {}, engagement = {}, sources = [], recruiterSignals = [],
-  sessions = [], realtime = 0, onRefresh, onExport, loading = false
+  sessions = [], realtime = 0, isLiveConnected = false, selectedPeriod = '',
+  isAuthorized = false, onUnlock, onLock,
+  onRefresh, onExport, loading = false
 }) => {
   const [expandedSession, setExpandedSession] = useState(null);
   const [filterRecruiter, setFilterRecruiter] = useState(false);
 
   const displayedSessions = filterRecruiter
-    ? sessions.filter(s => s.isPotentialRecruiter || (s.potentialRecruiterScore || 0) >= 30)
-    : sessions;
+    ? (sessions || []).filter(s => s.isPotentialRecruiter || (s.potentialRecruiterScore || 0) >= 30)
+    : (sessions || []);
 
   return (
     <div className="space-y-6">
@@ -1153,14 +1227,35 @@ const AnalyticsView = ({
               <BarChart3 className="w-5 h-5 text-emerald-400" />
               <span>Visitor Analytics & Telemetry</span>
             </h3>
+            
             {/* Real-time Presence Badge */}
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-xs font-mono text-emerald-400 font-semibold">
               <span className="relative flex h-2 w-2">
                 {realtime > 0 && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>}
                 <span className={`relative inline-flex rounded-full h-2 w-2 ${realtime > 0 ? 'bg-emerald-500' : 'bg-zinc-600'}`}></span>
               </span>
-              <span>{realtime > 0 ? `Currently Active Visitors: ${realtime}` : 'No active visitors'}</span>
+              <span>{realtime > 0 ? `Active Visitors: ${realtime}` : 'No active visitors'}</span>
             </div>
+
+            {/* Socket.io Live Stream Connection Status */}
+            <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold border ${
+              isLiveConnected 
+                ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30' 
+                : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+            }`}>
+              <span className="relative flex h-1.5 w-1.5">
+                {isLiveConnected && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>}
+                <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${isLiveConnected ? 'bg-indigo-400' : 'bg-amber-400'}`}></span>
+              </span>
+              <span>{isLiveConnected ? 'LIVE STREAM' : 'AUTO-POLLING'}</span>
+            </div>
+
+            {/* Active Period Badge */}
+            {selectedPeriod && (
+              <span className="px-2.5 py-1 rounded-full bg-[#121217] border border-[#2d2d3a] text-[#a1a1aa] text-[11px] font-mono font-bold">
+                Period: <span className="text-[#fafafa]">{selectedPeriod}</span>
+              </span>
+            )}
           </div>
           <p className="text-xs text-[#a1a1aa] font-mono mt-1">
             Privacy-conscious session tracking, section view timing, and recruiter interest telemetry.
@@ -1168,6 +1263,28 @@ const AnalyticsView = ({
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Unlock / Lock Toggle */}
+          {isAuthorized ? (
+            <button
+              type="button"
+              onClick={onLock}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-xs font-mono font-bold text-red-400 transition-all"
+              title="Lock deep telemetry"
+            >
+              <Lock className="w-3.5 h-3.5" />
+              <span>Lock Details</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onUnlock}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/30 text-xs font-mono font-bold text-indigo-400 transition-all shadow-sm"
+            >
+              <Lock className="w-3.5 h-3.5" />
+              <span>Unlock Details</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={onRefresh}
@@ -1188,70 +1305,95 @@ const AnalyticsView = ({
         </div>
       </div>
 
-      {/* Overview Stat Cards Grid */}
+      {/* ─── PUBLIC TIER: Aggregate Summary Stat Cards ─── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-        <StatCard label="Total Visitors" value={overview.totalVisitors || 0} color="#6366f1" />
-        <StatCard label="Unique Visitors" value={overview.uniqueVisitors || 0} color="#38bdf8" />
-        <StatCard label="Returning" value={overview.returningVisitors || 0} color="#c084fc" />
-        <StatCard label="Total Sessions" value={overview.totalSessions || 0} color="#10b981" />
-        <StatCard label="Avg Duration" value={formatDuration(overview.avgSessionDuration || 0)} color="#f59e0b" />
-        <StatCard label="Today" value={overview.todayVisitors || 0} color="#06b6d4" />
-        <StatCard label="This Week" value={overview.weekVisitors || 0} color="#a855f7" />
-        <StatCard label="This Month" value={overview.monthVisitors || 0} color="#ec4899" />
+        <StatCard label="Total Visitors" value={overview.totalVisitors ?? (loading ? '...' : 0)} color="#6366f1" loading={loading && overview.totalVisitors === undefined} />
+        <StatCard label="Unique Visitors" value={overview.uniqueVisitors ?? (loading ? '...' : 0)} color="#38bdf8" loading={loading && overview.uniqueVisitors === undefined} />
+        <StatCard label="Returning" value={overview.returningVisitors ?? (loading ? '...' : 0)} color="#c084fc" loading={loading && overview.returningVisitors === undefined} />
+        <StatCard label="Total Sessions" value={overview.totalSessions ?? (loading ? '...' : 0)} color="#10b981" loading={loading && overview.totalSessions === undefined} />
+        <StatCard label="Avg Duration" value={overview.avgSessionDuration !== undefined ? formatDuration(overview.avgSessionDuration) : (loading ? '...' : '0s')} color="#f59e0b" loading={loading && overview.avgSessionDuration === undefined} />
+        <StatCard label="Today" value={overview.todayVisitors ?? (loading ? '...' : 0)} color="#06b6d4" loading={loading && overview.todayVisitors === undefined} />
+        <StatCard label="This Week" value={overview.weekVisitors ?? (loading ? '...' : 0)} color="#a855f7" loading={loading && overview.weekVisitors === undefined} />
+        <StatCard label="This Month" value={overview.monthVisitors ?? (loading ? '...' : 0)} color="#ec4899" loading={loading && overview.monthVisitors === undefined} />
       </div>
 
-      {/* Engagement & Recruiter Signals Highlights */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Key Action Engagement Cards */}
-        <div className="lg:col-span-7 p-5 rounded-2xl bg-[#121217] border border-[#2d2d3a] space-y-4">
-          <h4 className="text-xs font-mono uppercase font-bold text-[#fafafa] flex items-center gap-2">
-            <Activity className="w-4 h-4 text-[#6366f1]" />
-            <span>Interaction & Goal Engagement</span>
-          </h4>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            <MetricBadge label="Resume Views" value={engagement.actions?.resumeViews || 0} icon={Eye} color="#6366f1" />
-            <MetricBadge label="Resume Downloads" value={engagement.actions?.resumeDownloads || 0} icon={Download} color="#10b981" />
-            <MetricBadge label="Project Views" value={engagement.actions?.projectViews || 0} icon={FolderGit2} color="#38bdf8" />
-            <MetricBadge label="GitHub Clicks" value={engagement.actions?.githubClicks || 0} icon={Code2} color="#c084fc" />
-            <MetricBadge label="LinkedIn Clicks" value={engagement.actions?.linkedinClicks || 0} icon={UserCheck} color="#06b6d4" />
-            <MetricBadge label="Email / Contact" value={engagement.actions?.emailClicks || 0} icon={Mail} color="#f59e0b" />
+      {/* ─── DETAIL TIER: Gated by Password Authentication ─── */}
+      {!isAuthorized ? (
+        <div className="p-8 sm:p-12 rounded-3xl bg-[#121217] border border-[#2d2d3a] text-center space-y-4 max-w-xl mx-auto my-6 shadow-2xl">
+          <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 mx-auto">
+            <Lock className="w-7 h-7" />
           </div>
-        </div>
-
-        {/* Potential Recruiter Signals Card */}
-        <div className="lg:col-span-5 p-5 rounded-2xl bg-[#121217] border border-amber-500/30 space-y-3">
-          <div className="flex items-center justify-between">
-            <h4 className="text-xs font-mono uppercase font-bold text-amber-400 flex items-center gap-2">
-              <Sparkles className="w-4 h-4" />
-              <span>Potential Recruiter Interest</span>
+          <div className="space-y-1.5">
+            <h4 className="text-base font-bold text-[#fafafa] font-mono">
+              Detailed Telemetry & Recruiter Signals are Protected
             </h4>
-            <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[10px] font-mono font-bold border border-amber-500/20">
-              {recruiterSignals.length} Flagged
-            </span>
+            <p className="text-xs text-[#a1a1aa] font-mono leading-relaxed max-w-md mx-auto">
+              Public aggregate numbers for {selectedPeriod || 'the active period'} are shown above. Enter your portfolio admin password to view recruiter interest flags, interaction goal telemetry, section view timings, and visitor session journeys.
+            </p>
           </div>
-          <p className="text-[11px] text-[#a1a1aa] leading-relaxed">
-            High-engagement sessions based on observable interaction patterns (Viewed Resume + Downloaded Resume + Projects + LinkedIn).
-          </p>
-
-          <div className="space-y-2 pt-1">
-            {recruiterSignals.length === 0 ? (
-              <p className="text-xs font-mono text-[#a1a1aa] italic py-3">No high-engagement recruiter sessions recorded yet.</p>
-            ) : (
-              recruiterSignals.slice(0, 4).map(s => (
-                <div key={s.sessionId} className="p-2.5 rounded-xl bg-[#09090b] border border-[#2d2d3a] flex items-center justify-between text-xs font-mono">
-                  <div>
-                    <span className="font-bold text-[#fafafa]">#{s.sessionId}</span>
-                    <span className="text-[10px] text-[#a1a1aa] ml-2">{s.country || 'India'} · {s.deviceType}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 text-[10px] font-bold">Score {s.potentialRecruiterScore}</span>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+          <button
+            type="button"
+            onClick={onUnlock}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#6366f1] hover:bg-[#4f46e5] text-white text-xs font-mono font-bold transition-all shadow-lg hover:shadow-indigo-500/25"
+          >
+            <Lock className="w-3.5 h-3.5" />
+            <span>Unlock Detailed Telemetry</span>
+          </button>
         </div>
-      </div>
+      ) : (
+        <>
+          {/* Engagement & Recruiter Signals Highlights */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Key Action Engagement Cards */}
+            <div className="lg:col-span-7 p-5 rounded-2xl bg-[#121217] border border-[#2d2d3a] space-y-4">
+              <h4 className="text-xs font-mono uppercase font-bold text-[#fafafa] flex items-center gap-2">
+                <Activity className="w-4 h-4 text-[#6366f1]" />
+                <span>Interaction & Goal Engagement</span>
+              </h4>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <MetricBadge label="Resume Views" value={engagement?.actions?.resumeViews || 0} icon={Eye} color="#6366f1" />
+                <MetricBadge label="Resume Downloads" value={engagement?.actions?.resumeDownloads || 0} icon={Download} color="#10b981" />
+                <MetricBadge label="Project Views" value={engagement?.actions?.projectViews || 0} icon={FolderGit2} color="#38bdf8" />
+                <MetricBadge label="GitHub Clicks" value={engagement?.actions?.githubClicks || 0} icon={Code2} color="#c084fc" />
+                <MetricBadge label="LinkedIn Clicks" value={engagement?.actions?.linkedinClicks || 0} icon={UserCheck} color="#06b6d4" />
+                <MetricBadge label="Email / Contact" value={engagement?.actions?.emailClicks || 0} icon={Mail} color="#f59e0b" />
+              </div>
+            </div>
+
+            {/* Potential Recruiter Signals Card */}
+            <div className="lg:col-span-5 p-5 rounded-2xl bg-[#121217] border border-amber-500/30 space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-mono uppercase font-bold text-amber-400 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" />
+                  <span>Potential Recruiter Interest</span>
+                </h4>
+                <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[10px] font-mono font-bold border border-amber-500/20">
+                  {(recruiterSignals || []).length} Flagged
+                </span>
+              </div>
+              <p className="text-[11px] text-[#a1a1aa] leading-relaxed">
+                High-engagement sessions based on observable interaction patterns (Viewed Resume + Downloaded Resume + Projects + LinkedIn).
+              </p>
+
+              <div className="space-y-2 pt-1">
+                {(recruiterSignals || []).length === 0 ? (
+                  <p className="text-xs font-mono text-[#a1a1aa] italic py-3">No high-engagement recruiter sessions recorded yet.</p>
+                ) : (
+                  recruiterSignals.slice(0, 4).map(s => (
+                    <div key={s.sessionId} className="p-2.5 rounded-xl bg-[#09090b] border border-[#2d2d3a] flex items-center justify-between text-xs font-mono">
+                      <div>
+                        <span className="font-bold text-[#fafafa]">#{s.sessionId}</span>
+                        <span className="text-[10px] text-[#a1a1aa] ml-2">{s.country || 'India'} · {s.deviceType}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 text-[10px] font-bold">Score {s.potentialRecruiterScore}</span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
 
       {/* SVG Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -1432,15 +1574,21 @@ const AnalyticsView = ({
           )}
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 };
 
 // Helper mini components for Analytics UI
-const StatCard = ({ label, value, color }) => (
+const StatCard = ({ label, value, color, loading = false }) => (
   <div className="p-3.5 rounded-2xl bg-[#121217] border border-[#2d2d3a]">
     <span className="text-[10px] font-mono uppercase text-[#a1a1aa] block font-bold truncate">{label}</span>
-    <span className="text-base font-extrabold font-mono mt-1 block" style={{ color }}>{value}</span>
+    {loading ? (
+      <div className="h-5 w-12 bg-[#2d2d3a] rounded-lg animate-pulse mt-1" />
+    ) : (
+      <span className="text-base font-extrabold font-mono mt-1 block" style={{ color }}>{value}</span>
+    )}
   </div>
 );
 

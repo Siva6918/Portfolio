@@ -24,6 +24,9 @@ router.post('/analytics/session', analyticsController.startSession);
 router.post('/analytics/heartbeat', analyticsController.pulseHeartbeat);
 router.post('/analytics/events', analyticsController.recordEvents);
 
+// Analytics Unified Dashboard Endpoint (Single Round Trip Aggregation)
+router.get('/analytics/dashboard', analyticsController.getDashboard);
+
 // Analytics Admin Reporting Endpoints
 router.get('/analytics/overview', requireAdminAuth, analyticsController.getOverview);
 router.get('/analytics/engagement', requireAdminAuth, analyticsController.getEngagement);
