@@ -10,7 +10,7 @@ import SwipeableCarousel from '../common/SwipeableCarousel';
 const easeCurve = [0.16, 1, 0.3, 1];
 
 const HeroSection = ({ profile, resumeUrl }) => {
-  const activeResumeTarget = resolveMediaUrl(resumeUrl || profile?.resumeUrl) || '/Venkata_Siva_Reddy_Resume.pdf';
+  const activeResumeTarget = resolveMediaUrl(resumeUrl || profile?.resumeUrl) || '/Siva_Resume_SDE_1 (1).pdf';
   const { trackInteraction } = useAnalytics();
 
   const handleViewResume = () => {
@@ -20,7 +20,7 @@ const HeroSection = ({ profile, resumeUrl }) => {
 
   const handleDownloadResume = () => {
     trackInteraction('download_resume', 'Resume PDF', 'Hero');
-    downloadPdf(activeResumeTarget, 'Venkata_Siva_Reddy_Resume.pdf');
+    downloadPdf(activeResumeTarget, 'Siva_Resume_SDE_1.pdf');
   };
 
   return (

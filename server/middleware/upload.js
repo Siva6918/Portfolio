@@ -1,34 +1,35 @@
 const multer = require('multer');
 const path = require('path');
 
-// Memory storage keeps files in buffer for converting to permanent Base64 Data URIs in MongoDB Atlas
+// Memory storage keeps files in buffer for Cloudinary upload or Base64 Data URI storage
 const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
-  if (file.fieldname === 'resume' || file.fieldname === 'file') {
+  if (file.fieldname === 'resume') {
     const isPdf = file.mimetype === 'application/pdf' || file.originalname.endsWith('.pdf');
     const allowedTypes = /jpeg|jpg|png|webp|svg\+xml|svg|pdf/;
     const mimeType = allowedTypes.test(file.mimetype) || isPdf;
     const extName = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-
-    if (mimeType || extName) {
-      return cb(null, true);
-    }
+    if (mimeType || extName) return cb(null, true);
+    return cb(new Error('Only PDF files are allowed for resume!'), false);
   }
 
-  const allowedTypes = /jpeg|jpg|png|webp|svg\+xml|svg|pdf/;
-  const mimeType = allowedTypes.test(file.mimetype);
-  const extName = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+  // Allow images, PDFs, and video files for media uploads
+  const allowedMimeTypes = /jpeg|jpg|png|webp|svg\+xml|svg|pdf|mp4|webm|quicktime|ogg|x-msvideo/;
+  const allowedExtensions = /\.(jpe?g|png|webp|svg|pdf|mp4|webm|mov|ogg|avi)$/i;
 
-  if (mimeType || extName) {
+  const mimeOk = allowedMimeTypes.test(file.mimetype);
+  const extOk = allowedExtensions.test(path.extname(file.originalname));
+
+  if (mimeOk || extOk) {
     return cb(null, true);
   }
-  cb(new Error('Only image files (JPG, PNG, WEBP, SVG) or PDF documents are allowed!'), false);
+  cb(new Error('Only image (JPG, PNG, WEBP, SVG), PDF, or video (MP4, WEBM, MOV) files are allowed!'), false);
 };
 
 const upload = multer({
   storage,
-  limits: { fileSize: 25 * 1024 * 1024 }, // 25MB limit
+  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB limit for video files
   fileFilter
 });
 

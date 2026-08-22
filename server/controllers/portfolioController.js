@@ -212,13 +212,44 @@ const uploadResumeHandler = async (req, res) => {
   }
 };
 
-// Image & File Upload Handler
+// Image, Video & File Upload Handler
 const uploadMediaHandler = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'No file uploaded.' });
     }
+
     const mime = req.file.mimetype || 'image/png';
+    const isVideo = mime.startsWith('video/');
+
+    // Upload videos (and images when Cloudinary is configured) to Cloudinary
+    if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+      try {
+        const cloudinaryResult = await uploadStreamToCloudinary(req.file.buffer, {
+          folder: isVideo ? 'portfolio/videos' : 'portfolio/media',
+          resource_type: isVideo ? 'video' : 'auto',
+          public_id: `media_${Date.now()}`
+        });
+        return res.status(200).json({
+          success: true,
+          url: cloudinaryResult.secure_url,
+          filename: req.file.originalname,
+          message: 'File uploaded to Cloudinary successfully.'
+        });
+      } catch (cloudErr) {
+        console.error('[Cloudinary Media Upload Error]', cloudErr);
+        // For videos, don't fall back to base64 — it would be too large for MongoDB
+        if (isVideo) {
+          return res.status(500).json({ success: false, message: 'Video upload failed. Cloudinary is required for video files.' });
+        }
+        // Fall through to base64 for images only
+      }
+    } else if (isVideo) {
+      // No Cloudinary configured — videos cannot be stored as base64
+      return res.status(400).json({ success: false, message: 'Cloudinary configuration is required to upload video files.' });
+    }
+
+    // Fallback: store images as Base64 Data URI in MongoDB
     const base64Data = req.file.buffer.toString('base64');
     const fileUrl = `data:${mime};base64,${base64Data}`;
     res.status(200).json({

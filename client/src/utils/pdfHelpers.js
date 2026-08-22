@@ -29,11 +29,13 @@ export const openPdfInNewTab = (dataUriOrUrl) => {
 /**
  * Triggers a client-side file download for a PDF (URL or Base64 Data URI).
  */
-export const downloadPdf = (dataUriOrUrl, filename = 'Venkata_Siva_Reddy_Resume.pdf') => {
+export const downloadPdf = async (dataUriOrUrl, filename = 'Venkata_Siva_Reddy_Resume.pdf') => {
   if (!dataUriOrUrl) return;
 
-  if (dataUriOrUrl.startsWith('data:application/pdf;base64,')) {
-    try {
+  try {
+    let blobUrl;
+
+    if (dataUriOrUrl.startsWith('data:application/pdf;base64,')) {
       const base64Data = dataUriOrUrl.split(',')[1];
       const byteCharacters = atob(base64Data);
       const byteNumbers = new Array(byteCharacters.length);
@@ -42,26 +44,29 @@ export const downloadPdf = (dataUriOrUrl, filename = 'Venkata_Siva_Reddy_Resume.
       }
       const byteArray = new Uint8Array(byteNumbers);
       const blob = new Blob([byteArray], { type: 'application/pdf' });
-      const blobUrl = URL.createObjectURL(blob);
-
-      const link = document.createElement('a');
-      link.href = blobUrl;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
-      return;
-    } catch (e) {
-      console.error('[pdfHelpers] Error downloading base64 PDF:', e);
+      blobUrl = URL.createObjectURL(blob);
+    } else {
+      const response = await fetch(dataUriOrUrl);
+      const blob = await response.blob();
+      blobUrl = URL.createObjectURL(blob);
     }
-  }
 
-  const link = document.createElement('a');
-  link.href = dataUriOrUrl;
-  link.download = filename;
-  link.target = '_blank';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+  } catch (e) {
+    console.error('[pdfHelpers] Error downloading PDF:', e);
+    // Fallback for cross-origin or fetch errors
+    const link = document.createElement('a');
+    link.href = dataUriOrUrl;
+    link.download = filename;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
 };

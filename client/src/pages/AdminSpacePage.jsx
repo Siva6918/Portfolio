@@ -6,7 +6,7 @@ import {
   Briefcase, Image, Code2, Sparkles, MapPin, Target,
   BarChart3, Activity, Eye, Download, Globe, Clock, Smartphone,
   RefreshCw, FileSpreadsheet, UserCheck, ChevronRight, Filter,
-  ExternalLink, Mail
+  ExternalLink, Mail, Video
 } from 'lucide-react';
 import {
   getProfile, updateProfile,
@@ -108,7 +108,7 @@ const AdminSpacePage = () => {
 
   const [profileForm, setProfileForm] = useState({});
   const [avatarPreview, setAvatarPreview] = useState(null);
-  const [projectForm, setProjectForm] = useState({ title: '', category: 'Full Stack MERN', shortDescription: '', description: '', technologies: '', repositoryUrl: '', liveUrl: '', thumbnail: '', displayOrder: 0 });
+  const [projectForm, setProjectForm] = useState({ title: '', category: 'Full Stack MERN', shortDescription: '', description: '', technologies: '', repositoryUrl: '', liveUrl: '', thumbnail: '', videoUrl: '', displayOrder: 0 });
   const [skillForm, setSkillForm] = useState({ name: '', category: 'Languages & Core', type: 'technical', proficiency: 'Intermediate', logo: '', percent: 80, displayOrder: 0, description: '' });
   const [educationForm, setEducationForm] = useState({ degree: 'B.Tech', branch: 'Computer Science and Engineering', college: 'RGMCET', startYear: '2023', endYear: '2027', cgpa: '8.1', percentage: '', description: '', displayOrder: 0 });
   const [certForm, setCertForm] = useState({ title: '', organization: '', issueDate: '', credentialUrl: '', credentialId: '', image: '', description: '', displayOrder: 0 });
@@ -119,6 +119,7 @@ const AdminSpacePage = () => {
 
   const avatarRef = useRef(null);
   const projectImgRef = useRef(null);
+  const projectVideoRef = useRef(null);
   const certImgRef = useRef(null);
   const skillLogoRef = useRef(null);
   const achieveImgRef = useRef(null);
@@ -318,12 +319,17 @@ const AdminSpacePage = () => {
       let payload = { ...projectForm, technologies: csvToArr(projectForm.technologies) };
       const imgFile = projectImgRef.current?.files?.[0];
       if (imgFile) payload.thumbnail = await uploadFile(imgFile, pwd);
+      const videoFile = projectVideoRef.current?.files?.[0];
+      if (videoFile) payload.videoUrl = await uploadFile(videoFile, pwd);
       await createProject(payload, pwd);
     });
   };
   const handleUpdateProject = (id) => {
     triggerMutation('Update Project', async (pwd) => {
-      await updateProject(id, { ...editForm, technologies: csvToArr(editForm.technologies) }, pwd);
+      let payload = { ...editForm, technologies: csvToArr(editForm.technologies) };
+      const videoFile = projectVideoRef.current?.files?.[0];
+      if (videoFile) payload.videoUrl = await uploadFile(videoFile, pwd);
+      await updateProject(id, payload, pwd);
     });
   };
   const handleDeleteProject = (id, title) => { triggerMutation('Delete: ' + title, async (pwd) => { await deleteProject(id, pwd); }); };
@@ -669,6 +675,17 @@ const AdminSpacePage = () => {
                   </div>
                   <div><label className={lbl}>Display Order</label><input type="number" className={inp} value={projectForm.displayOrder} onChange={e => setProjectForm(p => ({ ...p, displayOrder: +e.target.value }))} /></div>
                 </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className={lbl}>Demo Video Upload (MP4 / WEBM)</label>
+                    <label className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#6366f1]/10 border border-[#6366f1]/30 text-[#6366f1] text-xs font-bold cursor-pointer hover:bg-[#6366f1]/20 w-fit">
+                      <Video className="w-4 h-4" /><span>Upload Video</span>
+                      <input type="file" ref={projectVideoRef} accept="video/*" className="hidden" />
+                    </label>
+                    <p className="text-[10px] text-[#52525b] font-mono mt-1">Or paste a URL below (YouTube, Cloudinary, etc.)</p>
+                  </div>
+                  <div><label className={lbl}>Video URL (optional)</label><input type="text" className={inp} placeholder="https://..." value={projectForm.videoUrl} onChange={e => setProjectForm(p => ({ ...p, videoUrl: e.target.value }))} /></div>
+                </div>
               </FormCard>
             )}
 
@@ -691,6 +708,19 @@ const AdminSpacePage = () => {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div><label className={lbl}>Thumbnail URL</label><input type="text" className={inp} value={editForm.thumbnail || ''} onChange={e => setEditForm(p => ({ ...p, thumbnail: e.target.value }))} /></div>
                         <div><label className={lbl}>Display Order</label><input type="number" className={inp} value={editForm.displayOrder ?? 0} onChange={e => setEditForm(p => ({ ...p, displayOrder: +e.target.value }))} /></div>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className={lbl}>Demo Video URL</label>
+                          <input type="text" className={inp} placeholder="Cloudinary / hosted video URL" value={editForm.videoUrl || ''} onChange={e => setEditForm(p => ({ ...p, videoUrl: e.target.value }))} />
+                        </div>
+                        <div>
+                          <label className={lbl}>Upload New Video (MP4/WEBM)</label>
+                          <label className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#6366f1]/10 border border-[#6366f1]/30 text-[#6366f1] text-xs font-bold cursor-pointer hover:bg-[#6366f1]/20 w-fit">
+                            <Video className="w-3.5 h-3.5" /><span>Choose Video</span>
+                            <input type="file" ref={projectVideoRef} accept="video/*" className="hidden" />
+                          </label>
+                        </div>
                       </div>
                       <EditActions onSave={() => handleUpdateProject(proj._id)} onCancel={cancelEdit} />
                     </div>

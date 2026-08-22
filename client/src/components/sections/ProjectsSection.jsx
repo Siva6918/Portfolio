@@ -104,21 +104,39 @@ const ProjectsSection = ({ projects = [] }) => {
           <SwipeableCarousel showDots={true} showArrows={true}>
             {displayedProjects.map((project) => (
               <div key={project._id || project.slug} className="editorial-card p-5 space-y-4">
-                {/* Mobile Thumbnail Image */}
+                {/* Mobile Thumbnail / Video */}
                 <div className="relative aspect-[16/10] rounded-xl overflow-hidden border border-slate-200 dark:border-zinc-800 bg-slate-100 dark:bg-zinc-950 shadow-md">
-                  <ImageWithFallback
-                    src={project.thumbnail}
-                    fallbackSrc="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800"
-                    alt={project.title}
-                    updatedAt={project.updatedAt}
-                    className="w-full h-full object-cover"
-                  />
+                  {project.videoUrl ? (
+                    <video
+                      src={project.videoUrl}
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <ImageWithFallback
+                      src={project.thumbnail}
+                      fallbackSrc="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800"
+                      alt={project.title}
+                      updatedAt={project.updatedAt}
+                      className="w-full h-full object-cover"
+                    />
+                  )}
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 dark:from-zinc-950/80 via-transparent to-transparent pointer-events-none" />
                   <div className="absolute top-2.5 left-2.5">
                     <span className="px-2 py-0.5 rounded bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border border-slate-200 dark:border-zinc-700 text-[10px] font-mono text-indigo-600 dark:text-indigo-300 font-semibold shadow-sm">
                       {project.category}
                     </span>
                   </div>
+                  {project.videoUrl && (
+                    <div className="absolute top-2.5 right-2.5">
+                      <span className="px-2 py-0.5 rounded-full bg-red-500/90 text-white text-[9px] font-mono font-bold uppercase tracking-wider shadow-sm">
+                        ▶ LIVE DEMO
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-1.5">
@@ -182,13 +200,24 @@ const ProjectsSection = ({ projects = [] }) => {
                     className={`lg:col-span-6 ${isEven ? 'lg:order-1' : 'lg:order-2'}`}
                   >
                     <div className="relative aspect-[16/10] rounded-xl overflow-hidden border border-slate-200 dark:border-zinc-800 bg-slate-100 dark:bg-zinc-950 shadow-md group-hover:border-indigo-500/40 transition-colors">
-                      <ImageWithFallback
-                        src={project.thumbnail}
-                        fallbackSrc="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800"
-                        alt={project.title}
-                        updatedAt={project.updatedAt}
-                        className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
-                      />
+                      {project.videoUrl ? (
+                        <video
+                          src={project.videoUrl}
+                          autoPlay
+                          muted
+                          loop
+                          playsInline
+                          className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+                        />
+                      ) : (
+                        <ImageWithFallback
+                          src={project.thumbnail}
+                          fallbackSrc="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800"
+                          alt={project.title}
+                          updatedAt={project.updatedAt}
+                          className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+                        />
+                      )}
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 dark:from-zinc-950/80 via-transparent to-transparent pointer-events-none" />
                       
                       <div className="absolute top-4 left-4">
@@ -196,6 +225,13 @@ const ProjectsSection = ({ projects = [] }) => {
                           0{idx + 1} // {project.category || 'Engineering Project'}
                         </span>
                       </div>
+                      {project.videoUrl && (
+                        <div className="absolute top-4 right-4">
+                          <span className="px-2.5 py-1 rounded-full bg-red-500/90 text-white text-[10px] font-mono font-bold uppercase tracking-wider shadow-sm">
+                            ▶ LIVE DEMO
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </motion.div>
 
