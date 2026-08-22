@@ -1172,25 +1172,32 @@ const AdminSpacePage = () => {
         {/* ─── RESUME ─────────────────────────────────────────────── */}
         {activeTab === 'resume' && (
           <div className="space-y-6">
-            <SectionHeader icon={FileText} title="Active Resume PDF" color="#6366f1" />
-            <div className="p-6 rounded-2xl bg-[#121217] border border-[#2d2d3a] flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div>
-                <span className="text-xs font-mono text-[#a1a1aa] block">Currently Active</span>
-                <span className="text-base font-bold text-[#fafafa]">{resume.title || 'Venkata_Siva_Reddy_Resume.pdf'}</span>
-                {resume.url && (
-                  <button
-                    type="button"
-                    onClick={() => openPdfInNewTab(resolveMediaUrl(resume.url))}
-                    className="text-xs text-[#06b6d4] underline block mt-1 hover:text-[#38bdf8] transition-colors"
-                  >
-                    View Current Resume PDF ↗
-                  </button>
-                )}
+            <SectionHeader icon={FileText} title="Active Resume PDF (Cloudinary & MongoDB)" color="#6366f1" />
+            <div className="p-6 rounded-2xl bg-[#121217] border border-[#2d2d3a] flex flex-col gap-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                  <span className="text-xs font-mono text-[#a1a1aa] block">Currently Active Document</span>
+                  <span className="text-base font-bold text-[#fafafa]">{resume.title || 'Venkata_Siva_Reddy_Resume.pdf'}</span>
+                  {resume.url && (
+                    <div className="mt-2 flex flex-wrap items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => openPdfInNewTab(resolveMediaUrl(resume.url))}
+                        className="text-xs text-[#06b6d4] hover:text-[#38bdf8] font-medium inline-flex items-center gap-1 transition-colors"
+                      >
+                        View Active PDF ↗
+                      </button>
+                      <span className="text-xs text-zinc-500 font-mono break-all bg-zinc-900/80 px-2.5 py-1 rounded-md border border-zinc-800">
+                        {resume.url.startsWith('http') ? resume.url : 'Stored in MongoDB'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <label className="cursor-pointer flex items-center gap-2 px-5 py-3 rounded-xl bg-[#6366f1]/10 hover:bg-[#6366f1]/20 text-[#6366f1] border border-[#6366f1]/30 font-bold text-xs transition-all shrink-0">
+                  <Upload className="w-4 h-4" /><span>Upload New Resume PDF (Admin Protected)</span>
+                  <input type="file" accept="application/pdf,.pdf" onChange={handleResumeUpload} className="hidden" />
+                </label>
               </div>
-              <label className="cursor-pointer flex items-center gap-2 px-5 py-3 rounded-xl bg-[#6366f1]/10 hover:bg-[#6366f1]/20 text-[#6366f1] border border-[#6366f1]/30 font-bold text-xs transition-all">
-                <Upload className="w-4 h-4" /><span>Upload New Resume PDF (Password Required)</span>
-                <input type="file" accept=".pdf" onChange={handleResumeUpload} className="hidden" />
-              </label>
             </div>
           </div>
         )}

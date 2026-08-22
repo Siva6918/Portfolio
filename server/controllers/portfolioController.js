@@ -116,16 +116,31 @@ const getProjectBySlug = async (req, res) => {
   }
 };
 
+const { Readable } = require('stream');
+const cloudinary = require('../config/cloudinary');
+
+// Helper to stream file buffer directly to Cloudinary without writing to disk
+const uploadStreamToCloudinary = (buffer, options = {}) => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(options, (error, result) => {
+      if (error) return reject(error);
+      resolve(result);
+    });
+    Readable.from(buffer).pipe(uploadStream);
+  });
+};
+
 // Resume specific handlers
 const getActiveResume = async (req, res) => {
   try {
     const resume = await Resume.findOne({ active: true }).sort({ uploadedAt: -1 });
     if (!resume) {
+      const profile = await Profile.findOne();
       return res.json({
         success: true,
         data: {
           title: 'Venkata_Siva_Reddy_Resume.pdf',
-          url: '/Venkata_Siva_Reddy_Resume.pdf'
+          url: profile?.resumeUrl || '/Venkata_Siva_Reddy_Resume.pdf'
         }
       });
     }
@@ -140,9 +155,32 @@ const uploadResumeHandler = async (req, res) => {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'Please upload a PDF file.' });
     }
-    const mime = req.file.mimetype || 'application/pdf';
-    const base64Data = req.file.buffer.toString('base64');
-    const fileUrl = `data:${mime};base64,${base64Data}`;
+
+    let fileUrl = '';
+    let cloudinaryId = null;
+
+    // Check if Cloudinary is configured
+    if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+      try {
+        const cloudinaryResult = await uploadStreamToCloudinary(req.file.buffer, {
+          folder: 'portfolio/resume',
+          resource_type: 'raw',
+          public_id: `resume_${Date.now()}`,
+          format: 'pdf'
+        });
+        fileUrl = cloudinaryResult.secure_url;
+        cloudinaryId = cloudinaryResult.public_id;
+      } catch (cloudErr) {
+        console.error('[Cloudinary Upload Error]', cloudErr);
+        // Fallback to base64 data URI if Cloudinary fails
+        const mime = req.file.mimetype || 'application/pdf';
+        fileUrl = `data:${mime};base64,${req.file.buffer.toString('base64')}`;
+      }
+    } else {
+      // Local development fallback when Cloudinary env vars are omitted
+      const mime = req.file.mimetype || 'application/pdf';
+      fileUrl = `data:${mime};base64,${req.file.buffer.toString('base64')}`;
+    }
     
     // Deactivate previous active resumes
     await Resume.updateMany({}, { active: false });
@@ -151,6 +189,7 @@ const uploadResumeHandler = async (req, res) => {
       title: req.file.originalname,
       filename: req.file.originalname,
       url: fileUrl,
+      cloudinaryPublicId: cloudinaryId,
       active: true
     });
     await newResume.save();
@@ -162,7 +201,12 @@ const uploadResumeHandler = async (req, res) => {
       await profile.save();
     }
 
-    res.status(201).json({ success: true, data: newResume, message: 'Resume uploaded successfully.' });
+    res.status(201).json({ 
+      success: true, 
+      url: fileUrl,
+      data: newResume, 
+      message: 'Resume PDF successfully uploaded and persisted in MongoDB Atlas.' 
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
