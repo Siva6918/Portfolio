@@ -2,6 +2,7 @@ import React from "react";
 import { ExternalLink, BookOpen, Code2, Rocket } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAnalytics } from "../../context/AnalyticsContext";
+import SectionHeader from "../common/SectionHeader";
 
 const easeCurve = [0.16, 1, 0.3, 1];
 
@@ -37,23 +38,15 @@ const DigitalCampusSection = ({ profile, education = [] }) => {
       <div className="absolute bottom-1/3 right-8 w-80 h-80 rounded-full blur-3xl pointer-events-none" style={{ background: "rgba(56,189,248,0.05)" }} />
 
       <div className="section-container relative z-10">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-14 gap-4">
-          <div>
-            <motion.span initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-              transition={{ duration: 0.5, ease: easeCurve }}
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/25 text-xs font-mono tracking-widest text-purple-600 dark:text-purple-400 uppercase font-semibold mb-3">
-              <BookOpen className="w-3.5 h-3.5" />01 // BACKGROUND & PHILOSOPHY
-            </motion.span>
-            <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.1, ease: easeCurve }}
-              className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              Who I Am &{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-blue-400 to-teal-400">How I Work</span>
-            </motion.h2>
-            <p className="text-sm font-mono text-zinc-400 mt-2">Software engineering student focused on building robust products with high craftsmanship.</p>
-          </div>
-        </div>
+        {/* Header with Color-Sparked Card Pill & Space Grotesk */}
+        <SectionHeader
+          badgeText="01 // BACKGROUND & PHILOSOPHY"
+          icon={BookOpen}
+          color="#c084fc"
+          title="Who I Am & "
+          gradientTitle="How I Work"
+          description="Software engineering student focused on building robust products with high craftsmanship."
+        />
 
         {/* 3 Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">

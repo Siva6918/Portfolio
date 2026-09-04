@@ -4,12 +4,14 @@ import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import { ModeProvider } from './context/ModeContext';
 import { AnalyticsProvider } from './context/AnalyticsContext';
+import { ProfileModalProvider } from './context/ProfileModalContext';
 
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import PortfolioBackground from './components/layout/PortfolioBackground';
 import AdminBackground from './components/layout/AdminBackground';
 import ScrollProgressBar from './components/common/ScrollProgressBar';
+import ProfileModal from './components/common/ProfileModal';
 
 import HomePage from './pages/HomePage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
@@ -39,34 +41,39 @@ function App() {
       <AuthProvider>
         <ModeProvider>
           <AnalyticsProvider>
-            <Router>
-              <div className="relative min-h-screen flex flex-col bg-[#f8fafc] text-slate-900 dark:bg-[#09090c] dark:text-zinc-100 font-sans transition-colors duration-300">
-                {/* Top Scroll Indicator */}
-                <ScrollProgressBar />
+            <ProfileModalProvider>
+              <Router>
+                <div className="relative min-h-screen flex flex-col bg-[#f8fafc] text-slate-900 dark:bg-[#09090c] dark:text-zinc-100 font-sans transition-colors duration-300">
+                  {/* Top Scroll Indicator */}
+                  <ScrollProgressBar />
 
-                {/* Scroll restoration on navigation */}
-                <ScrollToTop />
+                  {/* Scroll restoration on navigation */}
+                  <ScrollToTop />
 
-                {/* Dynamic Background: Portfolio vs My Space */}
-                <DynamicBackground />
+                  {/* Dynamic Background: Portfolio vs My Space */}
+                  <DynamicBackground />
 
-                {/* Navigation Header */}
-                <Navbar />
+                  {/* Navigation Header */}
+                  <Navbar />
 
-                {/* Main Application Body */}
-                <main className="flex-grow z-10">
-                  <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/projects/:slug" element={<ProjectDetailPage />} />
-                    <Route path="/admin" element={<AdminSpacePage />} />
-                    <Route path="*" element={<NotFoundPage />} />
-                  </Routes>
-                </main>
+                  {/* Main Application Body */}
+                  <main className="flex-grow z-10">
+                    <Routes>
+                      <Route path="/" element={<HomePage />} />
+                      <Route path="/projects/:slug" element={<ProjectDetailPage />} />
+                      <Route path="/admin" element={<AdminSpacePage />} />
+                      <Route path="*" element={<NotFoundPage />} />
+                    </Routes>
+                  </main>
 
-                {/* Footer */}
-                <Footer />
-              </div>
-            </Router>
+                  {/* Footer */}
+                  <Footer />
+
+                  {/* Profile Popup Modal */}
+                  <ProfileModal />
+                </div>
+              </Router>
+            </ProfileModalProvider>
           </AnalyticsProvider>
         </ModeProvider>
       </AuthProvider>

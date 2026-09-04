@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Cpu, Code2, Zap, ChevronLeft, ChevronRight } from 'lucide-react';
+import SectionHeader from '../common/SectionHeader';
 import NlpEngineVisualizer from '../playground/NlpEngineVisualizer';
 import AlgoStepVisualizer from '../playground/AlgoStepVisualizer';
 import ApiBenchmarkVisualizer from '../playground/ApiBenchmarkVisualizer';
@@ -25,19 +26,15 @@ const PlaygroundSection = () => {
     <section id="experiments" className="py-24 relative w-full border-t border-slate-200 dark:border-zinc-800/60 overflow-hidden">
       <div className="section-container">
         
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
-          <div>
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/25 text-xs font-mono tracking-widest text-rose-600 dark:text-rose-400 uppercase font-semibold mb-2">
-              03 // INTERACTIVE LAB & EXPERIMENTS
-            </span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white mt-1 tracking-tight">Engineering{" "}<span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 via-pink-400 to-purple-400">Playground</span>
-            </h2>
-          </div>
-          <p className="text-xs font-mono text-zinc-400 max-w-sm">
-            Try lightweight live interactive demos of software algorithms, NLP parsing, and API benchmarking.
-          </p>
-        </div>
+        {/* Header with Color-Sparked Card Pill & Space Grotesk */}
+        <SectionHeader
+          badgeText="03 // INTERACTIVE LAB & EXPERIMENTS"
+          icon={Cpu}
+          color="#fb7185"
+          title="Engineering "
+          gradientTitle="Playground"
+          description="Try lightweight live interactive demos of software algorithms, NLP parsing, and API benchmarking."
+        />
 
         {/* Navigation Controls Bar */}
         <div className="flex items-center justify-between gap-2 mb-8 border-b pb-3 overflow-x-auto" style={{borderColor:"rgba(63,63,70,0.5)"}}>

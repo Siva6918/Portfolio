@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { ShieldCheck, Eye, ChevronLeft, ChevronRight, Award } from "lucide-react";
 import { motion } from "framer-motion";
+import SectionHeader from "../common/SectionHeader";
 import { resolveMediaUrl } from "../../services/api";
 import CertificationsDetailModal from "../common/CertificationsDetailModal";
 
@@ -55,30 +56,15 @@ const CertificationsSection = ({ certifications = [] }) => {
       <div className="absolute bottom-1/3 right-8 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{ background: "rgba(192,132,252,0.05)" }} />
 
       <div className="section-container relative z-10">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-14 gap-4">
-          <div>
-            <motion.span
-              initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }} transition={{ duration: 0.5, ease: easeCurve }}
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/25 text-xs font-mono tracking-widest text-teal-600 dark:text-teal-400 uppercase font-semibold mb-3"
-            >
-              <Award className="w-3.5 h-3.5" />06 // CREDENTIALS & CERTIFICATIONS
-            </motion.span>
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.1, ease: easeCurve }}
-              className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight"
-            >
-              Verified{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-sky-400 to-purple-400">
-                Certifications
-              </span>
-            </motion.h2>
-            <p className="text-sm font-mono text-slate-600 dark:text-zinc-400 mt-2">
-              Industry-recognised credentials validating engineering depth.
-            </p>
-          </div>
+        {/* Header with Color-Sparked Card Pill & Space Grotesk */}
+        <SectionHeader
+          badgeText="06 // CREDENTIALS & CERTIFICATIONS"
+          icon={Award}
+          color="#2dd4bf"
+          title="Verified "
+          gradientTitle="Certifications"
+          description="Industry-recognised credentials validating engineering depth."
+        >
           <button
             onClick={() => setModal(true)}
             className="self-start md:self-auto inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-mono text-xs font-semibold shadow-lg active:scale-95 transition-all"
@@ -86,7 +72,7 @@ const CertificationsSection = ({ certifications = [] }) => {
           >
             <Eye className="w-3.5 h-3.5" /><span>SEE ALL DETAILS ({total})</span>
           </button>
-        </div>
+        </SectionHeader>
 
         {/* ══ DESKTOP 3-slide image-only carousel with SIDE ARROWS ══ */}
         <div

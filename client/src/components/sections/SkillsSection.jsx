@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Search, Sparkles, LayoutGrid, ListFilter } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import SectionHeader from "../common/SectionHeader";
 import { resolveMediaUrl } from "../../services/api";
 
 const easeCurve = [0.16, 1, 0.3, 1];
@@ -60,17 +61,15 @@ const SkillsSection = ({ skills=[] }) => {
       <div className="absolute bottom-1/3 right-8 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{background:"rgba(56,189,248,0.05)"}} />
 
       <div className="section-container relative z-10">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
-          <div>
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/25 text-xs font-mono tracking-widest text-orange-600 dark:text-orange-400 uppercase font-semibold mb-3">
-              <Sparkles className="w-3.5 h-3.5" />04 // STACK & COMPETENCIES
-            </span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              Skills &{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-yellow-400 to-green-400">Tech Stack</span>
-            </h2>
-          </div>
+        {/* Header with Color-Sparked Card Pill & Space Grotesk */}
+        <SectionHeader
+          badgeText="04 // STACK & COMPETENCIES"
+          icon={Sparkles}
+          color="#fb923c"
+          title="Skills & "
+          gradientTitle="Tech Stack"
+          className="mb-10"
+        >
           <div className="flex flex-wrap items-center gap-3">
             {/* View toggle */}
             <div className="flex items-center p-1 rounded-xl bg-zinc-900/80 border border-zinc-800 font-mono text-xs">
@@ -89,7 +88,7 @@ const SkillsSection = ({ skills=[] }) => {
                 className="w-full pl-9 pr-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-mono text-white focus:outline-none focus:border-orange-500/60 transition-colors" />
             </div>
           </div>
-        </div>
+        </SectionHeader>
 
         {/* Compact grouped view */}
         {viewMode==="compact" && (

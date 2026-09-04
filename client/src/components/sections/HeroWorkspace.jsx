@@ -2,10 +2,13 @@ import React, { useState } from 'react';
 import { Terminal, Laptop, BookOpen, Cpu, Sparkles, ExternalLink, Code2, User } from 'lucide-react';
 import { useMode } from '../../context/ModeContext';
 import { useAnalytics } from '../../context/AnalyticsContext';
+import { useProfileModal } from '../../context/ProfileModalContext';
+import { resolveMediaUrl } from '../../services/api';
 
 const HeroWorkspace = ({ profile }) => {
   const { isPlayMode } = useMode();
   const { trackInteraction } = useAnalytics();
+  const { openProfile } = useProfileModal();
   const [activeItem, setActiveItem] = useState(null);
 
   const workspaceItems = [
@@ -164,12 +167,22 @@ const HeroWorkspace = ({ profile }) => {
         {/* Identity Footer Badge */}
         <div className="mt-4 p-4 rounded-xl border border-slate-200 dark:border-zinc-800/80 bg-slate-50 dark:bg-[#181820] flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-slate-200 dark:bg-zinc-800 flex items-center justify-center text-slate-700 dark:text-white/80">
-              <User className="w-4 h-4" />
-            </div>
+            <button
+              type="button"
+              onClick={() => openProfile(resolveMediaUrl(profile?.profileImage) || '/Avatar.png')}
+              className="relative w-9 h-9 rounded-lg overflow-hidden border border-emerald-500/40 hover:border-emerald-400 hover:scale-110 active:scale-95 transition-all duration-200 shrink-0 cursor-pointer shadow-sm"
+              title="Click to view full profile photo"
+            >
+              <img
+                src={resolveMediaUrl(profile?.profileImage) || '/Avatar.png'}
+                alt="Siva Profile"
+                className="w-full h-full object-cover"
+                onError={(e) => { e.target.src = '/Avatar.png'; }}
+              />
+            </button>
             <div>
               <p className="text-xs font-bold text-slate-900 dark:text-white">Rajeev Gandhi Memorial College (RGMCET)</p>
-              <p className="text-[11px] font-mono text-slate-600 dark:text-white/50">B.Tech Computer Science & Engineering (2023 - 2027) Â· CGPA 8.1</p>
+              <p className="text-[11px] font-mono text-slate-600 dark:text-white/50">B.Tech Computer Science & Engineering (2023 - 2027) · CGPA 8.1</p>
             </div>
           </div>
           <span className="hidden sm:inline-block px-2.5 py-1 rounded-md text-[10px] font-mono border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">

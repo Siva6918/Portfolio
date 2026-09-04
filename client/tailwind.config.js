@@ -30,6 +30,7 @@ export default {
       },
       fontFamily: {
         sans: ['Inter', 'Outfit', 'sans-serif'],
+        space: ['"Space Grotesk"', 'sans-serif'],
         mono: ['Fira Code', 'monospace']
       },
       boxShadow: {

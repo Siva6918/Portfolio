@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, ChevronLeft, ChevronRight, Star } from "lucide-react";
+import SectionHeader from "../common/SectionHeader";
 import { resolveMediaUrl } from "../../services/api";
 
 const easeCurve = [0.16, 1, 0.3, 1];
@@ -43,21 +44,15 @@ const AchievementsSection = ({ achievements = [] }) => {
       <div className="absolute bottom-1/4 right-8 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{ background:"rgba(251,146,60,0.06)" }} />
 
       <div className="section-container relative z-10">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-14 gap-4">
-          <div>
-            <motion.span initial={{opacity:0,y:15}} whileInView={{opacity:1,y:0}} viewport={{once:true}} transition={{duration:0.5,ease:easeCurve}}
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/25 text-xs font-mono tracking-widest text-yellow-600 dark:text-yellow-400 uppercase font-semibold mb-3">
-              <Trophy className="w-3.5 h-3.5" />07 // RECOGNITION & HONORS
-            </motion.span>
-            <motion.h2 initial={{opacity:0,y:20}} whileInView={{opacity:1,y:0}} viewport={{once:true}} transition={{duration:0.6,delay:0.1,ease:easeCurve}}
-              className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              Achievements &{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-400 to-pink-400">Competition Ranks</span>
-            </motion.h2>
-            <p className="text-sm font-mono text-slate-600 dark:text-zinc-400 mt-2">Hackathons, algorithmic contests, and data science competitions.</p>
-          </div>
-        </div>
+        {/* Header with Color-Sparked Card Pill & Space Grotesk */}
+        <SectionHeader
+          badgeText="07 // RECOGNITION & HONORS"
+          icon={Trophy}
+          color="#facc15"
+          title="Achievements & "
+          gradientTitle="Competition Ranks"
+          description="Hackathons, algorithmic contests, and data science competitions."
+        />
 
         {/* Desktop grid */}
         <div className="hidden md:grid grid-cols-3 gap-5">

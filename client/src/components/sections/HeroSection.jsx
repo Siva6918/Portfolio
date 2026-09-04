@@ -1,17 +1,20 @@
-﻿import React from 'react';
+import React from 'react';
 import { Download, ArrowRight, Github, Linkedin, Mail, Eye, Briefcase } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { resolveMediaUrl } from '../../services/api';
 import { openPdfInNewTab, downloadPdf } from '../../utils/pdfHelpers';
 import { useAnalytics } from '../../context/AnalyticsContext';
 import HeroWorkspace from './HeroWorkspace';
+import RoleAnimator from './RoleAnimator';
 import SwipeableCarousel from '../common/SwipeableCarousel';
+import { useProfileModal } from '../../context/ProfileModalContext';
 
 const easeCurve = [0.16, 1, 0.3, 1];
 
 const HeroSection = ({ profile, resumeUrl }) => {
   const activeResumeTarget = resolveMediaUrl(resumeUrl || profile?.resumeUrl) || '/Siva_Resume_SDE_1 (1).pdf';
   const { trackInteraction } = useAnalytics();
+  const { openProfile } = useProfileModal();
 
   const handleViewResume = () => {
     trackInteraction('view_resume', 'Resume PDF', 'Hero');
@@ -53,9 +56,34 @@ const HeroSection = ({ profile, resumeUrl }) => {
               transition={{ duration: 0.6, delay: 0.1, ease: easeCurve }}
               className="space-y-3"
             >
-              <p className="inline-flex items-center px-3 py-1 rounded-full bg-green-500/10 border border-green-500/25 text-xs font-mono tracking-widest text-green-600 dark:text-green-400 uppercase font-semibold">
-                HI, I'M SIVA
-              </p>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => openProfile(resolveMediaUrl(profile?.profileImage) || '/Avatar.png')}
+                  className="group inline-flex items-center gap-2.5 px-3 py-1.5 rounded-full border transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+                  style={{
+                    background: "rgba(9,9,11,0.85)",
+                    borderColor: "rgba(74,222,128,0.45)",
+                    boxShadow: "0 0 16px rgba(74,222,128,0.2)"
+                  }}
+                  title="Click to view full profile photo"
+                >
+                  <div className="relative w-6 h-6 rounded-full overflow-hidden border border-emerald-400/60 shrink-0">
+                    <img
+                      src={resolveMediaUrl(profile?.profileImage) || '/Avatar.png'}
+                      alt="Siva"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      onError={(e) => { e.target.src = '/Avatar.png'; }}
+                    />
+                  </div>
+                  <span className="font-mono text-xs tracking-widest text-emerald-400 uppercase font-bold">
+                    HI, I'M SIVA
+                  </span>
+                  <span className="text-[10px] font-mono text-zinc-400 group-hover:text-emerald-300 transition-colors">
+                    (VIEW PHOTO)
+                  </span>
+                </button>
+              </div>
               
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.08]">
                 I build software <br className="hidden sm:inline" />
@@ -66,18 +94,14 @@ const HeroSection = ({ profile, resumeUrl }) => {
               </h1>
             </motion.div>
 
-            {/* 3. Persona Tagline / Role (200ms delay) */}
+            {/* 3. Persona Tagline / Role - Word by word animated, one role each time */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2, ease: easeCurve }}
-              className="flex flex-wrap items-center gap-2 font-mono text-xs text-slate-700 dark:text-white/70 pt-1"
+              className="py-1"
             >
-              <span className="px-3 py-1 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-300">Full Stack Developer</span>
-              <span className="text-slate-400 dark:text-white/40">Â·</span>
-              <span className="px-3 py-1 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-300">MERN Stack</span>
-              <span className="text-slate-400 dark:text-white/40">Â·</span>
-              <span className="px-3 py-1 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-300">AI / ML</span>
+              <RoleAnimator />
             </motion.div>
 
             {/* 4. Authentic Bio Description (300ms delay) */}
@@ -156,49 +180,125 @@ const HeroSection = ({ profile, resumeUrl }) => {
               transition={{ duration: 0.6, delay: 0.4, ease: easeCurve }}
               className="flex flex-wrap items-center gap-2.5 pt-2"
             >
+              {/* 1. Primary Action: Explore Case Studies */}
               <a
                 href="#projects"
-                className="group inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white font-mono text-xs font-semibold shadow-lg" style={{background:"linear-gradient(135deg,#4ade80,#38bdf8,#c084fc)",boxShadow:"0 6px 24px rgba(74,222,128,0.22)"}} className_unused=" active:scale-[0.98] transition-all duration-200"
+                className="group relative inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl text-white font-mono text-xs font-bold transition-all duration-300 hover:scale-[1.03] active:scale-[0.98] overflow-hidden"
+                style={{
+                  background: "linear-gradient(135deg, #4ade80, #38bdf8, #c084fc)",
+                  boxShadow: "0 8px 26px -4px rgba(74, 222, 128, 0.38)",
+                }}
               >
                 <span>EXPLORE CASE STUDIES</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform duration-200" />
               </a>
               
+              {/* 2. Contact Me */}
               <a
                 href="#contact-me-form"
                 onClick={(e) => { e.preventDefault(); document.getElementById('contact-me-form')?.scrollIntoView({ behavior: 'smooth' }); }}
-                className="group inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-zinc-900 border border-zinc-800 text-white font-mono text-xs font-semibold active:scale-[0.98] transition-all duration-200"
+                className="group inline-flex items-center gap-2.5 px-5 py-3.5 rounded-xl border font-mono text-xs font-semibold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                style={{
+                  background: "rgba(9,9,11,0.88)",
+                  borderColor: "rgba(192,132,252,0.45)",
+                  boxShadow: "0 4px 18px -2px rgba(192,132,252,0.15)"
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "#c084fc";
+                  e.currentTarget.style.boxShadow = "0 8px 28px -4px rgba(192,132,252,0.35)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(192,132,252,0.45)";
+                  e.currentTarget.style.boxShadow = "0 4px 18px -2px rgba(192,132,252,0.15)";
+                }}
               >
-                <Mail className="w-4 h-4 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform duration-200" />
+                <div
+                  className="w-6 h-6 rounded-lg flex items-center justify-center border transition-transform group-hover:scale-110"
+                  style={{ background: "rgba(192,132,252,0.18)", borderColor: "rgba(192,132,252,0.4)" }}
+                >
+                  <Mail className="w-3.5 h-3.5 text-purple-300" />
+                </div>
                 <span>CONTACT ME</span>
               </a>
 
+              {/* 3. Freelance Opportunity */}
               <a
                 href="#freelance-form"
                 onClick={(e) => { e.preventDefault(); document.getElementById('freelance-form')?.scrollIntoView({ behavior: 'smooth' }); }}
-                className="group inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-zinc-900 border border-zinc-800 text-white font-mono text-xs font-semibold active:scale-[0.98] transition-all duration-200"
+                className="group inline-flex items-center gap-2.5 px-5 py-3.5 rounded-xl border font-mono text-xs font-semibold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                style={{
+                  background: "rgba(9,9,11,0.88)",
+                  borderColor: "rgba(74,222,128,0.45)",
+                  boxShadow: "0 4px 18px -2px rgba(74,222,128,0.15)"
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "#4ade80";
+                  e.currentTarget.style.boxShadow = "0 8px 28px -4px rgba(74,222,128,0.35)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(74,222,128,0.45)";
+                  e.currentTarget.style.boxShadow = "0 4px 18px -2px rgba(74,222,128,0.15)";
+                }}
               >
-                <Briefcase className="w-4 h-4 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform duration-200" />
+                <div
+                  className="w-6 h-6 rounded-lg flex items-center justify-center border transition-transform group-hover:scale-110"
+                  style={{ background: "rgba(74,222,128,0.18)", borderColor: "rgba(74,222,128,0.4)" }}
+                >
+                  <Briefcase className="w-3.5 h-3.5 text-emerald-300" />
+                </div>
                 <span>FREELANCE OPPORTUNITY</span>
               </a>
 
+              {/* 4. View Resume */}
               <button
                 type="button"
                 onClick={handleViewResume}
-                className="group inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-zinc-900 border border-zinc-800 text-white font-mono text-xs font-semibold active:scale-[0.98] transition-all duration-200"
+                className="group inline-flex items-center gap-2.5 px-5 py-3.5 rounded-xl border font-mono text-xs font-semibold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                style={{
+                  background: "rgba(9,9,11,0.88)",
+                  borderColor: "rgba(56,189,248,0.45)",
+                  boxShadow: "0 4px 18px -2px rgba(56,189,248,0.15)"
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "#38bdf8";
+                  e.currentTarget.style.boxShadow = "0 8px 28px -4px rgba(56,189,248,0.35)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(56,189,248,0.45)";
+                  e.currentTarget.style.boxShadow = "0 4px 18px -2px rgba(56,189,248,0.15)";
+                }}
               >
-                <Eye className="w-4 h-4 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform duration-200" />
+                <div
+                  className="w-6 h-6 rounded-lg flex items-center justify-center border transition-transform group-hover:scale-110"
+                  style={{ background: "rgba(56,189,248,0.18)", borderColor: "rgba(56,189,248,0.4)" }}
+                >
+                  <Eye className="w-3.5 h-3.5 text-sky-300" />
+                </div>
                 <span>RESUME</span>
               </button>
 
+              {/* 5. Download Resume PDF */}
               <button
                 type="button"
                 onClick={handleDownloadResume}
-                className="group p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white active:scale-[0.98] transition-all duration-200"
+                className="group p-3.5 rounded-xl border transition-all duration-300 hover:scale-[1.05] active:scale-[0.98]"
+                style={{
+                  background: "rgba(9,9,11,0.88)",
+                  borderColor: "rgba(63,63,70,0.65)",
+                  boxShadow: "0 4px 14px rgba(0,0,0,0.25)"
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "#38bdf8";
+                  e.currentTarget.style.boxShadow = "0 6px 22px -2px rgba(56,189,248,0.35)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(63,63,70,0.65)";
+                  e.currentTarget.style.boxShadow = "0 4px 14px rgba(0,0,0,0.25)";
+                }}
                 aria-label="Download Resume"
                 title="Download Resume PDF"
               >
-                <Download className="w-4 h-4 group-hover:translate-y-0.5 transition-transform duration-200" />
+                <Download className="w-4 h-4 text-zinc-300 group-hover:text-sky-300 group-hover:translate-y-0.5 transition-all duration-200" />
               </button>
             </motion.div>
 

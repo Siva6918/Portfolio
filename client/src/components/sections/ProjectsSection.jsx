@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, Github, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowUpRight, Github, ExternalLink, ChevronDown, ChevronUp, Code2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ImageWithFallback from '../common/ImageWithFallback';
 import SwipeableCarousel from '../common/SwipeableCarousel';
+import SectionHeader from '../common/SectionHeader';
 import { useAnalytics } from '../../context/AnalyticsContext';
 
 const easeCurve = [0.16, 1, 0.3, 1];
@@ -73,40 +74,15 @@ const ProjectsSection = ({ projects = [] }) => {
     <section id="projects" className="py-24 relative w-full border-t border-slate-200 dark:border-zinc-800/60 overflow-hidden">
       <div className="section-container">
         
-        {/* Section Header Stagger */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 sm:mb-16 gap-4">
-          <div>
-            <motion.span
-              initial={{ opacity: 0, y: 15 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.15 }}
-              transition={{ duration: 0.5, delay: 0.0, ease: easeCurve }}
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/25 text-xs font-mono tracking-widest text-sky-600 dark:text-sky-400 uppercase font-semibold mb-2"
-            >
-              02 // CASE STUDIES
-            </motion.span>
-            
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.15 }}
-              transition={{ duration: 0.6, delay: 0.1, ease: easeCurve }}
-              className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white mt-1"
-            >
-              Featured Software Engineering Work
-            </motion.h2>
-          </div>
-
-          <motion.p
-            initial={{ opacity: 0, y: 15 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.15 }}
-            transition={{ duration: 0.5, delay: 0.2, ease: easeCurve }}
-            className="text-xs font-mono text-slate-600 dark:text-white/50 max-w-sm"
-          >
-            Each project is built to solve a concrete problem, featuring scalable backend architecture and clean UI.
-          </motion.p>
-        </div>
+        {/* Section Header with Color-Sparked Card Pill & Space Grotesk */}
+        <SectionHeader
+          badgeText="02 // FEATURED CASE STUDIES"
+          icon={Code2}
+          color="#38bdf8"
+          title="Featured Software "
+          gradientTitle="Engineering Work"
+          description="Each project is built to solve a concrete problem, featuring scalable backend architecture and clean UI."
+        />
 
         {/* Mobile View Swipe Carousel (sm:hidden) */}
         <div className="block sm:hidden mb-8">

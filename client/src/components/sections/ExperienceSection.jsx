@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Briefcase, ExternalLink, Code2, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import SectionHeader from "../common/SectionHeader";
 import { resolveMediaUrl } from "../../services/api";
 import { useAnalytics } from "../../context/AnalyticsContext";
 
@@ -50,21 +51,15 @@ const ExperienceSection = ({ experience=[], codingProfiles=[] }) => {
       <div className="absolute bottom-1/4 right-8 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{background:"rgba(192,132,252,0.06)"}} />
 
       <div className="section-container relative z-10">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-14 gap-4">
-          <div>
-            <motion.span initial={{opacity:0,y:15}} whileInView={{opacity:1,y:0}} viewport={{once:true}} transition={{duration:0.5,ease:easeCurve}}
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/25 text-xs font-mono tracking-widest text-pink-600 dark:text-pink-400 uppercase font-semibold mb-3">
-              <Briefcase className="w-3.5 h-3.5" />05 // EXPERIENCE & PROFILES
-            </motion.span>
-            <motion.h2 initial={{opacity:0,y:20}} whileInView={{opacity:1,y:0}} viewport={{once:true}} transition={{duration:0.6,delay:0.1,ease:easeCurve}}
-              className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              Internships &{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400">Problem Solving</span>
-            </motion.h2>
-            <p className="text-sm font-mono text-slate-600 dark:text-zinc-400 mt-2">Practical engineering experience and competitive coding achievements.</p>
-          </div>
-        </div>
+        {/* Header with Color-Sparked Card Pill & Space Grotesk */}
+        <SectionHeader
+          badgeText="05 // EXPERIENCE & PROFILES"
+          icon={Briefcase}
+          color="#f472b6"
+          title="Internships & "
+          gradientTitle="Problem Solving"
+          description="Practical engineering experience and competitive coding achievements."
+        />
 
         {/* ══ MOBILE ══ */}
         <div className="block lg:hidden space-y-8">

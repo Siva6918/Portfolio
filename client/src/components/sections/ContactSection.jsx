@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Mail, Linkedin, Github, Send, CheckCircle2, Loader2, AlertCircle, Briefcase } from "lucide-react";
 import { motion } from "framer-motion";
+import SectionHeader from "../common/SectionHeader";
 import { useAnalytics } from "../../context/AnalyticsContext";
 import { API_BASE } from "../../services/api";
 
@@ -121,36 +122,15 @@ const ContactSection = ({ email = "vasanreddy1331@gmail.com", profile = {} }) =>
     <section id="contact" className="py-24 relative w-full border-t border-slate-200 dark:border-zinc-800/60 overflow-hidden">
       <div className="section-container">
         
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
-          <div>
-            <motion.span
-              initial={{ opacity: 0, y: 15 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.15 }}
-              transition={{ duration: 0.5, delay: 0.0, ease: easeCurve }}
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/25 text-xs font-mono tracking-widest text-rose-600 dark:text-rose-400 uppercase font-semibold mb-2"
-            >
-              11 // GET IN TOUCH
-            </motion.span>
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.15 }}
-              transition={{ duration: 0.6, delay: 0.1, ease: easeCurve }}
-              className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white mt-1 tracking-tight">Have an idea, opportunity, or{" "}<span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 via-pink-400 to-purple-400">interesting problem?</span>
-            </motion.h2>
-          </div>
-          <motion.p
-            initial={{ opacity: 0, y: 15 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.15 }}
-            transition={{ duration: 0.5, delay: 0.2, ease: easeCurve }}
-            className="text-xs font-mono text-zinc-400 max-w-xs"
-          >
-            Feel free to drop a message, submit a project opportunity, or reach out directly.
-          </motion.p>
-        </div>
+        {/* Header with Color-Sparked Card Pill & Space Grotesk */}
+        <SectionHeader
+          badgeText="09 // GET IN TOUCH & COLLABORATE"
+          icon={Mail}
+          color="#c084fc"
+          title="Have an idea, opportunity, or "
+          gradientTitle="interesting problem?"
+          description="Open to software engineering internships, technical collaborations, and select freelance opportunities."
+        />
 
         {/* 3 Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

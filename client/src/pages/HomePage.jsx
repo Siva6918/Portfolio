@@ -70,40 +70,48 @@ const HomePage = () => {
     }
   };
 
+  // ─── Three-Tier Background System ───────────────────────────────────────
+  // Tier 1 (Nav/Footer): #cfd5de light / #03030a dark  → handled in CSS
+  // Tier 2 (Even 0,2,4,6,8,10): page base
+  const bgEven = "w-full bg-[#f4f6f9] dark:bg-[#0b0b14] transition-colors duration-300";
+  // Tier 3 (Odd  1,3,5,7,9,11): subtle ~20% step from Tier 2
+  const bgOdd  = "w-full bg-[#e8ebf0] dark:bg-[#13131e] transition-colors duration-300";
+  // ────────────────────────────────────────────────────────────────────────
+
   return (
     <div className="w-full space-y-0">
-      {/* 1. HERO & WORKSPACE */}
-      <section ref={(el) => registerSectionRef(el, 'Hero')} id="hero">
+      {/* 0. HERO (Even) */}
+      <section ref={(el) => registerSectionRef(el, 'Hero')} id="hero" className={bgEven}>
         <HeroSection profile={profile} resumeUrl={resumeUrl} />
       </section>
 
-      {/* 2. ABOUT & PHILOSOPHY */}
-      <section ref={(el) => registerSectionRef(el, 'Digital Campus')} id="campus">
+      {/* 1. ABOUT & PHILOSOPHY (Odd) */}
+      <section ref={(el) => registerSectionRef(el, 'Digital Campus')} id="campus" className={bgOdd}>
         <DigitalCampusSection profile={profile} education={education} />
       </section>
 
-      {/* 3. CASE STUDIES & FEATURED PROJECTS */}
-      <section ref={(el) => registerSectionRef(el, 'Projects')} id="projects">
+      {/* 2. CASE STUDIES & FEATURED PROJECTS (Even) */}
+      <section ref={(el) => registerSectionRef(el, 'Projects')} id="projects" className={bgEven}>
         <ProjectsSection projects={projects} />
       </section>
 
-      {/* 4. LAB & EXPERIMENTS */}
-      <section ref={(el) => registerSectionRef(el, 'Playground')} id="playground">
+      {/* 3. LAB & EXPERIMENTS (Odd) */}
+      <section ref={(el) => registerSectionRef(el, 'Playground')} id="playground" className={bgOdd}>
         <PlaygroundSection />
       </section>
 
-      {/* 5. SKILLS & COMPETENCIES */}
-      <section ref={(el) => registerSectionRef(el, 'Skills')} id="skills">
+      {/* 4. SKILLS & COMPETENCIES (Even) */}
+      <section ref={(el) => registerSectionRef(el, 'Skills')} id="skills" className={bgEven}>
         <SkillsSection skills={skills} />
       </section>
 
-      {/* 6. CAREER ROAD TIMELINE */}
-      <section ref={(el) => registerSectionRef(el, 'Career Road')} id="career">
+      {/* 5. CAREER ROAD TIMELINE (Odd) */}
+      <section ref={(el) => registerSectionRef(el, 'Career Road')} id="career" className={bgOdd}>
         <CareerRoadSection careerNodes={careerNodes} />
       </section>
 
-      {/* 7. EXPERIENCE & CODING PROFILES */}
-      <section ref={(el) => registerSectionRef(el, 'Experience')} id="experience">
+      {/* 6. EXPERIENCE & CODING PROFILES (Even) */}
+      <section ref={(el) => registerSectionRef(el, 'Experience')} id="experience" className={bgEven}>
         <ExperienceSection 
           education={education} 
           experience={experience}
@@ -111,28 +119,28 @@ const HomePage = () => {
         />
       </section>
 
-      {/* 8. CERTIFICATIONS */}
-      <section ref={(el) => registerSectionRef(el, 'Certifications')} id="certifications">
+      {/* 7. CERTIFICATIONS (Odd) */}
+      <section ref={(el) => registerSectionRef(el, 'Certifications')} id="certifications" className={bgOdd}>
         <CertificationsSection certifications={certifications} />
       </section>
 
-      {/* 9. ACHIEVEMENTS & HONORS */}
-      <section ref={(el) => registerSectionRef(el, 'Achievements')} id="achievements">
+      {/* 8. ACHIEVEMENTS & HONORS (Even) */}
+      <section ref={(el) => registerSectionRef(el, 'Achievements')} id="achievements" className={bgEven}>
         <AchievementsSection achievements={achievements} />
       </section>
 
-      {/* 10. CURRENTLY LEARNING JOURNAL */}
-      <section ref={(el) => registerSectionRef(el, 'Learning Journal')} id="journal">
+      {/* 9. CURRENTLY LEARNING JOURNAL (Odd) */}
+      <section ref={(el) => registerSectionRef(el, 'Learning Journal')} id="journal" className={bgOdd}>
         <LearningJournalSection />
       </section>
 
-      {/* 11. CONTACT (GET IN TOUCH) */}
-      <section ref={(el) => registerSectionRef(el, 'Contact')} id="contact">
+      {/* 10. CONTACT / GET IN TOUCH (Even) */}
+      <section ref={(el) => registerSectionRef(el, 'Contact')} id="contact" className={bgEven}>
         <ContactSection email={profile.email} profile={profile} />
       </section>
 
-      {/* 12. WORKSPACE */}
-      <section ref={(el) => registerSectionRef(el, 'Workspace')} id="workspace">
+      {/* 11. WORKSPACE (Odd) */}
+      <section ref={(el) => registerSectionRef(el, 'Workspace')} id="workspace" className={bgOdd}>
         <WorkspaceSection />
       </section>
     </div>

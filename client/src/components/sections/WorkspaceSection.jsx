@@ -4,6 +4,7 @@ import {
   ChevronUp, ChevronDown, Play, FileText, FileType, Sheet,
   Link as LinkIcon, Image as ImageIcon, Grid3x3, X
 } from 'lucide-react';
+import SectionHeader from '../common/SectionHeader';
 import { getWorkspaceItems } from '../../services/api';
 import { useAnalytics } from '../../context/AnalyticsContext';
 
@@ -305,31 +306,15 @@ const WorkspaceSection = () => {
   return (
     <section id="workspace" className="py-24 relative w-full border-t border-slate-200 dark:border-zinc-800/60 overflow-hidden">
       <div className="section-container">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
-          <div>
-            <motion.span
-              initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.15 }}
-              transition={{ duration: 0.5, ease: easeCurve }}
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-xs font-mono tracking-widest text-emerald-600 dark:text-emerald-400 uppercase font-semibold mb-2"
-            >
-              12 // WORKSPACE
-            </motion.span>
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.15 }}
-              transition={{ duration: 0.6, delay: 0.1, ease: easeCurve }}
-              className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white mt-1 tracking-tight">Work Space &{" "}<span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-400 to-sky-400">Personal Space</span>
-            </motion.h2>
-          </div>
-          <motion.p
-            initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.15 }}
-            transition={{ duration: 0.5, delay: 0.2, ease: easeCurve }}
-            className="text-xs font-mono text-zinc-400 max-w-xs">Curated collections of work and personal resources, projects, and tools.
-          </motion.p>
-        </div>
+        {/* Header with Color-Sparked Card Pill & Space Grotesk */}
+        <SectionHeader
+          badgeText="08 // WORKSPACE & GEAR"
+          icon={Grid3x3}
+          color="#10b981"
+          title="Work Space & "
+          gradientTitle="Personal Space"
+          description="Curated collections of work and personal resources, projects, and tools."
+        />
 
         {error ? (
           <div className="p-10 text-center rounded-2xl border" style={{background:"rgba(9,9,11,0.85)",borderColor:"rgba(63,63,70,0.65)"}}>
