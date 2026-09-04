@@ -1,305 +1,262 @@
-import React, { useState } from 'react';
-import { Briefcase, ExternalLink, Code2, ChevronDown, ChevronUp } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { resolveMediaUrl } from '../../services/api';
-import { useAnalytics } from '../../context/AnalyticsContext';
-
-import SwipeableCarousel from '../common/SwipeableCarousel';
+import React, { useState } from "react";
+import { Briefcase, ExternalLink, Code2, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { resolveMediaUrl } from "../../services/api";
+import { useAnalytics } from "../../context/AnalyticsContext";
 
 const easeCurve = [0.16, 1, 0.3, 1];
 
-const defaultExperienceFallback = [
-  {
-    _id: '1',
-    role: 'AWS AI-ML Virtual Intern',
-    company: 'AWS Academy / EduSkills',
-    startDate: '2025',
-    endDate: '2025',
-    type: 'Internship',
-    description: 'Worked with cloud architecture, EC2, S3, IAM security, and AWS SageMaker/AI services to deploy machine learning workflows.',
-    technologies: ['AWS S3', 'EC2', 'IAM', 'Python', 'Machine Learning']
-  },
-  {
-    _id: '2',
-    role: 'Full Stack Web Developer',
-    company: 'Academic & Open Source Projects',
-    startDate: '2023',
-    endDate: 'Present',
-    type: 'Projects',
-    description: 'Built multiple production-grade MERN stack web applications (NutriCloud Monitor, DocSpot, Candidate Rank System) featuring JWT auth, socket notifications, and NLP integrations.',
-    technologies: ['React', 'Node.js', 'Express', 'MongoDB', 'Redis', 'Tailwind CSS']
-  }
+const expPalette = [
+  { hex:"#f472b6", glow:"rgba(244,114,182,0.4)", shadow:"rgba(244,114,182,0.18)" },
+  { hex:"#c084fc", glow:"rgba(192,132,252,0.4)", shadow:"rgba(192,132,252,0.18)" },
+  { hex:"#38bdf8", glow:"rgba(56,189,248,0.4)",  shadow:"rgba(56,189,248,0.18)"  },
+  { hex:"#fb923c", glow:"rgba(251,146,60,0.4)",  shadow:"rgba(251,146,60,0.18)"  },
 ];
 
-const defaultCodingProfilesFallback = [
-  { platform: 'LeetCode', problemsSolved: '300+', rating: '1650', rank: 'Top 25%', profileUrl: 'https://leetcode.com/vasanreddy' },
-  { platform: 'HackerRank', problemsSolved: '100+', rating: '5 Star Problem Solving', rank: '', profileUrl: 'https://hackerrank.com/vasanreddy' },
-  { platform: 'GeeksforGeeks', problemsSolved: '80+', rating: 'CS Fundamentals', rank: '', profileUrl: 'https://geeksforgeeks.org/user/vasanreddy' }
+const codePalette = [
+  { hex:"#4ade80", glow:"rgba(74,222,128,0.4)",  shadow:"rgba(74,222,128,0.18)"  },
+  { hex:"#facc15", glow:"rgba(250,204,21,0.4)",  shadow:"rgba(250,204,21,0.18)"  },
+  { hex:"#38bdf8", glow:"rgba(56,189,248,0.4)",  shadow:"rgba(56,189,248,0.18)"  },
 ];
 
-const ExperienceSection = ({ experience = [], codingProfiles = [] }) => {
+const defaultExp = [
+  { _id:"1", role:"AWS AI-ML Virtual Intern", company:"AWS Academy / EduSkills", startDate:"2025", endDate:"2025", type:"Internship",
+    description:"Worked with cloud architecture, EC2, S3, IAM security, and AWS SageMaker/AI services to deploy machine learning workflows.",
+    technologies:["AWS S3","EC2","IAM","Python","Machine Learning"] },
+  { _id:"2", role:"Full Stack Web Developer", company:"Academic & Open Source Projects", startDate:"2023", endDate:"Present", type:"Projects",
+    description:"Built multiple production-grade MERN stack web applications featuring JWT auth, socket notifications, and NLP integrations.",
+    technologies:["React","Node.js","Express","MongoDB","Redis","Tailwind CSS"] },
+];
+
+const defaultProfiles = [
+  { platform:"LeetCode",    problemsSolved:"300+", rating:"1650",                  rank:"Top 25%", profileUrl:"https://leetcode.com/vasanreddy" },
+  { platform:"HackerRank",  problemsSolved:"100+", rating:"5 Star Problem Solving", rank:"",       profileUrl:"https://hackerrank.com/vasanreddy" },
+  { platform:"GeeksforGeeks",problemsSolved:"80+", rating:"CS Fundamentals",        rank:"",       profileUrl:"https://geeksforgeeks.org/user/vasanreddy" },
+];
+
+const wrap = (i,n) => ((i%n)+n)%n;
+
+const ExperienceSection = ({ experience=[], codingProfiles=[] }) => {
   const { trackInteraction } = useAnalytics();
-  const activeExp = experience.length > 0 ? experience : defaultExperienceFallback;
-  const activeProfiles = codingProfiles.length > 0 ? codingProfiles : defaultCodingProfilesFallback;
-  const [expandedId, setExpandedId] = useState(activeExp[0]?._id || '1');
-
-  const handleProfileClick = (platform, url) => {
-    trackInteraction('coding_profile_click', platform, 'Experience', { url });
-  };
-
-  const handleRoleToggle = (exp) => {
-    const nextId = expandedId === exp._id ? null : exp._id;
-    if (nextId) {
-      trackInteraction('role_expand', `${exp.role} @ ${exp.company}`, 'Experience');
-    }
-    setExpandedId(nextId);
-  };
+  const activeExp      = experience.length > 0 ? experience : defaultExp;
+  const activeProfiles = codingProfiles.length > 0 ? codingProfiles : defaultProfiles;
+  const [expandedId, setExpandedId] = useState(activeExp[0]?._id||"1");
+  const [mobileExpIdx, setMobileExpIdx] = useState(0);
+  const [mobileProfileIdx, setMobileProfileIdx] = useState(0);
 
   return (
-    <section id="experience" className="py-20 relative w-full border-t border-slate-200 dark:border-zinc-800/60">
-      <div className="section-container">
-        
-        {/* Header Stagger */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+    <section id="experience" className="py-24 relative w-full border-t border-slate-200 dark:border-zinc-800/60 overflow-hidden">
+      <div className="absolute top-1/4 left-8 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{background:"rgba(244,114,182,0.06)"}} />
+      <div className="absolute bottom-1/4 right-8 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{background:"rgba(192,132,252,0.06)"}} />
+
+      <div className="section-container relative z-10">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-14 gap-4">
           <div>
-            <motion.span
-              initial={{ opacity: 0, y: 15 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.15 }}
-              transition={{ duration: 0.5, delay: 0.0, ease: easeCurve }}
-              className="text-xs font-mono tracking-widest text-indigo-600 dark:text-indigo-400 uppercase font-semibold block"
-            >
-              05 // EXPERIENCE & PROFILES
+            <motion.span initial={{opacity:0,y:15}} whileInView={{opacity:1,y:0}} viewport={{once:true}} transition={{duration:0.5,ease:easeCurve}}
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/25 text-xs font-mono tracking-widest text-pink-600 dark:text-pink-400 uppercase font-semibold mb-3">
+              <Briefcase className="w-3.5 h-3.5" />05 // EXPERIENCE & PROFILES
             </motion.span>
-
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.15 }}
-              transition={{ duration: 0.6, delay: 0.1, ease: easeCurve }}
-              className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white mt-1"
-            >
-              Internships & Problem Solving
+            <motion.h2 initial={{opacity:0,y:20}} whileInView={{opacity:1,y:0}} viewport={{once:true}} transition={{duration:0.6,delay:0.1,ease:easeCurve}}
+              className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+              Internships &{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400">Problem Solving</span>
             </motion.h2>
-          </div>
-
-          <motion.p
-            initial={{ opacity: 0, y: 15 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.15 }}
-            transition={{ duration: 0.5, delay: 0.2, ease: easeCurve }}
-            className="text-xs font-mono text-slate-600 dark:text-white/50 max-w-xs"
-          >
-            Practical engineering experience and competitive coding achievements.
-          </motion.p>
-        </div>
-
-        {/* Mobile View Swipe Carousel (lg:hidden) */}
-        <div className="block lg:hidden space-y-6">
-          <div className="space-y-2">
-            <h3 className="text-xs font-mono text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
-              <Briefcase className="w-3.5 h-3.5" />
-              <span>ROLES & INTERNSHIPS</span>
-            </h3>
-            <SwipeableCarousel showDots={true}>
-              {activeExp.map((exp) => (
-                <div key={exp._id || exp.role} className="editorial-card p-5 space-y-3">
-                  <div className="flex items-center justify-between font-mono text-[10px]">
-                    <span className="text-indigo-600 dark:text-indigo-400 font-bold">{exp.startDate} — {exp.endDate || 'Present'}</span>
-                    <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-zinc-900 text-slate-600 dark:text-zinc-400">{exp.type || 'Role'}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {exp.companyLogo && (
-                      <img src={resolveMediaUrl(exp.companyLogo)} alt={exp.company} className="w-9 h-9 rounded-lg object-contain border border-slate-200 dark:border-zinc-800 shrink-0" />
-                    )}
-                    <h4 className="text-base font-bold text-slate-900 dark:text-white">
-                      {exp.role} <span className="text-slate-500 font-normal">@ {exp.company}</span>
-                    </h4>
-                  </div>
-                  <p className="text-xs text-slate-700 dark:text-zinc-300 leading-relaxed">
-                    {exp.description}
-                  </p>
-                  {exp.technologies && (
-                    <div className="flex flex-wrap gap-1 font-mono text-[9px] pt-1">
-                      {exp.technologies.map((t) => (
-                        <span key={t} className="px-2 py-0.5 rounded bg-slate-100 dark:bg-zinc-900 text-slate-600 dark:text-zinc-400 border border-slate-200 dark:border-zinc-800">
-                          {t}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </SwipeableCarousel>
-          </div>
-
-          <div className="space-y-2">
-            <h3 className="text-xs font-mono text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
-              <Code2 className="w-3.5 h-3.5" />
-              <span>CODING PROFILES</span>
-            </h3>
-            <SwipeableCarousel showDots={true}>
-              {activeProfiles.map((p) => (
-                <div key={p.platform} className="editorial-card p-5 flex items-center gap-3 justify-between">
-                  <div className="flex items-center gap-3">
-                    {p.logo && (
-                      <img src={resolveMediaUrl(p.logo)} alt={p.platform} className="w-8 h-8 rounded-lg object-contain border border-slate-200 dark:border-zinc-800 shrink-0" />
-                    )}
-                    <div>
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <span>{p.platform}</span>
-                        {p.profileUrl && (
-                          <a
-                            href={p.profileUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            onClick={() => handleProfileClick(p.platform, p.profileUrl)}
-                            className="text-indigo-500"
-                          >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </a>
-                        )}
-                      </h4>
-                      <p className="text-xs font-mono text-slate-600 dark:text-zinc-400 mt-1">
-                        {p.problemsSolved} Problems Solved · {p.rating}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </SwipeableCarousel>
+            <p className="text-sm font-mono text-slate-600 dark:text-zinc-400 mt-2">Practical engineering experience and competitive coding achievements.</p>
           </div>
         </div>
 
-        {/* Desktop 2 Column View (hidden on mobile/tablet lg:grid) */}
-        <div className="hidden lg:grid grid-cols-12 gap-8">
-          
-          {/* Left: Experience Timeline */}
-          <div className="lg:col-span-7 space-y-4">
-            <h3 className="text-xs font-mono text-slate-600 dark:text-white/50 uppercase tracking-widest mb-2 flex items-center gap-2">
-              <Briefcase className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-              <span>INTERNSHIPS & ROLES</span>
+        {/* ══ MOBILE ══ */}
+        <div className="block lg:hidden space-y-8">
+          {/* Exp carousel */}
+          <div>
+            <h3 className="text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 mb-3 text-pink-600 dark:text-pink-400">
+              <Briefcase className="w-3.5 h-3.5" />ROLES & INTERNSHIPS
             </h3>
-
-            <div className="space-y-4">
-              {activeExp.map((exp, idx) => {
-                const isExpanded = expandedId === exp._id;
-
-                return (
-                  <motion.div
-                    key={exp._id || exp.role}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, amount: 0.15 }}
-                    transition={{ duration: 0.5, delay: idx * 0.1, ease: easeCurve }}
-                    className="editorial-card p-6 cursor-pointer hover:border-indigo-300 dark:hover:border-zinc-700 transition-all duration-200"
-                    onClick={() => handleRoleToggle(exp)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        {exp.companyLogo && (
-                          <img src={resolveMediaUrl(exp.companyLogo)} alt={exp.company} className="w-10 h-10 rounded-xl object-contain border border-slate-200 dark:border-zinc-800 shrink-0 shadow-sm" />
-                        )}
-                        <div>
-                          <span className="text-[11px] font-mono text-indigo-600 dark:text-indigo-400 font-semibold">
-                            {exp.startDate} — {exp.endDate || 'Present'} · [{exp.type || 'Role'}]
-                          </span>
-                          <h4 className="text-base font-bold text-slate-900 dark:text-white mt-0.5">
-                            {exp.role} <span className="text-slate-500 dark:text-white/50 font-normal">@ {exp.company}</span>
-                          </h4>
+            <div className="flex items-center gap-3">
+              <button onClick={()=>setMobileExpIdx(i=>wrap(i-1,activeExp.length))}
+                className="shrink-0 w-10 h-10 rounded-full border flex items-center justify-center active:scale-95"
+                style={{background:`${expPalette[mobileExpIdx%expPalette.length].hex}15`,borderColor:`${expPalette[mobileExpIdx%expPalette.length].hex}40`,color:expPalette[mobileExpIdx%expPalette.length].hex}}>
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <AnimatePresence mode="wait">
+                {(() => {
+                  const exp = activeExp[mobileExpIdx];
+                  const c   = expPalette[mobileExpIdx%expPalette.length];
+                  return (
+                    <motion.div key={mobileExpIdx}
+                      initial={{opacity:0,y:14,scale:0.97}} animate={{opacity:1,y:0,scale:1}} exit={{opacity:0,y:-14,scale:0.97}}
+                      transition={{duration:0.28,ease:easeCurve}}
+                      className="flex-1 rounded-2xl border overflow-hidden"
+                      style={{background:`linear-gradient(145deg,${c.hex}12,rgba(9,9,11,0.97))`,borderColor:`${c.hex}50`,boxShadow:`0 8px 32px -6px ${c.shadow}`}}>
+                      <div className="h-0.5" style={{background:`linear-gradient(90deg,${c.hex},${c.hex}22)`}} />
+                      <div className="p-5 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-mono font-bold" style={{color:c.hex}}>{exp.startDate} — {exp.endDate||"Present"}</span>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono border" style={{background:`${c.hex}14`,color:`${c.hex}cc`,borderColor:`${c.hex}35`}}>{exp.type||"Role"}</span>
                         </div>
-                      </div>
-
-                      <button className="p-1 text-slate-400 dark:text-white/50 hover:text-slate-900 dark:hover:text-white transition-colors duration-200">
-                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                      </button>
-                    </div>
-
-                    <AnimatePresence>
-                      {isExpanded && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.35, ease: easeCurve }}
-                          className="overflow-hidden"
-                        >
-                          <div className="mt-4 pt-4 border-t border-slate-200 dark:border-zinc-800/80 space-y-3">
-                            <p className="text-xs text-slate-700 dark:text-white/70 leading-relaxed">
-                              {exp.description}
-                            </p>
-
-                            {exp.technologies && (
-                              <div className="flex flex-wrap gap-1.5 pt-1">
-                                {exp.technologies.map((tech) => (
-                                  <span key={tech} className="px-2.5 py-0.5 rounded-md bg-slate-100 dark:bg-zinc-950 text-[10px] font-mono text-slate-600 dark:text-white/50 border border-slate-200 dark:border-zinc-800">
-                                    {tech}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
+                        <h4 className="text-base font-extrabold text-white">{exp.role} <span className="text-zinc-500 font-normal">@ {exp.company}</span></h4>
+                        <p className="text-xs text-zinc-400 leading-relaxed">{exp.description}</p>
+                        {exp.technologies && (
+                          <div className="flex flex-wrap gap-1.5">
+                            {exp.technologies.map(t=>(
+                              <span key={t} className="px-2 py-0.5 rounded-md text-[10px] font-mono border" style={{background:`${c.hex}10`,color:`${c.hex}bb`,borderColor:`${c.hex}25`}}>{t}</span>
+                            ))}
                           </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Right: Coding Profiles */}
-          <div className="lg:col-span-5 space-y-4">
-            <h3 className="text-xs font-mono text-slate-600 dark:text-white/50 uppercase tracking-widest mb-2 flex items-center gap-2">
-              <Code2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              <span>COMPETITIVE CODING PROFILES</span>
-            </h3>
-
-            <div className="space-y-4">
-              {activeProfiles.map((p, idx) => (
-                <motion.div
-                  key={p.platform}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.15 }}
-                  transition={{ duration: 0.5, delay: idx * 0.1, ease: easeCurve }}
-                  className="editorial-card p-5 flex items-center justify-between hover:-translate-y-1 transition-all duration-200"
-                >
-                  <div className="flex items-center gap-3">
-                    {p.logo && (
-                      <img src={resolveMediaUrl(p.logo)} alt={p.platform} className="w-9 h-9 rounded-xl object-contain border border-slate-200 dark:border-zinc-800 shrink-0 shadow-sm" />
-                    )}
-                    <div>
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <span>{p.platform}</span>
-                        {p.profileUrl && (
-                          <a
-                            href={p.profileUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            onClick={() => handleProfileClick(p.platform, p.profileUrl)}
-                            className="text-slate-400 dark:text-white/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-                          >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </a>
                         )}
-                      </h4>
-                      <p className="text-xs font-mono text-slate-600 dark:text-white/50 mt-1">
-                        {p.problemsSolved} Problems Solved · {p.rating}
-                      </p>
-                    </div>
-                  </div>
-
-                  <span className="px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-mono text-xs font-bold">
-                    Active
-                  </span>
-                </motion.div>
-              ))}
+                      </div>
+                    </motion.div>
+                  );
+                })()}
+              </AnimatePresence>
+              <button onClick={()=>setMobileExpIdx(i=>wrap(i+1,activeExp.length))}
+                className="shrink-0 w-10 h-10 rounded-full border flex items-center justify-center active:scale-95"
+                style={{background:`${expPalette[mobileExpIdx%expPalette.length].hex}15`,borderColor:`${expPalette[mobileExpIdx%expPalette.length].hex}40`,color:expPalette[mobileExpIdx%expPalette.length].hex}}>
+                <ChevronRight className="w-5 h-5" />
+              </button>
             </div>
           </div>
 
+          {/* Profiles carousel */}
+          {activeProfiles.length >= 1 && (
+            <div>
+              <h3 className="text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 mb-3 text-emerald-600 dark:text-emerald-400">
+                <Code2 className="w-3.5 h-3.5" />CODING PROFILES
+              </h3>
+              <div className="flex items-center gap-3">
+                <button onClick={()=>setMobileProfileIdx(i=>wrap(i-1,activeProfiles.length))}
+                  className="shrink-0 w-10 h-10 rounded-full border flex items-center justify-center active:scale-95"
+                  style={{background:`${codePalette[mobileProfileIdx%codePalette.length].hex}15`,borderColor:`${codePalette[mobileProfileIdx%codePalette.length].hex}40`,color:codePalette[mobileProfileIdx%codePalette.length].hex}}>
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <AnimatePresence mode="wait">
+                  {(() => {
+                    const p = activeProfiles[mobileProfileIdx];
+                    const c = codePalette[mobileProfileIdx%codePalette.length];
+                    return (
+                      <motion.div key={mobileProfileIdx}
+                        initial={{opacity:0,y:14,scale:0.97}} animate={{opacity:1,y:0,scale:1}} exit={{opacity:0,y:-14,scale:0.97}}
+                        transition={{duration:0.28,ease:easeCurve}}
+                        className="flex-1 rounded-2xl border overflow-hidden"
+                        style={{background:`linear-gradient(145deg,${c.hex}12,rgba(9,9,11,0.97))`,borderColor:`${c.hex}50`,boxShadow:`0 8px 32px -6px ${c.shadow}`}}>
+                        <div className="h-0.5" style={{background:`linear-gradient(90deg,${c.hex},${c.hex}22)`}} />
+                        <div className="p-5 flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            {p.logo && <img src={resolveMediaUrl(p.logo)} alt={p.platform} className="w-8 h-8 rounded-lg object-contain border border-zinc-800 shrink-0" />}
+                            <div>
+                              <h4 className="text-sm font-extrabold text-white flex items-center gap-2">{p.platform}
+                                {p.profileUrl && <a href={p.profileUrl} target="_blank" rel="noreferrer"><ExternalLink className="w-3.5 h-3.5" style={{color:c.hex}} /></a>}
+                              </h4>
+                              <p className="text-xs font-mono mt-1" style={{color:`${c.hex}99`}}>{p.problemsSolved} Problems · {p.rating}</p>
+                            </div>
+                          </div>
+                          <span className="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold border" style={{background:`${c.hex}18`,color:c.hex,borderColor:`${c.hex}45`}}>Active</span>
+                        </div>
+                      </motion.div>
+                    );
+                  })()}
+                </AnimatePresence>
+                <button onClick={()=>setMobileProfileIdx(i=>wrap(i+1,activeProfiles.length))}
+                  className="shrink-0 w-10 h-10 rounded-full border flex items-center justify-center active:scale-95"
+                  style={{background:`${codePalette[mobileProfileIdx%codePalette.length].hex}15`,borderColor:`${codePalette[mobileProfileIdx%codePalette.length].hex}40`,color:codePalette[mobileProfileIdx%codePalette.length].hex}}>
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
+        {/* ══ DESKTOP ══ */}
+        <div className="hidden lg:grid grid-cols-12 gap-8">
+          {/* Experience */}
+          <div className="lg:col-span-7 space-y-4">
+            <h3 className="text-xs font-mono uppercase tracking-widest mb-3 flex items-center gap-2 text-pink-500 dark:text-pink-400">
+              <Briefcase className="w-4 h-4" />INTERNSHIPS & ROLES
+            </h3>
+            {activeExp.map((exp,idx)=>{
+              const c = expPalette[idx%expPalette.length];
+              const isEx = expandedId===exp._id;
+              return (
+                <motion.div key={exp._id||exp.role}
+                  initial={{opacity:0,y:20}} whileInView={{opacity:1,y:0}} viewport={{once:true,amount:0.1}}
+                  transition={{duration:0.5,delay:idx*0.1,ease:easeCurve}}
+                  className="rounded-2xl border overflow-hidden cursor-pointer transition-all duration-300"
+                  style={{background:isEx?`linear-gradient(135deg,${c.hex}12,rgba(9,9,11,0.97))`:"rgba(9,9,11,0.85)",borderColor:isEx?c.hex:"rgba(63,63,70,0.65)",boxShadow:isEx?`0 8px 32px -6px ${c.shadow}`:"0 2px 10px rgba(0,0,0,0.3)"}}
+                  onClick={()=>setExpandedId(isEx?null:exp._id)}>
+                  <div className="h-0.5" style={{background:`linear-gradient(90deg,${c.hex}${isEx?"ff":"55"},transparent 65%)`}} />
+                  <div className="p-5 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      {exp.companyLogo && <img src={resolveMediaUrl(exp.companyLogo)} alt={exp.company} className="w-10 h-10 rounded-xl object-contain border border-zinc-800 shrink-0" />}
+                      <div>
+                        <span className="text-[11px] font-mono font-bold" style={{color:c.hex}}>{exp.startDate} — {exp.endDate||"Present"} · [{exp.type||"Role"}]</span>
+                        <h4 className="text-base font-extrabold text-white mt-0.5">{exp.role} <span className="text-zinc-500 font-normal">@ {exp.company}</span></h4>
+                      </div>
+                    </div>
+                    <button className="p-1.5 rounded-lg transition-colors" style={{color:c.hex}}>
+                      {isEx?<ChevronUp className="w-4 h-4"/>:<ChevronDown className="w-4 h-4"/>}
+                    </button>
+                  </div>
+                  <AnimatePresence>
+                    {isEx && (
+                      <motion.div initial={{opacity:0,height:0}} animate={{opacity:1,height:"auto"}} exit={{opacity:0,height:0}} transition={{duration:0.3,ease:easeCurve}} className="overflow-hidden">
+                        <div className="px-5 pb-5 space-y-3 border-t" style={{borderColor:`${c.hex}20`}}>
+                          <p className="text-xs text-zinc-400 leading-relaxed mt-3">{exp.description}</p>
+                          {exp.technologies && (
+                            <div className="flex flex-wrap gap-1.5">
+                              {exp.technologies.map(t=>(
+                                <span key={t} className="px-2.5 py-0.5 rounded-md text-[10px] font-mono border" style={{background:`${c.hex}10`,color:`${c.hex}bb`,borderColor:`${c.hex}25`}}>{t}</span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* Coding Profiles */}
+          <div className="lg:col-span-5 space-y-4">
+            <h3 className="text-xs font-mono uppercase tracking-widest mb-3 flex items-center gap-2 text-emerald-500 dark:text-emerald-400">
+              <Code2 className="w-4 h-4" />COMPETITIVE CODING PROFILES
+            </h3>
+            {activeProfiles.map((p,idx)=>{
+              const c = codePalette[idx%codePalette.length];
+              return (
+                <motion.div key={p.platform}
+                  initial={{opacity:0,y:20}} whileInView={{opacity:1,y:0}} viewport={{once:true,amount:0.1}}
+                  transition={{duration:0.5,delay:idx*0.1,ease:easeCurve}}
+                  className="rounded-2xl border overflow-hidden transition-all duration-300 group flex flex-col"
+                  style={{background:"rgba(9,9,11,0.88)",borderColor:"rgba(63,63,70,0.65)"}}
+                  onMouseEnter={e=>{e.currentTarget.style.borderColor=c.hex;e.currentTarget.style.boxShadow=`0 10px 36px -6px ${c.shadow}`;e.currentTarget.style.transform="translateY(-2px)"}}
+                  onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(63,63,70,0.65)";e.currentTarget.style.boxShadow="0 2px 10px rgba(0,0,0,0.3)";e.currentTarget.style.transform="none"}}>
+                  <div className="h-0.5 w-full" style={{background:`linear-gradient(90deg,${c.hex},transparent 70%)`}} />
+                  <div className="p-5 flex items-center justify-between">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border" style={{background:`${c.hex}14`,borderColor:`${c.hex}35`}}>
+                        {p.logo ? <img src={resolveMediaUrl(p.logo)} alt={p.platform} className="w-6 h-6 object-contain" /> : <Code2 className="w-5 h-5" style={{color:c.hex}} />}
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-extrabold text-white flex items-center gap-2">
+                          {p.platform}
+                          {p.profileUrl && (
+                            <a href={p.profileUrl} target="_blank" rel="noreferrer" onClick={()=>trackInteraction("coding_profile_click",p.platform,"Experience",{url:p.profileUrl})}>
+                              <ExternalLink className="w-3.5 h-3.5" style={{color:c.hex}} />
+                            </a>
+                          )}
+                        </h4>
+                        <p className="text-xs font-mono mt-1 text-zinc-400">{p.problemsSolved} Problems · {p.rating}</p>
+                      </div>
+                    </div>
+                    <span className="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold border" style={{background:`${c.hex}18`,color:c.hex,borderColor:`${c.hex}45`}}>Active</span>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </section>
   );

@@ -3,10 +3,11 @@ import { Link, useSearchParams, useLocation } from 'react-router-dom';
 import {
   Shield, User, FolderGit2, Cpu, GraduationCap, Award, Trophy,
   FileText, Plus, Trash2, Upload, Lock, Pencil, X, Save,
-  Briefcase, Image, Code2, Sparkles, MapPin, Target,
+  Briefcase, Image, Image as ImageIcon, Code2, Sparkles, MapPin, Target,
   BarChart3, Activity, Eye, Download, Globe, Clock, Smartphone,
   RefreshCw, FileSpreadsheet, UserCheck, ChevronRight, Filter,
-  ExternalLink, Mail, Video, Inbox, Play, FileType, Sheet, Link as LinkIcon, CheckCircle2
+  ExternalLink, Mail, Video, Inbox, Play, FileType, Sheet, Link as LinkIcon, CheckCircle2,
+  Copy, Check, Send
 } from 'lucide-react';
 import {
   getProfile, updateProfile,
@@ -139,6 +140,14 @@ const AdminSpacePage = () => {
   const [adminMessages, setAdminMessages] = useState([]);
   const [adminFreelance, setAdminFreelance] = useState([]);
   const [inboxLoading, setInboxLoading] = useState(false);
+  const [copiedMsgId, setCopiedMsgId] = useState(null);
+
+  const handleCopyInboxItem = (id, text) => {
+    navigator.clipboard.writeText(text);
+    setCopiedMsgId(id);
+    setToast({ message: 'Details copied to clipboard!', type: 'success' });
+    setTimeout(() => setCopiedMsgId(null), 3000);
+  };
 
   // Analytics state
   const [analyticsOverview, setAnalyticsOverview] = useState({});
@@ -2161,20 +2170,41 @@ const AdminSpacePage = () => {
             ) : (
               <div className="space-y-3">
                 {adminMessages.map(msg => (
-                  <div key={msg._id} className="p-4 rounded-2xl bg-[#121217] border border-[#2d2d3a]">
+                  <div key={msg._id} className="p-4 sm:p-5 rounded-2xl bg-[#121217] border border-[#2d2d3a] hover:border-[#ef4444]/40 transition-all space-y-3">
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap mb-1">
                           <span className="text-sm font-bold text-[#fafafa]">{msg.name}</span>
-                          <span className="text-xs font-mono text-[#38bdf8]">{msg.email}</span>
+                          <a href={`mailto:${msg.email}`} className="text-xs font-mono text-[#38bdf8] hover:underline flex items-center gap-1">
+                            <Mail className="w-3 h-3" /> {msg.email}
+                          </a>
                           <span className="text-[10px] font-mono text-[#52525b]">{new Date(msg.createdAt).toLocaleDateString()}</span>
                         </div>
                         <p className="text-xs font-bold text-[#fb7185] mb-1">Subject: {msg.subject}</p>
-                        <p className="text-xs text-[#a1a1aa] leading-relaxed">{msg.message}</p>
+                        <p className="text-xs text-[#a1a1aa] leading-relaxed whitespace-pre-wrap">{msg.message}</p>
                       </div>
                       <button onClick={() => handleDeleteMessage(msg._id, msg.name)}
-                        className="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 transition-colors shrink-0">
+                        className="p-2 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 transition-colors shrink-0"
+                        title="Delete message">
                         <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-2 border-t border-[#2d2d3a]/60">
+                      <a
+                        href={`mailto:${msg.email}?subject=${encodeURIComponent(`Re: ${msg.subject}`)}&body=${encodeURIComponent(`Hi ${msg.name},\n\nThank you for reaching out via my portfolio.\n\n---\nOriginal Message:\n${msg.message}\n`)}`}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#ef4444]/15 text-[#ef4444] hover:bg-[#ef4444]/25 border border-[#ef4444]/30 text-xs font-mono font-bold transition-all"
+                      >
+                        <Send className="w-3.5 h-3.5" />
+                        <span>Reply via Email</span>
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => handleCopyInboxItem(msg._id, `From: ${msg.name} <${msg.email}>\nSubject: ${msg.subject}\nDate: ${new Date(msg.createdAt).toLocaleString()}\n\nMessage:\n${msg.message}`)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#2d2d3a] hover:bg-[#3f3f4e] text-xs font-mono font-bold text-[#a1a1aa] hover:text-white transition-all"
+                      >
+                        {copiedMsgId === msg._id ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                        <span>{copiedMsgId === msg._id ? 'Copied' : 'Copy Details'}</span>
                       </button>
                     </div>
                   </div>
@@ -2190,7 +2220,7 @@ const AdminSpacePage = () => {
             ) : (
               <div className="space-y-3">
                 {adminFreelance.map(opp => (
-                  <div key={opp._id} className="p-4 rounded-2xl bg-[#121217] border border-[#2d2d3a]">
+                  <div key={opp._id} className="p-4 sm:p-5 rounded-2xl bg-[#121217] border border-[#2d2d3a] hover:border-[#f43f5e]/40 transition-all space-y-3">
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0 space-y-1">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -2198,19 +2228,40 @@ const AdminSpacePage = () => {
                           <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#10b981]/10 border border-[#10b981]/30 text-[#10b981]">{opp.budget} {opp.currency}</span>
                         </div>
                         <div className="flex items-center gap-3 flex-wrap text-xs font-mono">
-                          <span className="text-[#38bdf8]">{opp.name}</span>
-                          <span className="text-[#a1a1aa]">{opp.email}</span>
-                          {opp.phone && <span className="text-[#a1a1aa]">{opp.phone}</span>}
-                          {opp.company && <span className="text-[#fb7185]">{opp.company}</span>}
+                          <span className="text-[#38bdf8] font-bold">{opp.name}</span>
+                          <a href={`mailto:${opp.email}`} className="text-[#a1a1aa] hover:underline flex items-center gap-1">
+                            <Mail className="w-3 h-3" /> {opp.email}
+                          </a>
+                          {opp.phone && <span className="text-[#a1a1aa]">📞 {opp.phone}</span>}
+                          {opp.company && <span className="text-[#fb7185]">🏢 {opp.company}</span>}
                         </div>
                         <p className="text-[10px] font-mono text-[#a1a1aa]">Duration: {opp.expectedDuration} · Start: {opp.startDate} · Skills: {opp.requiredSkills}</p>
-                        <p className="text-xs text-[#a1a1aa] leading-relaxed">{opp.description}</p>
+                        <p className="text-xs text-[#a1a1aa] leading-relaxed whitespace-pre-wrap">{opp.description}</p>
                         {opp.additionalRequirements && <p className="text-[10px] text-[#52525b]">Additional: {opp.additionalRequirements}</p>}
                         <p className="text-[10px] font-mono text-[#52525b]">Submitted: {new Date(opp.createdAt).toLocaleDateString()}</p>
                       </div>
                       <button onClick={() => handleDeleteFreelance(opp._id, opp.projectTitle)}
-                        className="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 transition-colors shrink-0">
+                        className="p-2 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 transition-colors shrink-0"
+                        title="Delete opportunity">
                         <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-2 border-t border-[#2d2d3a]/60">
+                      <a
+                        href={`mailto:${opp.email}?subject=${encodeURIComponent(`Re: Freelance Project - ${opp.projectTitle}`)}&body=${encodeURIComponent(`Hi ${opp.name},\n\nThank you for reaching out regarding "${opp.projectTitle}".\n\nI reviewed your requirements and would love to discuss next steps.\n\n---\nProject Details:\nBudget: ${opp.budget} ${opp.currency}\nDuration: ${opp.expectedDuration}\nSkills: ${opp.requiredSkills}\n`)}`}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#f43f5e]/15 text-[#f43f5e] hover:bg-[#f43f5e]/25 border border-[#f43f5e]/30 text-xs font-mono font-bold transition-all"
+                      >
+                        <Send className="w-3.5 h-3.5" />
+                        <span>Send / Reply via Email</span>
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => handleCopyInboxItem(opp._id, `Freelance Project: ${opp.projectTitle}\nClient: ${opp.name} (${opp.email}${opp.phone ? `, ` + opp.phone : ''})\nCompany: ${opp.company || 'N/A'}\nBudget: ${opp.budget} ${opp.currency}\nDuration: ${opp.expectedDuration}\nSkills: ${opp.requiredSkills}\nStart: ${opp.startDate}\nDescription:\n${opp.description}`)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#2d2d3a] hover:bg-[#3f3f4e] text-xs font-mono font-bold text-[#a1a1aa] hover:text-white transition-all"
+                      >
+                        {copiedMsgId === opp._id ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                        <span>{copiedMsgId === opp._id ? 'Copied' : 'Copy Details'}</span>
                       </button>
                     </div>
                   </div>

@@ -118,7 +118,7 @@ const ContactSection = ({ email = "vasanreddy1331@gmail.com", profile = {} }) =>
   const displayEmail = email || profile?.email || "vasanreddy1331@gmail.com";
 
   return (
-    <section id="contact" className="py-20 relative w-full border-t border-slate-200 dark:border-zinc-800/60">
+    <section id="contact" className="py-24 relative w-full border-t border-slate-200 dark:border-zinc-800/60 overflow-hidden">
       <div className="section-container">
         
         {/* Header */}
@@ -129,7 +129,7 @@ const ContactSection = ({ email = "vasanreddy1331@gmail.com", profile = {} }) =>
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.15 }}
               transition={{ duration: 0.5, delay: 0.0, ease: easeCurve }}
-              className="text-xs font-mono tracking-widest text-indigo-600 dark:text-indigo-400 uppercase font-semibold block"
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/25 text-xs font-mono tracking-widest text-rose-600 dark:text-rose-400 uppercase font-semibold mb-2"
             >
               11 // GET IN TOUCH
             </motion.span>
@@ -138,9 +138,7 @@ const ContactSection = ({ email = "vasanreddy1331@gmail.com", profile = {} }) =>
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.15 }}
               transition={{ duration: 0.6, delay: 0.1, ease: easeCurve }}
-              className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white mt-1"
-            >
-              Have an idea, opportunity, or interesting problem?
+              className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white mt-1 tracking-tight">Have an idea, opportunity, or{" "}<span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 via-pink-400 to-purple-400">interesting problem?</span>
             </motion.h2>
           </div>
           <motion.p
@@ -148,7 +146,7 @@ const ContactSection = ({ email = "vasanreddy1331@gmail.com", profile = {} }) =>
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.15 }}
             transition={{ duration: 0.5, delay: 0.2, ease: easeCurve }}
-            className="text-xs font-mono text-slate-600 dark:text-white/50 max-w-xs"
+            className="text-xs font-mono text-zinc-400 max-w-xs"
           >
             Feel free to drop a message, submit a project opportunity, or reach out directly.
           </motion.p>
@@ -165,33 +163,42 @@ const ContactSection = ({ email = "vasanreddy1331@gmail.com", profile = {} }) =>
             transition={{ duration: 0.6, delay: 0.0, ease: easeCurve }}
             className="space-y-6"
           >
-            <div className="editorial-card p-6 h-full space-y-5">
-              <h3 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-wide">
-                Contact Information
-              </h3>
+            <div className="rounded-2xl border h-full space-y-5 p-6 overflow-hidden transition-all duration-300"
+              style={{ background: "rgba(9,9,11,0.88)", borderColor: "rgba(63,63,70,0.65)" }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "#fb7185"; e.currentTarget.style.boxShadow = "0 10px 36px -6px rgba(251,113,133,0.25)"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(63,63,70,0.65)"; e.currentTarget.style.boxShadow = "none"; }}>
+              <div className="h-0.5 -mx-6 -mt-6 mb-5" style={{ background: "linear-gradient(90deg,#fb7185,transparent 70%)" }} />
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full border" style={{ background: "#fb718516", color: "#fb7185", borderColor: "#fb718535" }}>
+                  DIRECT
+                </span>
+                <h3 className="text-base font-extrabold text-white uppercase tracking-wide">
+                  Contact Information
+                </h3>
+              </div>
               <div className="space-y-4">
                 <a href={`mailto:${displayEmail}`} onClick={() => trackInteraction('email_click', displayEmail, 'Contact')}
-                   className="flex items-center gap-3.5 p-3.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-white/70 hover:text-indigo-600 dark:hover:text-indigo-300 hover:border-slate-300 dark:hover:border-zinc-700 transition-all duration-200 shadow-sm">
-                  <Mail className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                   className="flex items-center gap-3.5 p-3.5 rounded-xl border text-zinc-300 hover:text-white transition-all duration-200" style={{background:"rgba(63,63,70,0.3)",borderColor:"rgba(63,63,70,0.5)"}}>
+                  <Mail className="w-4 h-4 shrink-0" style={{color:"#fb7185"}} />
                   <div className="min-w-0">
-                    <span className="block text-[10px] font-mono text-slate-500 dark:text-white/50 uppercase">Email</span>
-                    <span className="block text-xs font-bold text-slate-900 dark:text-white truncate">{displayEmail}</span>
+                    <span className="block text-[10px] font-mono uppercase" style={{color:"rgba(161,161,170,0.7)"}}>Email</span>
+                    <span className="block text-xs font-bold text-white truncate">{displayEmail}</span>
                   </div>
                 </a>
                 <a href="https://www.linkedin.com/in/venkatasiva-reddy/" target="_blank" rel="noreferrer" onClick={() => trackInteraction('linkedin_click', 'LinkedIn Profile', 'Contact')}
-                   className="flex items-center gap-3.5 p-3.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-white/70 hover:text-indigo-600 dark:hover:text-indigo-300 hover:border-slate-300 dark:hover:border-zinc-700 transition-all duration-200 shadow-sm">
-                  <Linkedin className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                   className="flex items-center gap-3.5 p-3.5 rounded-xl border text-zinc-300 hover:text-white transition-all duration-200" style={{background:"rgba(63,63,70,0.3)",borderColor:"rgba(63,63,70,0.5)"}}>
+                  <Linkedin className="w-4 h-4 shrink-0" style={{color:"#fb7185"}} />
                   <div className="min-w-0">
-                    <span className="block text-[10px] font-mono text-slate-500 dark:text-white/50 uppercase">LinkedIn</span>
-                    <span className="block text-xs font-bold text-slate-900 dark:text-white truncate">linkedin.com/in/venkatasiva-reddy</span>
+                    <span className="block text-[10px] font-mono uppercase" style={{color:"rgba(161,161,170,0.7)"}}>LinkedIn</span>
+                    <span className="block text-xs font-bold text-white truncate">linkedin.com/in/venkatasiva-reddy</span>
                   </div>
                 </a>
                 <a href="https://github.com/vasanreddy" target="_blank" rel="noreferrer" onClick={() => trackInteraction('github_click', 'GitHub Profile', 'Contact')}
-                   className="flex items-center gap-3.5 p-3.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-white/70 hover:text-indigo-600 dark:hover:text-indigo-300 hover:border-slate-300 dark:hover:border-zinc-700 transition-all duration-200 shadow-sm">
-                  <Github className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                   className="flex items-center gap-3.5 p-3.5 rounded-xl border text-zinc-300 hover:text-white transition-all duration-200" style={{background:"rgba(63,63,70,0.3)",borderColor:"rgba(63,63,70,0.5)"}}>
+                  <Github className="w-4 h-4 shrink-0" style={{color:"#fb7185"}} />
                   <div className="min-w-0">
-                    <span className="block text-[10px] font-mono text-slate-500 dark:text-white/50 uppercase">GitHub</span>
-                    <span className="block text-xs font-bold text-slate-900 dark:text-white truncate">github.com/vasanreddy</span>
+                    <span className="block text-[10px] font-mono uppercase" style={{color:"rgba(161,161,170,0.7)"}}>GitHub</span>
+                    <span className="block text-xs font-bold text-white truncate">github.com/vasanreddy</span>
                   </div>
                 </a>
               </div>
@@ -206,9 +213,13 @@ const ContactSection = ({ email = "vasanreddy1331@gmail.com", profile = {} }) =>
             transition={{ duration: 0.6, delay: 0.1, ease: easeCurve }}
             id="contact-me-form"
           >
-            <div className="editorial-card p-6 h-full space-y-4">
-              <h3 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-wide flex items-center gap-2">
-                <Mail className="w-4 h-4 text-indigo-500" /> Contact Me
+            <div className="rounded-2xl border h-full space-y-4 p-6 overflow-hidden transition-all duration-300"
+              style={{ background: "rgba(9,9,11,0.88)", borderColor: "rgba(63,63,70,0.65)" }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "#c084fc"; e.currentTarget.style.boxShadow = "0 10px 36px -6px rgba(192,132,252,0.25)"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(63,63,70,0.65)"; e.currentTarget.style.boxShadow = "none"; }}>
+              <div className="h-0.5 -mx-6 -mt-6 mb-4" style={{ background: "linear-gradient(90deg,#c084fc,transparent 70%)" }} />
+              <h3 className="text-base font-extrabold text-white uppercase tracking-wide flex items-center gap-2">
+                <Mail className="w-4 h-4 text-purple-400" /> Contact Me
               </h3>
               
               {contactStatus === "success" && (
@@ -228,19 +239,19 @@ const ContactSection = ({ email = "vasanreddy1331@gmail.com", profile = {} }) =>
                 <form onSubmit={handleContactSubmit} className="space-y-4 flex flex-col h-[calc(100%-3rem)]">
                   <div className="space-y-3 flex-grow">
                     <div>
-                      <input type="text" name="name" required value={contactData.name} onChange={handleContactChange} placeholder="Name" disabled={contactStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors" />
+                      <input type="text" name="name" required value={contactData.name} onChange={handleContactChange} placeholder="Name" disabled={contactStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl text-xs font-mono text-white focus:outline-none transition-colors" style={{background:"rgba(24,24,27,0.95)",border:"1px solid rgba(63,63,70,0.6)"}} />
                     </div>
                     <div>
-                      <input type="email" name="email" required value={contactData.email} onChange={handleContactChange} placeholder="Email" disabled={contactStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors" />
+                      <input type="email" name="email" required value={contactData.email} onChange={handleContactChange} placeholder="Email" disabled={contactStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl text-xs font-mono text-white focus:outline-none transition-colors" style={{background:"rgba(24,24,27,0.95)",border:"1px solid rgba(63,63,70,0.6)"}} />
                     </div>
                     <div>
-                      <input type="text" name="subject" required value={contactData.subject} onChange={handleContactChange} placeholder="Subject" disabled={contactStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors" />
+                      <input type="text" name="subject" required value={contactData.subject} onChange={handleContactChange} placeholder="Subject" disabled={contactStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl text-xs font-mono text-white focus:outline-none transition-colors" style={{background:"rgba(24,24,27,0.95)",border:"1px solid rgba(63,63,70,0.6)"}} />
                     </div>
                     <div>
-                      <textarea name="message" required rows={4} value={contactData.message} onChange={handleContactChange} placeholder="Message" disabled={contactStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors resize-none" />
+                      <textarea name="message" required rows={4} value={contactData.message} onChange={handleContactChange} placeholder="Message" disabled={contactStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl text-xs font-mono text-white focus:outline-none transition-colors resize-none" style={{background:"rgba(24,24,27,0.95)",border:"1px solid rgba(63,63,70,0.6)"}} />
                     </div>
                   </div>
-                  <button type="submit" disabled={contactStatus === "loading"} className="w-full mt-auto flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white font-mono text-xs font-semibold shadow-lg transition-all duration-200 disabled:opacity-50">
+                  <button type="submit" disabled={contactStatus === "loading"} className="w-full mt-auto flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-white font-mono text-xs font-semibold shadow-lg active:scale-[0.98] transition-all duration-200 disabled:opacity-50" style={{background:"linear-gradient(135deg,#fb7185,#c084fc)",boxShadow:"0 6px 24px rgba(251,113,133,0.28)"}}>
                     {contactStatus === "loading" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                     <span>{contactStatus === "loading" ? "SENDING..." : "SEND MESSAGE"}</span>
                   </button>
@@ -257,9 +268,13 @@ const ContactSection = ({ email = "vasanreddy1331@gmail.com", profile = {} }) =>
             transition={{ duration: 0.6, delay: 0.2, ease: easeCurve }}
             id="freelance-form"
           >
-            <div className="editorial-card p-6 h-full space-y-4">
-              <h3 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-wide flex items-center gap-2">
-                <Briefcase className="w-4 h-4 text-emerald-500" /> Freelance Opportunity
+            <div className="rounded-2xl border h-full space-y-4 p-6 overflow-hidden transition-all duration-300"
+              style={{ background: "rgba(9,9,11,0.88)", borderColor: "rgba(63,63,70,0.65)" }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "#4ade80"; e.currentTarget.style.boxShadow = "0 10px 36px -6px rgba(74,222,128,0.25)"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(63,63,70,0.65)"; e.currentTarget.style.boxShadow = "none"; }}>
+              <div className="h-0.5 -mx-6 -mt-6 mb-4" style={{ background: "linear-gradient(90deg,#4ade80,transparent 70%)" }} />
+              <h3 className="text-base font-extrabold text-white uppercase tracking-wide flex items-center gap-2">
+                <Briefcase className="w-4 h-4 text-emerald-400" /> Freelance Opportunity
               </h3>
               
               {freelanceStatus === "success" && (
@@ -276,27 +291,27 @@ const ContactSection = ({ email = "vasanreddy1331@gmail.com", profile = {} }) =>
               )}
 
               {freelanceStatus !== "success" && (
-                <form onSubmit={handleFreelanceSubmit} className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                <form onSubmit={handleFreelanceSubmit} className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
                   <div className="grid grid-cols-2 gap-3">
-                    <input type="text" name="name" required value={freelanceData.name} onChange={handleFreelanceChange} placeholder="Name *" disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors" />
-                    <input type="email" name="email" required value={freelanceData.email} onChange={handleFreelanceChange} placeholder="Email *" disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors" />
+                    <input type="text" name="name" required value={freelanceData.name} onChange={handleFreelanceChange} placeholder="Name *" disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl text-xs font-mono text-white focus:outline-none transition-colors" style={{background:"rgba(24,24,27,0.95)",border:"1px solid rgba(63,63,70,0.6)"}} />
+                    <input type="email" name="email" required value={freelanceData.email} onChange={handleFreelanceChange} placeholder="Email *" disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl text-xs font-mono text-white focus:outline-none transition-colors" style={{background:"rgba(24,24,27,0.95)",border:"1px solid rgba(63,63,70,0.6)"}} />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <input type="text" name="phone" value={freelanceData.phone} onChange={handleFreelanceChange} placeholder="Phone (opt)" disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors" />
-                    <input type="text" name="company" value={freelanceData.company} onChange={handleFreelanceChange} placeholder="Company (opt)" disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors" />
+                    <input type="text" name="phone" value={freelanceData.phone} onChange={handleFreelanceChange} placeholder="Phone (opt)" disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl text-xs font-mono text-white focus:outline-none transition-colors" style={{background:"rgba(24,24,27,0.95)",border:"1px solid rgba(63,63,70,0.6)"}} />
+                    <input type="text" name="company" value={freelanceData.company} onChange={handleFreelanceChange} placeholder="Company (opt)" disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl text-xs font-mono text-white focus:outline-none transition-colors" style={{background:"rgba(24,24,27,0.95)",border:"1px solid rgba(63,63,70,0.6)"}} />
                   </div>
-                  <input type="text" name="projectTitle" required value={freelanceData.projectTitle} onChange={handleFreelanceChange} placeholder="Project Title *" disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors" />
-                  <textarea name="description" required rows={2} value={freelanceData.description} onChange={handleFreelanceChange} placeholder="Project Description *" disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors resize-none" />
-                  <input type="text" name="requiredSkills" required value={freelanceData.requiredSkills} onChange={handleFreelanceChange} placeholder="Required Skills (e.g., React, Node) *" disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors" />
+                  <input type="text" name="projectTitle" required value={freelanceData.projectTitle} onChange={handleFreelanceChange} placeholder="Project Title *" disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl text-xs font-mono text-white focus:outline-none transition-colors" style={{background:"rgba(24,24,27,0.95)",border:"1px solid rgba(63,63,70,0.6)"}} />
+                  <textarea name="description" required rows={2} value={freelanceData.description} onChange={handleFreelanceChange} placeholder="Project Description *" disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl text-xs font-mono text-white focus:outline-none transition-colors resize-none" style={{background:"rgba(24,24,27,0.95)",border:"1px solid rgba(63,63,70,0.6)"}} />
+                  <input type="text" name="requiredSkills" required value={freelanceData.requiredSkills} onChange={handleFreelanceChange} placeholder="Required Skills (e.g., React, Node) *" disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl text-xs font-mono text-white focus:outline-none transition-colors" style={{background:"rgba(24,24,27,0.95)",border:"1px solid rgba(63,63,70,0.6)"}} />
                   
                   <div className="grid grid-cols-2 gap-3">
-                    <input type="text" name="expectedDuration" required value={freelanceData.expectedDuration} onChange={handleFreelanceChange} placeholder="Duration (e.g. 2 mos) *" disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors" />
-                    <input type="text" name="startDate" required value={freelanceData.startDate} onChange={handleFreelanceChange} placeholder="Start Date *" disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors" />
+                    <input type="text" name="expectedDuration" required value={freelanceData.expectedDuration} onChange={handleFreelanceChange} placeholder="Duration (e.g. 2 mos) *" disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl text-xs font-mono text-white focus:outline-none transition-colors" style={{background:"rgba(24,24,27,0.95)",border:"1px solid rgba(63,63,70,0.6)"}} />
+                    <input type="text" name="startDate" required value={freelanceData.startDate} onChange={handleFreelanceChange} placeholder="Start Date *" disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl text-xs font-mono text-white focus:outline-none transition-colors" style={{background:"rgba(24,24,27,0.95)",border:"1px solid rgba(63,63,70,0.6)"}} />
                   </div>
                   
                   <div className="grid grid-cols-[2fr_1fr] gap-3">
-                    <input type="text" name="budget" required value={freelanceData.budget} onChange={handleFreelanceChange} placeholder="Budget / Hourly Rate *" disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors" />
-                    <select name="currency" value={freelanceData.currency} onChange={handleFreelanceChange} disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                    <input type="text" name="budget" required value={freelanceData.budget} onChange={handleFreelanceChange} placeholder="Budget / Hourly Rate *" disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl text-xs font-mono text-white focus:outline-none transition-colors" style={{background:"rgba(24,24,27,0.95)",border:"1px solid rgba(63,63,70,0.6)"}} />
+                    <select name="currency" value={freelanceData.currency} onChange={handleFreelanceChange} disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl text-xs font-mono text-white focus:outline-none transition-colors" style={{background:"rgba(24,24,27,0.95)",border:"1px solid rgba(63,63,70,0.6)"}}>
                       <option value="USD">USD</option>
                       <option value="EUR">EUR</option>
                       <option value="GBP">GBP</option>
@@ -304,9 +319,9 @@ const ContactSection = ({ email = "vasanreddy1331@gmail.com", profile = {} }) =>
                       <option value="AUD">AUD</option>
                     </select>
                   </div>
-                  <input type="text" name="additionalRequirements" value={freelanceData.additionalRequirements} onChange={handleFreelanceChange} placeholder="Additional Requirements (opt)" disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors" />
+                  <input type="text" name="additionalRequirements" value={freelanceData.additionalRequirements} onChange={handleFreelanceChange} placeholder="Additional Requirements (opt)" disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl text-xs font-mono text-white focus:outline-none transition-colors" style={{background:"rgba(24,24,27,0.95)",border:"1px solid rgba(63,63,70,0.6)"}} />
                   
-                  <button type="submit" disabled={freelanceStatus === "loading"} className="w-full mt-4 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] text-white font-mono text-xs font-semibold shadow-lg transition-all duration-200 disabled:opacity-50">
+                  <button type="submit" disabled={freelanceStatus === "loading"} className="w-full mt-4 flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-mono text-xs font-semibold shadow-lg active:scale-[0.98] transition-all duration-200 disabled:opacity-50" style={{background:"linear-gradient(135deg,#4ade80,#2dd4bf)",color:"#000",boxShadow:"0 6px 24px rgba(74,222,128,0.25)"}}>
                     {freelanceStatus === "loading" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Briefcase className="w-4 h-4" />}
                     <span>{freelanceStatus === "loading" ? "SUBMITTING..." : "SUBMIT OPPORTUNITY"}</span>
                   </button>
@@ -322,3 +337,4 @@ const ContactSection = ({ email = "vasanreddy1331@gmail.com", profile = {} }) =>
 };
 
 export default ContactSection;
+

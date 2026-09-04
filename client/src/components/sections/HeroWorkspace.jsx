@@ -13,7 +13,8 @@ const HeroWorkspace = ({ profile }) => {
       id: 'laptop',
       title: 'Full Stack Engineering',
       icon: Laptop,
-      color: 'border-indigo-500/40 bg-indigo-500/10 text-indigo-600 dark:text-indigo-300',
+      hex: '#38bdf8',
+      glow: 'rgba(56,189,248,0.3)',
       tag: 'PROJECTS',
       summary: 'MERN stack applications with clean architecture and real-time features.',
       details: 'Built NutriCloud Monitor, DocSpot, Candidate Rank System, and Weather apps with Node.js, React, and MongoDB.',
@@ -24,7 +25,8 @@ const HeroWorkspace = ({ profile }) => {
       id: 'terminal',
       title: 'Developer Terminal & Stack',
       icon: Terminal,
-      color: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300',
+      hex: '#4ade80',
+      glow: 'rgba(74,222,128,0.3)',
       tag: 'GITHUB & TECH',
       summary: 'Java, JavaScript, Python, C++, React, Node.js, Express, MongoDB, Docker.',
       details: 'Active LeetCode solver (300+ problems), HackerRank 5-Star in Problem Solving.',
@@ -35,7 +37,8 @@ const HeroWorkspace = ({ profile }) => {
       id: 'notebook',
       title: 'Learning Notebook',
       icon: BookOpen,
-      color: 'border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-300',
+      hex: '#facc15',
+      glow: 'rgba(250,204,21,0.3)',
       tag: '2026 FOCUS',
       summary: 'Data Structures & Algorithms, System Design, Cloud Architecture & RAG Pipelines.',
       details: 'Focusing on production performance, scalable API structures, and optimal algorithmic complexity.',
@@ -46,7 +49,8 @@ const HeroWorkspace = ({ profile }) => {
       id: 'ai-card',
       title: 'AI & ML Integrations',
       icon: Cpu,
-      color: 'border-cyan-500/40 bg-cyan-500/10 text-cyan-600 dark:text-cyan-300',
+      hex: '#c084fc',
+      glow: 'rgba(192,132,252,0.3)',
       tag: 'EXPERIMENTS',
       summary: 'FastAPI, spaCy NLP, RAG Pipelines, and anomaly scoring algorithms.',
       details: 'Built automated candidate rank parsing via spaCy NLP and real-time security threat scoring.',
@@ -72,7 +76,7 @@ const HeroWorkspace = ({ profile }) => {
   return (
     <div className="relative w-full">
       {/* Workspace Container */}
-      <div className="relative w-full editorial-card p-6 sm:p-8 overflow-hidden">
+      <div className="relative w-full rounded-2xl border border-slate-200 dark:border-zinc-800/80 bg-white/90 dark:bg-[#09090c] p-6 sm:p-8 overflow-hidden shadow-2xl">
         
         {/* Workspace Title & Window Dots */}
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-zinc-800/80 pb-4 mb-6">
@@ -85,7 +89,7 @@ const HeroWorkspace = ({ profile }) => {
 
           <div className="flex items-center gap-2">
             {isPlayMode && (
-              <span className="flex items-center gap-1 text-[10px] font-mono text-amber-600 dark:text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/30">
+              <span className="flex items-center gap-1 text-[10px] font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/30">
                 <Sparkles className="w-3 h-3" /> CLICK OBJECTS TO EXPLORE
               </span>
             )}
@@ -103,29 +107,55 @@ const HeroWorkspace = ({ profile }) => {
               <div
                 key={item.id}
                 onClick={() => setActiveItem(item)}
-                className={`group cursor-pointer p-5 rounded-xl border transition-all duration-300 relative overflow-hidden ${
-                  isSelected
-                    ? 'border-indigo-500/60 bg-indigo-500/10 shadow-lg'
-                    : 'border-slate-200 bg-slate-50/80 hover:border-slate-300 hover:bg-slate-100 dark:border-zinc-800 dark:bg-[#181820] dark:hover:border-zinc-700 dark:hover:bg-[#20202a]'
-                }`}
+                className="group cursor-pointer rounded-2xl border transition-all duration-300 relative overflow-hidden flex flex-col justify-between"
+                style={{
+                  background: isSelected ? `linear-gradient(135deg, ${item.hex}18, rgba(9,9,11,0.96))` : "rgba(9,9,11,0.88)",
+                  borderColor: isSelected ? item.hex : "rgba(63,63,70,0.65)",
+                  boxShadow: isSelected ? `0 10px 36px -6px ${item.glow}` : "0 2px 10px rgba(0,0,0,0.3)",
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.borderColor = item.hex;
+                  e.currentTarget.style.boxShadow = `0 10px 36px -6px ${item.glow}`;
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                }}
+                onMouseLeave={e => {
+                  if (!isSelected) {
+                    e.currentTarget.style.borderColor = "rgba(63,63,70,0.65)";
+                    e.currentTarget.style.boxShadow = "0 2px 10px rgba(0,0,0,0.3)";
+                  }
+                  e.currentTarget.style.transform = "none";
+                }}
               >
-                <div className="flex items-center justify-between mb-3">
-                  <div className={`p-2.5 rounded-lg border ${item.color}`}>
-                    <Icon className="w-5 h-5" />
+                {/* Top accent line */}
+                <div className="h-0.5 w-full" style={{ background: `linear-gradient(90deg, ${item.hex}, transparent 70%)` }} />
+
+                <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center border transition-all"
+                      style={{ background: `${item.hex}18`, borderColor: `${item.hex}40`, boxShadow: `0 0 14px ${item.glow}` }}
+                    >
+                      <Icon className="w-5 h-5" style={{ color: item.hex }} />
+                    </div>
+                    <span
+                      className="text-[10px] font-mono tracking-wider font-bold px-2.5 py-0.5 rounded-full border"
+                      style={{ background: `${item.hex}14`, color: item.hex, borderColor: `${item.hex}35` }}
+                    >
+                      [{item.tag}]
+                    </span>
                   </div>
-                  <span className="text-[10px] font-mono text-slate-500 dark:text-white/50 tracking-wider">
-                    [{item.tag}]
-                  </span>
+
+                  <div>
+                    <h4 className="text-sm font-extrabold text-white flex items-center justify-between">
+                      <span>{item.title}</span>
+                      <Code2 className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: item.hex }} />
+                    </h4>
+
+                    <p className="text-xs text-zinc-400 mt-2 leading-relaxed">
+                      {item.summary}
+                    </p>
+                  </div>
                 </div>
-
-                <h4 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors flex items-center justify-between">
-                  <span>{item.title}</span>
-                  <Code2 className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 text-indigo-500 transition-opacity" />
-                </h4>
-
-                <p className="text-xs text-slate-600 dark:text-white/70 mt-2 leading-relaxed">
-                  {item.summary}
-                </p>
               </div>
             );
           })}
@@ -139,7 +169,7 @@ const HeroWorkspace = ({ profile }) => {
             </div>
             <div>
               <p className="text-xs font-bold text-slate-900 dark:text-white">Rajeev Gandhi Memorial College (RGMCET)</p>
-              <p className="text-[11px] font-mono text-slate-600 dark:text-white/50">B.Tech Computer Science & Engineering (2023 - 2027) · CGPA 8.1</p>
+              <p className="text-[11px] font-mono text-slate-600 dark:text-white/50">B.Tech Computer Science & Engineering (2023 - 2027) Â· CGPA 8.1</p>
             </div>
           </div>
           <span className="hidden sm:inline-block px-2.5 py-1 rounded-md text-[10px] font-mono border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
@@ -161,7 +191,7 @@ const HeroWorkspace = ({ profile }) => {
           >
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-zinc-800 pb-3">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-mono text-indigo-600 dark:text-indigo-400">[{activeItem.tag}]</span>
+                <span className="text-xs font-mono text-sky-500 dark:text-sky-400">[{activeItem.tag}]</span>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">{activeItem.title}</h3>
               </div>
               <button 
@@ -199,3 +229,4 @@ const HeroWorkspace = ({ profile }) => {
 };
 
 export default HeroWorkspace;
+

@@ -22,26 +22,25 @@ const PlaygroundSection = () => {
   };
 
   return (
-    <section id="experiments" className="py-20 relative w-full border-t border-slate-200 dark:border-zinc-800/60">
+    <section id="experiments" className="py-24 relative w-full border-t border-slate-200 dark:border-zinc-800/60 overflow-hidden">
       <div className="section-container">
         
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
           <div>
-            <span className="text-xs font-mono tracking-widest text-indigo-600 dark:text-indigo-400 uppercase font-semibold">
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/25 text-xs font-mono tracking-widest text-rose-600 dark:text-rose-400 uppercase font-semibold mb-2">
               03 // INTERACTIVE LAB & EXPERIMENTS
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white mt-1">
-              Engineering Playground
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white mt-1 tracking-tight">Engineering{" "}<span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 via-pink-400 to-purple-400">Playground</span>
             </h2>
           </div>
-          <p className="text-xs font-mono text-slate-600 dark:text-white/50 max-w-sm">
+          <p className="text-xs font-mono text-zinc-400 max-w-sm">
             Try lightweight live interactive demos of software algorithms, NLP parsing, and API benchmarking.
           </p>
         </div>
 
         {/* Navigation Controls Bar */}
-        <div className="flex items-center justify-between gap-2 mb-8 border-b border-slate-200 dark:border-zinc-800 pb-3 overflow-x-auto">
+        <div className="flex items-center justify-between gap-2 mb-8 border-b pb-3 overflow-x-auto" style={{borderColor:"rgba(63,63,70,0.5)"}}>
           {/* Clickable Tab Buttons */}
           <div className="flex items-center gap-2">
             {tabs.map((tab, idx) => {
@@ -51,11 +50,11 @@ const PlaygroundSection = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveIndex(idx)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl font-mono text-xs transition-all whitespace-nowrap ${
-                    isActive 
-                      ? 'bg-indigo-600 text-white font-bold shadow-md scale-[1.02]' 
-                      : 'bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-white/50 hover:text-slate-900 dark:hover:text-white'
-                  }`}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl font-mono text-xs transition-all whitespace-nowrap border"
+                  style={isActive
+                    ? { background: 'linear-gradient(135deg,#fb7185,#c084fc)', color: '#fff', fontWeight: 'bold', borderColor: 'transparent', boxShadow: '0 4px 16px rgba(251,113,133,0.3)', transform: 'scale(1.02)' }
+                    : { background: 'rgba(9,9,11,0.8)', borderColor: 'rgba(63,63,70,0.6)', color: 'rgba(161,161,170,0.8)' }
+                  }
                 >
                   <Icon className="w-3.5 h-3.5" />
                   <span>{tab.label}</span>
@@ -70,7 +69,7 @@ const PlaygroundSection = () => {
               onClick={handlePrev}
               disabled={activeIndex === 0}
               aria-label="Previous card"
-              className="p-2 rounded-xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-white/70 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-500/40 disabled:opacity-30 disabled:hover:text-slate-700 disabled:hover:border-slate-200 transition-all"
+              className="p-2 rounded-xl border text-zinc-400 hover:text-white disabled:opacity-30 transition-all" style={{background:"rgba(9,9,11,0.8)",borderColor:"rgba(63,63,70,0.6)"}}
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -83,7 +82,7 @@ const PlaygroundSection = () => {
               onClick={handleNext}
               disabled={activeIndex === tabs.length - 1}
               aria-label="Next card"
-              className="p-2 rounded-xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-white/70 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-500/40 disabled:opacity-30 disabled:hover:text-slate-700 disabled:hover:border-slate-200 transition-all"
+              className="p-2 rounded-xl border text-zinc-400 hover:text-white disabled:opacity-30 transition-all" style={{background:"rgba(9,9,11,0.8)",borderColor:"rgba(63,63,70,0.6)"}}
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -114,11 +113,11 @@ const PlaygroundSection = () => {
             <button
               key={tab.id}
               onClick={() => setActiveIndex(idx)}
-              className={`h-1.5 rounded-full transition-all duration-300 ${
-                activeIndex === idx
-                  ? 'w-8 bg-indigo-600 dark:bg-indigo-400'
-                  : 'w-2 bg-slate-300 dark:bg-zinc-700 hover:bg-slate-400'
-              }`}
+              className="h-1.5 rounded-full transition-all duration-300"
+              style={activeIndex === idx
+                ? { width: '2rem', background: 'linear-gradient(90deg,#fb7185,#c084fc)' }
+                : { width: '0.5rem', background: 'rgba(63,63,70,0.7)' }
+              }
               aria-label={`Go to slide ${idx + 1}`}
             />
           ))}
@@ -130,3 +129,5 @@ const PlaygroundSection = () => {
 };
 
 export default PlaygroundSection;
+
+

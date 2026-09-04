@@ -22,43 +22,72 @@ const CodingPlatformsSection = ({ profiles = [] }) => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {profiles.map((p) => (
-            <div
-              key={p._id || p.platform}
-              className="glass-card p-6 rounded-2xl border border-slate-200 dark:border-slate-800/80 space-y-4 hover:border-sky-400/30 transition-all"
-            >
-              <div className="flex items-center justify-between">
-                <h4 className="text-lg font-bold text-slate-900 dark:text-white">{p.platform}</h4>
-                <a
-                  href={p.profileUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-sky-300 transition-colors"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                </a>
-              </div>
+          {profiles.map((p, idx) => {
+            const platformPalette = [
+              { hex: "#38bdf8", glow: "rgba(56,189,248,0.25)" },
+              { hex: "#4ade80", glow: "rgba(74,222,128,0.25)" },
+              { hex: "#facc15", glow: "rgba(250,204,21,0.25)" },
+            ];
+            const c = platformPalette[idx % platformPalette.length];
 
-              <div className="grid grid-cols-2 gap-3 pt-1">
-                <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800">
-                  <span className="block text-[10px] font-mono text-slate-400">Problems Solved</span>
-                  <span className="text-lg font-bold text-sky-300 font-mono">{p.problemsSolved}</span>
-                </div>
-                {p.rating && (
-                  <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800">
-                    <span className="block text-[10px] font-mono text-slate-400">Rating / Stars</span>
-                    <span className="text-sm font-bold text-purple-300 font-mono">{p.rating}</span>
+            return (
+              <div
+                key={p._id || p.platform}
+                className="rounded-2xl border overflow-hidden space-y-4 p-6 transition-all duration-300 relative"
+                style={{ background: "rgba(9,9,11,0.88)", borderColor: "rgba(63,63,70,0.65)" }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = c.hex;
+                  e.currentTarget.style.boxShadow = `0 10px 36px -6px ${c.glow}`;
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(63,63,70,0.65)";
+                  e.currentTarget.style.boxShadow = "none";
+                  e.currentTarget.style.transform = "none";
+                }}
+              >
+                {/* Top accent line */}
+                <div className="h-0.5 -mx-6 -mt-6 mb-4" style={{ background: `linear-gradient(90deg, ${c.hex}, transparent 70%)` }} />
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border" style={{ background: `${c.hex}14`, color: c.hex, borderColor: `${c.hex}35` }}>
+                      0{idx + 1}
+                    </span>
+                    <h4 className="text-lg font-extrabold text-white">{p.platform}</h4>
                   </div>
+                  <a
+                    href={p.profileUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="p-2 rounded-xl border transition-colors"
+                    style={{ background: "rgba(24,24,27,0.9)", borderColor: "rgba(63,63,70,0.5)", color: c.hex }}
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <div className="p-3 rounded-xl border" style={{ background: "rgba(24,24,27,0.9)", borderColor: `${c.hex}30` }}>
+                    <span className="block text-[10px] font-mono text-zinc-400">Problems Solved</span>
+                    <span className="text-lg font-bold font-mono" style={{ color: c.hex }}>{p.problemsSolved}</span>
+                  </div>
+                  {p.rating && (
+                    <div className="p-3 rounded-xl border" style={{ background: "rgba(24,24,27,0.9)", borderColor: "rgba(63,63,70,0.5)" }}>
+                      <span className="block text-[10px] font-mono text-zinc-400">Rating / Stars</span>
+                      <span className="text-sm font-bold text-purple-300 font-mono">{p.rating}</span>
+                    </div>
+                  )}
+                </div>
+
+                {p.description && (
+                  <p className="text-xs text-zinc-400 leading-relaxed">
+                    {p.description}
+                  </p>
                 )}
               </div>
-
-              {p.description && (
-                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                  {p.description}
-                </p>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
 
       </div>
@@ -67,3 +96,4 @@ const CodingPlatformsSection = ({ profiles = [] }) => {
 };
 
 export default CodingPlatformsSection;
+

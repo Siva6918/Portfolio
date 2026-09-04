@@ -67,50 +67,92 @@ const CertificationsDetailModal = ({ isOpen, onClose, certifications = [] }) => 
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {filteredCerts.map((cert, idx) => (
-                  <div
-                    key={cert._id || cert.title || idx}
-                    className="editorial-card p-5 flex flex-col justify-between space-y-4 hover:border-indigo-500/40 transition-all"
-                  >
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2.5">
+                {filteredCerts.map((cert, idx) => {
+                  const modalPalette = [
+                    { hex: "#4ade80", glow: "rgba(74,222,128,0.25)" },
+                    { hex: "#facc15", glow: "rgba(250,204,21,0.25)" },
+                    { hex: "#fb923c", glow: "rgba(251,146,60,0.25)" },
+                    { hex: "#38bdf8", glow: "rgba(56,189,248,0.25)" },
+                    { hex: "#f472b6", glow: "rgba(244,114,182,0.25)" },
+                    { hex: "#c084fc", glow: "rgba(192,132,252,0.25)" },
+                    { hex: "#2dd4bf", glow: "rgba(45,212,191,0.25)" },
+                  ];
+                  const c = modalPalette[idx % modalPalette.length];
+
+                  return (
+                    <div
+                      key={cert._id || cert.title || idx}
+                      className="rounded-2xl border overflow-hidden flex flex-col justify-between transition-all duration-300"
+                      style={{
+                        background: "rgba(9,9,11,0.92)",
+                        borderColor: "rgba(63,63,70,0.6)",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = c.hex;
+                        e.currentTarget.style.boxShadow = `0 8px 30px -6px ${c.glow}`;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = "rgba(63,63,70,0.6)";
+                        e.currentTarget.style.boxShadow = "none";
+                      }}
+                    >
+                      {/* Top accent line */}
+                      <div className="h-0.5 w-full" style={{ background: `linear-gradient(90deg, ${c.hex}, transparent 70%)` }} />
+
+                      <div className="p-5 space-y-3.5 flex-1 flex flex-col justify-between">
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span
+                              className="text-[11px] font-mono uppercase font-bold px-2.5 py-0.5 rounded-full border"
+                              style={{ background: `${c.hex}14`, color: c.hex, borderColor: `${c.hex}40` }}
+                            >
+                              {cert.organization}
+                            </span>
+                            <span className="flex items-center gap-1 text-[10px] font-mono font-bold text-emerald-400">
+                              <ShieldCheck className="w-3.5 h-3.5" /> VERIFIED
+                            </span>
+                          </div>
+
+                          {/* Certificate uncropped preview */}
                           {cert.image && (
-                            <img src={resolveMediaUrl(cert.image)} alt={cert.title} className="w-8 h-8 rounded-lg object-cover border border-slate-200 dark:border-zinc-800 shrink-0 shadow-sm" />
+                            <div className="w-full h-44 rounded-xl overflow-hidden bg-[#07070a] border border-zinc-800/80 flex items-center justify-center p-2">
+                              <img
+                                src={resolveMediaUrl(cert.image)}
+                                alt={cert.title}
+                                className="w-full h-full object-contain"
+                              />
+                            </div>
                           )}
-                          <span className="text-xs font-mono text-indigo-600 dark:text-indigo-400 uppercase font-semibold">
-                            {cert.organization}
-                          </span>
+
+                          <h3 className="text-base font-extrabold text-white">
+                            {cert.title}
+                          </h3>
+
+                          <p className="text-xs text-zinc-400 leading-relaxed">
+                            {cert.description}
+                          </p>
                         </div>
-                        <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+
+                        <div className="pt-3 border-t border-zinc-800/80 flex items-center justify-between text-xs font-mono text-zinc-500">
+                          <span>Issued: {cert.issueDate}</span>
+                          {cert.credentialUrl && (
+                            <a
+                              href={cert.credentialUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              onClick={() => trackInteraction('certification_click', cert.title, 'Certifications', { url: cert.credentialUrl })}
+                              className="flex items-center gap-1 font-bold hover:underline"
+                              style={{ color: c.hex }}
+                            >
+                              <span>Verify</span>
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </a>
+                          )}
+                        </div>
                       </div>
-
-                      <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                        {cert.title}
-                      </h3>
-
-                      <p className="text-xs text-slate-700 dark:text-zinc-300 leading-relaxed">
-                        {cert.description}
-                      </p>
                     </div>
-
-                    <div className="pt-3 border-t border-slate-200 dark:border-zinc-800 flex items-center justify-between text-xs font-mono text-slate-500">
-                      <span>Issued: {cert.issueDate}</span>
-                      {cert.credentialUrl && (
-                        <a
-                          href={cert.credentialUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          onClick={() => trackInteraction('certification_click', cert.title, 'Certifications', { url: cert.credentialUrl })}
-                          className="flex items-center gap-1 text-indigo-600 dark:text-indigo-400 font-bold hover:underline"
-                        >
-                          <span>Verify</span>
-                          <ExternalLink className="w-3.5 h-3.5" />
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

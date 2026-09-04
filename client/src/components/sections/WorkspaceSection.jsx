@@ -26,10 +26,12 @@ const openResource = (item) => {
   }
 };
 
-// ── Single Item Card ──────────────────────────────────────────────────────
+// â”€â”€ Single Item Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const WorkspaceCard = ({ item, isActive, onClick }) => {
   const meta = RESOURCE_META[item.resourceType] || null;
   const Icon = meta?.icon;
+  const color = meta?.color || '#38bdf8';
+
   return (
     <motion.div
       layout
@@ -38,21 +40,25 @@ const WorkspaceCard = ({ item, isActive, onClick }) => {
       exit={{ opacity: 0, scale: 0.94 }}
       transition={{ duration: 0.4, ease: easeCurve }}
       onClick={onClick}
-      className={`relative rounded-2xl overflow-hidden border cursor-pointer transition-all duration-300 select-none ${
-        isActive
-          ? 'border-indigo-500/40 shadow-2xl shadow-indigo-500/10'
-          : 'border-slate-200 dark:border-zinc-800/60 pointer-events-none'
-      }`}
+      className="relative rounded-2xl overflow-hidden border cursor-pointer transition-all duration-300 select-none"
+      style={{
+        background: "rgba(9,9,11,0.92)",
+        borderColor: isActive ? color : "rgba(63,63,70,0.65)",
+        boxShadow: isActive ? `0 12px 36px -6px ${color}35, 0 0 0 1px ${color}30` : "0 2px 10px rgba(0,0,0,0.3)",
+      }}
     >
-      {/* Cover Image */}
-      <div className="relative h-44 overflow-hidden">
+      {/* Top accent line */}
+      <div className="h-0.5 w-full" style={{ background: `linear-gradient(90deg, ${color}, transparent 70%)` }} />
+
+      {/* Cover Image - uncropped */}
+      <div className="relative h-44 overflow-hidden bg-[#07070a] flex items-center justify-center p-2 border-b border-zinc-800/60">
         <img
           src={item.coverImage?.url}
           alt={item.name}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-contain"
           loading="lazy"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
         {meta && (
           <span className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold font-mono"
             style={{ background: meta.color + '22', color: meta.color, border: `1px solid ${meta.color}44` }}>
@@ -62,16 +68,16 @@ const WorkspaceCard = ({ item, isActive, onClick }) => {
         )}
       </div>
 
-      {/* Content */}
-      <div className="p-4 bg-white dark:bg-zinc-900">
-        <h4 className="text-sm font-bold text-slate-900 dark:text-white truncate">{item.name}</h4>
-        <p className="text-xs text-slate-600 dark:text-white/60 mt-1 line-clamp-2 leading-relaxed">{item.description}</p>
+      {/* Content — no truncate / line-clamp so text is never cropped */}
+      <div className="p-4 bg-transparent space-y-1.5">
+        <h4 className="text-sm font-extrabold text-white leading-snug">{item.name}</h4>
+        <p className="text-xs text-zinc-300 leading-relaxed">{item.description}</p>
 
         {isActive && meta && (
           <button
             onClick={(e) => { e.stopPropagation(); openResource(item); }}
-            className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold font-mono transition-all active:scale-[0.97]"
-            style={{ background: meta.color + '18', color: meta.color, border: `1px solid ${meta.color}40` }}
+            className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold font-mono transition-all active:scale-[0.97]"
+            style={{ background: meta.color + '18', color: meta.color, border: `1px solid ${meta.color}40`, boxShadow: `0 4px 16px ${meta.color}25` }}
           >
             {Icon && <Icon className="w-3.5 h-3.5" />} {meta.label}
           </button>
@@ -81,7 +87,7 @@ const WorkspaceCard = ({ item, isActive, onClick }) => {
   );
 };
 
-// ── Vertical Carousel Column ──────────────────────────────────────────────
+// â”€â”€ Vertical Carousel Column â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const WorkspaceCarousel = ({ items, title, accentColor, onExploreAll }) => {
   const [current, setCurrent] = useState(0);
   const touchStartY = useRef(null);
@@ -154,7 +160,7 @@ const WorkspaceCarousel = ({ items, title, accentColor, onExploreAll }) => {
           </button>
         </div>
 
-        {/* Items stack — show current + hint of adjacent */}
+        {/* Items stack â€” show current + hint of adjacent */}
         <div className="flex flex-col gap-2 relative">
           <AnimatePresence mode="popLayout">
             {items.map((item, idx) => {
@@ -199,7 +205,7 @@ const WorkspaceCarousel = ({ items, title, accentColor, onExploreAll }) => {
   );
 };
 
-// ── Explore All Modal ─────────────────────────────────────────────────────
+// â”€â”€ Explore All Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const ExploreAllModal = ({ items, title, accentColor, onClose }) => {
   const [search, setSearch] = useState('');
   const filtered = items.filter(item =>
@@ -227,7 +233,7 @@ const ExploreAllModal = ({ items, title, accentColor, onClose }) => {
         {items.length > 5 && (
           <div className="px-6 py-3 border-b border-slate-200 dark:border-zinc-800">
             <input type="text" value={search} onChange={e => setSearch(e.target.value)}
-              placeholder="Search items…"
+              placeholder="Search itemsâ€¦"
               className="w-full px-4 py-2 rounded-xl text-xs font-mono bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500" />
           </div>
         )}
@@ -264,7 +270,7 @@ const ExploreAllModal = ({ items, title, accentColor, onClose }) => {
   );
 };
 
-// ── Main Section ─────────────────────────────────────────────────────────
+// â”€â”€ Main Section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const WorkspaceSection = () => {
   const { trackInteraction } = useAnalytics();
   const [workItems, setWorkItems] = useState([]);
@@ -297,7 +303,7 @@ const WorkspaceSection = () => {
   if (!loading && !error && !hasAny) return null;
 
   return (
-    <section id="workspace" className="py-20 relative w-full border-t border-slate-200 dark:border-zinc-800/60">
+    <section id="workspace" className="py-24 relative w-full border-t border-slate-200 dark:border-zinc-800/60 overflow-hidden">
       <div className="section-container">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
@@ -306,7 +312,7 @@ const WorkspaceSection = () => {
               initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.15 }}
               transition={{ duration: 0.5, ease: easeCurve }}
-              className="text-xs font-mono tracking-widest text-indigo-600 dark:text-indigo-400 uppercase font-semibold block"
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-xs font-mono tracking-widest text-emerald-600 dark:text-emerald-400 uppercase font-semibold mb-2"
             >
               12 // WORKSPACE
             </motion.span>
@@ -314,33 +320,29 @@ const WorkspaceSection = () => {
               initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.15 }}
               transition={{ duration: 0.6, delay: 0.1, ease: easeCurve }}
-              className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white mt-1"
-            >
-              Work Space & Personal Space
+              className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white mt-1 tracking-tight">Work Space &{" "}<span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-400 to-sky-400">Personal Space</span>
             </motion.h2>
           </div>
           <motion.p
             initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.15 }}
             transition={{ duration: 0.5, delay: 0.2, ease: easeCurve }}
-            className="text-xs font-mono text-slate-600 dark:text-white/50 max-w-xs"
-          >
-            Curated collections of work and personal resources, projects, and tools.
+            className="text-xs font-mono text-zinc-400 max-w-xs">Curated collections of work and personal resources, projects, and tools.
           </motion.p>
         </div>
 
         {error ? (
-          <div className="editorial-card p-10 text-center rounded-3xl border border-slate-200 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900/50">
+          <div className="p-10 text-center rounded-2xl border" style={{background:"rgba(9,9,11,0.85)",borderColor:"rgba(63,63,70,0.65)"}}>
             <p className="text-xs font-mono text-slate-500 dark:text-white/50">
-              Workspace is temporarily unavailable — please check back soon.
+              Workspace is temporarily unavailable â€” please check back soon.
             </p>
           </div>
         ) : loading ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
             {[0, 1].map(i => (
               <div key={i} className="space-y-4">
-                <div className="h-6 w-32 bg-slate-200 dark:bg-zinc-800 rounded-xl animate-pulse" />
-                <div className="h-64 bg-slate-100 dark:bg-zinc-900 rounded-2xl animate-pulse" />
+                <div className="h-6 w-32 rounded-xl animate-pulse" style={{background:"rgba(63,63,70,0.5)"}} />
+                <div className="h-64 rounded-2xl animate-pulse" style={{background:"rgba(24,24,27,0.8)"}} />
               </div>
             ))}
           </div>
@@ -354,13 +356,13 @@ const WorkspaceSection = () => {
             <WorkspaceCarousel
               items={workItems}
               title="Work Space"
-              accentColor="#6366f1"
+              accentColor="#4ade80"
               onExploreAll={() => { trackInteraction('workspace_explore_work', 'Work Space', 'Workspace'); setExploreModal('work'); }}
             />
             <WorkspaceCarousel
               items={personalItems}
               title="Personal Space"
-              accentColor="#8b5cf6"
+              accentColor="#2dd4bf"
               onExploreAll={() => { trackInteraction('workspace_explore_personal', 'Personal Space', 'Workspace'); setExploreModal('personal'); }}
             />
           </motion.div>
@@ -370,10 +372,10 @@ const WorkspaceSection = () => {
       {/* Explore All Modal */}
       <AnimatePresence>
         {exploreModal === 'work' && (
-          <ExploreAllModal items={workItems} title="All Work Space Items" accentColor="#6366f1" onClose={() => setExploreModal(null)} />
+          <ExploreAllModal items={workItems} title="All Work Space Items" accentColor="#4ade80" onClose={() => setExploreModal(null)} />
         )}
         {exploreModal === 'personal' && (
-          <ExploreAllModal items={personalItems} title="All Personal Space Items" accentColor="#8b5cf6" onClose={() => setExploreModal(null)} />
+          <ExploreAllModal items={personalItems} title="All Personal Space Items" accentColor="#2dd4bf" onClose={() => setExploreModal(null)} />
         )}
       </AnimatePresence>
     </section>
@@ -381,3 +383,5 @@ const WorkspaceSection = () => {
 };
 
 export default WorkspaceSection;
+
+

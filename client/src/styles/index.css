@@ -8,7 +8,20 @@
   --duration-fast: 200ms;
   --duration-normal: 350ms;
   --duration-slow: 600ms;
+
+  /* ── Vibrant section palette (matches timeline staircase) ── */
+  --color-hero:     #4ade80;  /* Light Green  */
+  --color-about:    #facc15;  /* Yellow       */
+  --color-skills:   #fb923c;  /* Orange       */
+  --color-projects: #38bdf8;  /* Blue         */
+  --color-exp:      #f472b6;  /* Pink         */
+  --color-timeline: #c084fc;  /* Purple       */
+  --color-certs:    #2dd4bf;  /* Teal         */
+  --color-contact:  #fb7185;  /* Rose         */
+  --color-achieve:  #facc15;  /* Yellow       */
+  --color-work:     #4ade80;  /* Green        */
 }
+
 
 @layer base {
   html {
@@ -59,7 +72,7 @@
 /* Dark Mode: Progressive lightness elevation (#121217 surface, #1a1a22 elevated), no harsh shadows */
 .editorial-card {
   @apply bg-white/90 border border-slate-200/80 shadow-lg shadow-slate-200/50 
-         dark:bg-[#121217] dark:border-zinc-800/80 dark:shadow-none
+         dark:bg-[#09090c] dark:border-zinc-800/60 dark:shadow-none
          rounded-2xl transition-all duration-300;
 }
 

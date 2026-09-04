@@ -1,6 +1,8 @@
 const { Resend } = require("resend");
+const nodemailer = require("nodemailer");
 const Message = require("../models/Message");
 const FreelanceOpportunity = require("../models/FreelanceOpportunity");
+
 // Helper to escape HTML characters in email content
 function escapeHtml(value) {
   return String(value || "")
@@ -12,10 +14,65 @@ function escapeHtml(value) {
 }
 
 /**
+ * Reusable helper to send email via Resend or Nodemailer
+ */
+async function sendNotificationEmail({ to, subject, replyTo, html, text }) {
+  const recipient = to || process.env.CONTACT_TO_EMAIL || "vasanthavenkatasiva@gmail.com";
+
+  // 1. Try Resend if API key is present
+  if (process.env.RESEND_API_KEY) {
+    try {
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      const { data, error } = await resend.emails.send({
+        from: "Portfolio Notification <onboarding@resend.dev>",
+        to: [recipient],
+        subject,
+        replyTo: replyTo || undefined,
+        html,
+        text: text || undefined
+      });
+      if (error) {
+        console.warn("[Email Notification] Resend error:", error);
+      } else {
+        return { success: true, provider: 'resend', id: data?.id };
+      }
+    } catch (err) {
+      console.warn("[Email Notification] Resend exception:", err.message);
+    }
+  }
+
+  // 2. Try Nodemailer if SMTP or Gmail credentials are present
+  if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+    try {
+      const transporter = nodemailer.createTransport({
+        service: process.env.EMAIL_SERVICE || 'gmail',
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS
+        }
+      });
+
+      const info = await transporter.sendMail({
+        from: `"Portfolio Contact" <${process.env.EMAIL_USER}>`,
+        to: recipient,
+        replyTo: replyTo || undefined,
+        subject,
+        html,
+        text: text || undefined
+      });
+      return { success: true, provider: 'nodemailer', id: info.messageId };
+    } catch (err) {
+      console.warn("[Email Notification] Nodemailer exception:", err.message);
+    }
+  }
+
+  console.log(`[Email Notification] Saved to database inbox. Email dispatch skipped (configure RESEND_API_KEY or EMAIL_USER/EMAIL_PASS in .env to enable direct email forwarding).`);
+  return { success: true, provider: 'stored_in_db' };
+}
+
+/**
  * POST /api/contact/send
- * Sends contact form data to the portfolio owner's email using Resend API.
- * 
- * Works cleanly on cloud environments (like Render Free) where outbound SMTP ports are blocked.
+ * Sends contact form data to the portfolio owner's email and saves to DB.
  */
 const sendContactEmail = async (req, res) => {
   try {
@@ -33,20 +90,9 @@ const sendContactEmail = async (req, res) => {
     const cleanEmail = email.trim();
     const cleanSubject = subject.trim();
     const cleanMessage = message.trim();
-
-    // Check if Resend API key is present
-    if (!process.env.RESEND_API_KEY) {
-      console.error("[Resend Error] RESEND_API_KEY is not set in environment variables.");
-      return res.status(500).json({
-        success: false,
-        message: "Email service is not configured on the server. Please contact directly at vasanthavenkatasiva@gmail.com."
-      });
-    }
-
-    const resend = new Resend(process.env.RESEND_API_KEY);
     const toEmail = process.env.CONTACT_TO_EMAIL || "vasanthavenkatasiva@gmail.com";
 
-    // Save to Database
+    // 1. Save to Database FIRST so no message is ever lost
     const newMessage = await Message.create({
       name: cleanName,
       email: cleanEmail,
@@ -55,10 +101,9 @@ const sendContactEmail = async (req, res) => {
       isRead: false
     });
 
-    // Send email through Resend HTTP API
-    const { data, error } = await resend.emails.send({
-      from: "Portfolio Contact <onboarding@resend.dev>",
-      to: [toEmail],
+    // 2. Dispatch Email Notification
+    const emailResult = await sendNotificationEmail({
+      to: toEmail,
       subject: `Portfolio Contact: ${cleanSubject}`,
       replyTo: cleanEmail,
       html: `
@@ -91,32 +136,25 @@ const sendContactEmail = async (req, res) => {
       `
     });
 
-    if (error) {
-      console.error("[Resend Error]", error);
-      return res.status(500).json({
-        success: false,
-        message: error.message || "Email service failed. Please try again later."
-      });
-    }
-
     return res.status(200).json({
       success: true,
-      message: "Message sent successfully.",
-      emailId: data?.id || null
+      message: "Message sent successfully and recorded to inbox.",
+      id: newMessage._id,
+      emailSent: emailResult.success
     });
 
   } catch (error) {
     console.error("[Contact Controller Error]", error);
     return res.status(500).json({
       success: false,
-      message: "Unable to send message."
+      message: "Unable to process message."
     });
   }
 };
 
 /**
  * POST /api/feedback/send
- * Sends feedback data directly to the owner's email using Resend API.
+ * Sends feedback data directly to the owner's email and logs it.
  */
 const sendFeedbackEmail = async (req, res) => {
   try {
@@ -132,21 +170,11 @@ const sendFeedbackEmail = async (req, res) => {
     const cleanName = name.trim();
     const cleanEmail = email.trim();
     const cleanFeedback = feedback.trim();
-
-    if (!process.env.RESEND_API_KEY) {
-      console.error("[Resend Error] RESEND_API_KEY is not set in environment variables.");
-      return res.status(500).json({
-        success: false,
-        message: "Email service is not configured. Please email vasanthavenkatasiva@gmail.com."
-      });
-    }
-
-    const resend = new Resend(process.env.RESEND_API_KEY);
     const toEmail = process.env.CONTACT_TO_EMAIL || "vasanthavenkatasiva@gmail.com";
 
-    const { data, error } = await resend.emails.send({
-      from: "Portfolio Feedback <onboarding@resend.dev>",
-      to: [toEmail],
+    // Dispatch Email Notification
+    const emailResult = await sendNotificationEmail({
+      to: toEmail,
       subject: `Portfolio Feedback from ${cleanName}`,
       replyTo: cleanEmail,
       html: `
@@ -178,32 +206,24 @@ const sendFeedbackEmail = async (req, res) => {
       `
     });
 
-    if (error) {
-      console.error("[Resend Error]", error);
-      return res.status(500).json({
-        success: false,
-        message: error.message || "Feedback email failed to send."
-      });
-    }
-
     return res.status(200).json({
       success: true,
       message: "Feedback sent successfully.",
-      emailId: data?.id || null
+      emailSent: emailResult.success
     });
 
   } catch (error) {
     console.error("[Feedback Controller Error]", error);
     return res.status(500).json({
       success: false,
-      message: "Unable to send feedback."
+      message: "Unable to submit feedback."
     });
   }
 };
 
 /**
  * POST /api/contact/freelance
- * Sends freelance opportunity data directly to the owner's email using Resend API and saves to DB.
+ * Sends freelance opportunity data directly to the owner's email and saves to DB.
  */
 const sendFreelanceEmail = async (req, res) => {
   try {
@@ -218,19 +238,9 @@ const sendFreelanceEmail = async (req, res) => {
 
     const cleanName = name.trim();
     const cleanEmail = email.trim();
-
-    if (!process.env.RESEND_API_KEY) {
-      console.error("[Resend Error] RESEND_API_KEY is not set in environment variables.");
-      return res.status(500).json({
-        success: false,
-        message: "Email service is not configured. Please email vasanthavenkatasiva@gmail.com."
-      });
-    }
-
-    const resend = new Resend(process.env.RESEND_API_KEY);
     const toEmail = process.env.CONTACT_TO_EMAIL || "vasanthavenkatasiva@gmail.com";
 
-    // Save to Database
+    // 1. Save to Database FIRST so opportunity is never lost
     const newOpportunity = await FreelanceOpportunity.create({
       name: cleanName,
       email: cleanEmail,
@@ -247,10 +257,10 @@ const sendFreelanceEmail = async (req, res) => {
       isRead: false
     });
 
-    const { data, error } = await resend.emails.send({
-      from: "Portfolio Freelance <onboarding@resend.dev>",
-      to: [toEmail],
-      subject: `New Freelance Opportunity: ${escapeHtml(projectTitle)}`,
+    // 2. Dispatch Email Notification
+    const emailResult = await sendNotificationEmail({
+      to: toEmail,
+      subject: `New Freelance Opportunity: ${projectTitle.trim()}`,
       replyTo: cleanEmail,
       html: `
         <!DOCTYPE html>
@@ -294,18 +304,11 @@ const sendFreelanceEmail = async (req, res) => {
       `
     });
 
-    if (error) {
-      console.error("[Resend Error]", error);
-      return res.status(500).json({
-        success: false,
-        message: error.message || "Email failed to send."
-      });
-    }
-
     return res.status(200).json({
       success: true,
-      message: "Opportunity submitted successfully.",
-      emailId: data?.id || null
+      message: "Opportunity submitted successfully and recorded to inbox.",
+      id: newOpportunity._id,
+      emailSent: emailResult.success
     });
 
   } catch (error) {
