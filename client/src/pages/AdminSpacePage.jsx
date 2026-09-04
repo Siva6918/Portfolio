@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams, useLocation } from 'react-router-dom';
 import {
   Shield, User, FolderGit2, Cpu, GraduationCap, Award, Trophy,
   FileText, Plus, Trash2, Upload, Lock, Pencil, X, Save,
@@ -75,8 +75,25 @@ const FormCard = ({ children, onSubmit, color, title }) => (
 
 // ─── MAIN COMPONENT ─────────────────────────────────────────────────────
 const AdminSpacePage = () => {
-  const [activeTab, setActiveTab] = useState('profile');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  const initialTab = searchParams.get('tab') || location.hash.replace('#', '') || 'profile';
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const tabFromUrl = searchParams.get('tab') || location.hash.replace('#', '');
+    if (tabFromUrl && tabFromUrl !== activeTab) {
+      setActiveTab(tabFromUrl);
+    }
+  }, [searchParams, location.hash]);
+
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    setSearchParams({ tab: tabId });
+    setShowAddForm(false);
+    setEditingId(null);
+  };
 
   const [profile, setProfile] = useState({});
   const [projects, setProjects] = useState([]);
@@ -610,7 +627,7 @@ const AdminSpacePage = () => {
           const Icon = tab.icon;
           const active = activeTab === tab.id;
           return (
-            <button key={tab.id} onClick={() => { setActiveTab(tab.id); setShowAddForm(false); setEditingId(null); }}
+            <button key={tab.id} onClick={() => handleTabChange(tab.id)}
               className="p-3 rounded-2xl border text-center transition-all min-w-[72px]"
               style={active ? { background: tab.color + '18', borderColor: tab.color + '50', color: tab.color } : { background: '#121217', borderColor: '#2d2d3a', color: '#a1a1aa' }}>
               <Icon className="w-4 h-4 mx-auto mb-1" />
