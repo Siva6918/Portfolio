@@ -5,7 +5,7 @@ const { verifyAdminPasswordHandler } = require('../controllers/adminController')
 const portfolioController = require('../controllers/portfolioController');
 const aiController = require('../controllers/aiController');
 const analyticsController = require('../controllers/analyticsController');
-const { sendContactEmail, sendFeedbackEmail } = require('../controllers/contactEmailController');
+const { sendContactEmail, sendFeedbackEmail, sendFreelanceEmail } = require('../controllers/contactEmailController');
 const { requireAdminAuth } = require('../middleware/authMiddleware');
 const { adminVerifyLimiter } = require('../middleware/rateLimiter');
 const upload = require('../middleware/upload');
@@ -44,6 +44,7 @@ router.post('/admin/verify', adminVerifyLimiter, verifyAdminPasswordHandler);
 
 // Contact & Feedback Email
 router.post('/contact/send', sendContactEmail);
+router.post('/contact/freelance', sendFreelanceEmail);
 router.post('/feedback/send', sendFeedbackEmail);
 
 // Media & File Uploads
@@ -86,5 +87,20 @@ registerCrudRoutes('contacts', portfolioController.contact);
 registerCrudRoutes('goals', portfolioController.goal);
 registerCrudRoutes('focus-areas', portfolioController.focusArea);
 registerCrudRoutes('career-nodes', portfolioController.careerNode);
+
+const workspaceController = require('../controllers/workspaceController');
+const adminDataController = require('../controllers/adminDataController');
+
+// Workspace Routes
+router.get('/workspace', workspaceController.getAll);
+router.post('/workspace', requireAdminAuth, upload.fields([{ name: 'coverImage', maxCount: 1 }, { name: 'resource', maxCount: 1 }]), workspaceController.create);
+router.put('/workspace/:id', requireAdminAuth, upload.fields([{ name: 'coverImage', maxCount: 1 }, { name: 'resource', maxCount: 1 }]), workspaceController.update);
+router.delete('/workspace/:id', requireAdminAuth, workspaceController.delete);
+
+// Admin Data Routes
+router.get('/admin/messages', requireAdminAuth, adminDataController.getMessages);
+router.delete('/admin/messages/:id', requireAdminAuth, adminDataController.deleteMessage);
+router.get('/admin/freelance', requireAdminAuth, adminDataController.getFreelanceOpportunities);
+router.delete('/admin/freelance/:id', requireAdminAuth, adminDataController.deleteFreelanceOpportunity);
 
 module.exports = router;

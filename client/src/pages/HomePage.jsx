@@ -10,6 +10,7 @@ import CertificationsSection from '../components/sections/CertificationsSection'
 import AchievementsSection from '../components/sections/AchievementsSection';
 import LearningJournalSection from '../components/sections/LearningJournalSection';
 import ContactSection from '../components/sections/ContactSection';
+import WorkspaceSection from '../components/sections/WorkspaceSection';
 import { useAnalytics } from '../context/AnalyticsContext';
 
 import { 
@@ -125,9 +126,14 @@ const HomePage = () => {
         <LearningJournalSection />
       </section>
 
-      {/* 11. CONTACT */}
+      {/* 11. CONTACT (GET IN TOUCH) */}
       <section ref={(el) => registerSectionRef(el, 'Contact')} id="contact">
         <ContactSection email={profile.email} profile={profile} />
+      </section>
+
+      {/* 12. WORKSPACE */}
+      <section ref={(el) => registerSectionRef(el, 'Workspace')} id="workspace">
+        <WorkspaceSection />
       </section>
     </div>
   );

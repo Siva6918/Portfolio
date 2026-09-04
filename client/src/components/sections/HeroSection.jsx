@@ -1,5 +1,5 @@
 import React from 'react';
-import { Download, ArrowRight, Github, Linkedin, Mail, Eye } from 'lucide-react';
+import { Download, ArrowRight, Github, Linkedin, Mail, Eye, Briefcase } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { resolveMediaUrl } from '../../services/api';
 import { openPdfInNewTab, downloadPdf } from '../../utils/pdfHelpers';
@@ -149,12 +149,12 @@ const HeroSection = ({ profile, resumeUrl }) => {
               </SwipeableCarousel>
             </div>
 
-            {/* Desktop View Action & Links (hidden on mobile, block on sm) */}
+            {/* Action & Links */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4, ease: easeCurve }}
-              className="hidden sm:flex flex-wrap items-center gap-3 pt-2"
+              className="flex flex-wrap items-center gap-2.5 pt-2"
             >
               <a
                 href="#projects"
@@ -162,6 +162,24 @@ const HeroSection = ({ profile, resumeUrl }) => {
               >
                 <span>EXPLORE CASE STUDIES</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform duration-200" />
+              </a>
+              
+              <a
+                href="#contact-me-form"
+                onClick={(e) => { e.preventDefault(); document.getElementById('contact-me-form')?.scrollIntoView({ behavior: 'smooth' }); }}
+                className="group inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white dark:bg-[#121217] hover:bg-slate-100 dark:hover:bg-[#1a1a22] border border-slate-200 dark:border-zinc-800 text-slate-800 dark:text-white font-mono text-xs font-semibold active:scale-[0.98] transition-all duration-200 shadow-sm"
+              >
+                <Mail className="w-4 h-4 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform duration-200" />
+                <span>CONTACT ME</span>
+              </a>
+
+              <a
+                href="#freelance-form"
+                onClick={(e) => { e.preventDefault(); document.getElementById('freelance-form')?.scrollIntoView({ behavior: 'smooth' }); }}
+                className="group inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white dark:bg-[#121217] hover:bg-slate-100 dark:hover:bg-[#1a1a22] border border-slate-200 dark:border-zinc-800 text-slate-800 dark:text-white font-mono text-xs font-semibold active:scale-[0.98] transition-all duration-200 shadow-sm"
+              >
+                <Briefcase className="w-4 h-4 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform duration-200" />
+                <span>FREELANCE OPPORTUNITY</span>
               </a>
 
               <button

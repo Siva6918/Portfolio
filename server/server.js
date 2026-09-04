@@ -10,10 +10,11 @@ const server = http.createServer(app);
 // Initialize Socket.io real-time engine
 initSocket(server);
 
-// Connect to Database and start server
-connectDB().then(() => {
-  server.listen(PORT, () => {
-    console.log(`[Portfolio Server] Listening on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
-    console.log(`[Portfolio Server] API base URL: http://localhost:${PORT}/api`);
-  });
+// Connect to Database
+connectDB();
+
+// Start HTTP & Socket server
+server.listen(PORT, () => {
+  console.log(`[Portfolio Server] Listening on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
+  console.log(`[Portfolio Server] API base URL: http://localhost:${PORT}/api`);
 });

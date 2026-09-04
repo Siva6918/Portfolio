@@ -6,7 +6,7 @@ import {
   Briefcase, Image, Code2, Sparkles, MapPin, Target,
   BarChart3, Activity, Eye, Download, Globe, Clock, Smartphone,
   RefreshCw, FileSpreadsheet, UserCheck, ChevronRight, Filter,
-  ExternalLink, Mail, Video
+  ExternalLink, Mail, Video, Inbox
 } from 'lucide-react';
 import {
   getProfile, updateProfile,
@@ -19,7 +19,9 @@ import {
   getCodingProfiles, createCodingProfile, updateCodingProfile, deleteCodingProfile,
   getCareerNodes, createCareerNode, updateCareerNode, deleteCareerNode,
   getResume, uploadResumeFile, uploadMedia, resolveMediaUrl,
-  getAnalyticsDashboard, exportAnalyticsCsv
+  getAnalyticsDashboard, exportAnalyticsCsv,
+  getWorkspaceItems, createWorkspaceItem, updateWorkspaceItem, deleteWorkspaceItem,
+  getAdminMessages, deleteAdminMessage, getAdminFreelance, deleteAdminFreelance
 } from '../services/api';
 import { getSocket } from '../services/socket';
 import PasswordModal from '../components/common/PasswordModal';
@@ -86,6 +88,23 @@ const AdminSpacePage = () => {
   const [resume, setResume] = useState({});
   const [codingProfiles, setCodingProfiles] = useState([]);
   const [careerNodes, setCareerNodes] = useState([]);
+
+  // Workspace state
+  const [workspaceItems, setWorkspaceItems] = useState([]);
+  const [workspaceForm, setWorkspaceForm] = useState({ category: 'work', name: '', description: '', externalUrl: '', isVisible: true, displayOrder: 0 });
+  const [wsEditForm, setWsEditForm] = useState({});
+  const [wsEditingId, setWsEditingId] = useState(null);
+  const [wsShowAdd, setWsShowAdd] = useState(false);
+  const wsCoverRef = useRef(null);
+  const wsResourceRef = useRef(null);
+  const wsEditCoverRef = useRef(null);
+  const wsEditResourceRef = useRef(null);
+  const [wsCategory, setWsCategory] = useState('work');
+
+  // Admin inbox state
+  const [adminMessages, setAdminMessages] = useState([]);
+  const [adminFreelance, setAdminFreelance] = useState([]);
+  const [inboxLoading, setInboxLoading] = useState(false);
 
   // Analytics state
   const [analyticsOverview, setAnalyticsOverview] = useState({});
@@ -406,6 +425,74 @@ const AdminSpacePage = () => {
     triggerMutation('Upload Resume PDF', async (pwd) => { await uploadResumeFile(fd, pwd); });
   };
 
+  // ── WORKSPACE ─────────────────────────────────────────────────────────────
+  const fetchWorkspaceItems = async () => {
+    try { const res = await getWorkspaceItems(); setWorkspaceItems(res.data?.data || []); } catch {}
+  };
+  useEffect(() => { fetchWorkspaceItems(); }, []);
+
+  const handleCreateWorkspace = async (pwd) => {
+    const fd = new FormData();
+    Object.entries(workspaceForm).forEach(([k, v]) => fd.append(k, v));
+    const coverFile = wsCoverRef.current?.files?.[0];
+    if (!coverFile) throw new Error('Cover image is required');
+    fd.append('coverImage', coverFile);
+    const resFile = wsResourceRef.current?.files?.[0];
+    if (resFile) fd.append('resource', resFile);
+    await createWorkspaceItem(fd, pwd);
+    setWsShowAdd(false);
+    setWorkspaceForm({ category: wsCategory, name: '', description: '', externalUrl: '', isVisible: true, displayOrder: 0 });
+    fetchWorkspaceItems();
+  };
+
+  const handleUpdateWorkspace = async (id, pwd) => {
+    const fd = new FormData();
+    Object.entries(wsEditForm).forEach(([k, v]) => { if (v !== undefined && v !== null) fd.append(k, v); });
+    const coverFile = wsEditCoverRef.current?.files?.[0];
+    if (coverFile) fd.append('coverImage', coverFile);
+    const resFile = wsEditResourceRef.current?.files?.[0];
+    if (resFile) fd.append('resource', resFile);
+    await updateWorkspaceItem(id, fd, pwd);
+    setWsEditingId(null);
+    setWsEditForm({});
+    fetchWorkspaceItems();
+  };
+
+  const handleDeleteWorkspace = (id, name) => {
+    if (!window.confirm(`Delete workspace item "${name}"? This will also remove files from Cloudinary.`)) return;
+    triggerMutation('Delete: ' + name, async (pwd) => {
+      await deleteWorkspaceItem(id, pwd);
+      fetchWorkspaceItems();
+    });
+  };
+
+  // ── ADMIN INBOX ───────────────────────────────────────────────────────────
+  const fetchInboxData = async () => {
+    setInboxLoading(true);
+    try {
+      const pwd = sessionStorage.getItem('admin_password');
+      const [msgRes, flRes] = await Promise.allSettled([getAdminMessages(pwd), getAdminFreelance(pwd)]);
+      if (msgRes.status === 'fulfilled') setAdminMessages(msgRes.value?.data?.data || []);
+      if (flRes.status === 'fulfilled') setAdminFreelance(flRes.value?.data?.data || []);
+    } catch {} finally { setInboxLoading(false); }
+  };
+
+  const handleDeleteMessage = (id, name) => {
+    if (!window.confirm(`Delete message from "${name}"?`)) return;
+    triggerMutation('Delete Message', async (pwd) => {
+      await deleteAdminMessage(id, pwd);
+      fetchInboxData();
+    });
+  };
+
+  const handleDeleteFreelance = (id, title) => {
+    if (!window.confirm(`Delete freelance opportunity "${title}"?`)) return;
+    triggerMutation('Delete Opportunity', async (pwd) => {
+      await deleteAdminFreelance(id, pwd);
+      fetchInboxData();
+    });
+  };
+
   // ── Tab config ────────────────────────────────────────────────────────────
   const navTabs = [
     { id: 'profile', name: 'Profile', icon: User, count: 1, color: '#6366f1' },
@@ -419,6 +506,8 @@ const AdminSpacePage = () => {
     { id: 'coding', name: 'Coding', icon: Code2, count: codingProfiles.length, color: '#38bdf8' },
     { id: 'career', name: 'Roadmap', icon: Sparkles, count: careerNodes.length, color: '#6366f1' },
     { id: 'resume', name: 'Resume', icon: FileText, count: 1, color: '#6366f1' },
+    { id: 'workspace', name: 'Workspace', icon: Sparkles, count: workspaceItems.length, color: '#8b5cf6' },
+    { id: 'inbox', name: 'Inbox', icon: Inbox, count: adminMessages.length + adminFreelance.length, color: '#f43f5e' },
   ];
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="text-[#a1a1aa] font-mono text-sm animate-pulse">Loading Admin Space...</div></div>;
@@ -452,13 +541,13 @@ const AdminSpacePage = () => {
       </div>
 
       {/* Tab bar */}
-      <div className="grid grid-cols-4 sm:grid-cols-11 gap-2">
+      <div className="flex flex-wrap gap-2">
         {navTabs.map((tab) => {
           const Icon = tab.icon;
           const active = activeTab === tab.id;
           return (
             <button key={tab.id} onClick={() => { setActiveTab(tab.id); setShowAddForm(false); setEditingId(null); }}
-              className="p-3 rounded-2xl border text-center transition-all"
+              className="p-3 rounded-2xl border text-center transition-all min-w-[72px]"
               style={active ? { background: tab.color + '18', borderColor: tab.color + '50', color: tab.color } : { background: '#121217', borderColor: '#2d2d3a', color: '#a1a1aa' }}>
               <Icon className="w-4 h-4 mx-auto mb-1" />
               <span className="block text-[10px] font-bold font-mono">{tab.name}</span>
@@ -1613,6 +1702,241 @@ const AnalyticsView = ({
       </div>
       </>
       )}
+
+      {/* ─── WORKSPACE TAB ──────────────────────────────────────────── */}
+      {activeTab === 'workspace' && (
+        <div className="glass-card p-6 sm:p-8 rounded-3xl border border-[#2d2d3a] space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="flex gap-2">
+              {['work', 'personal'].map(cat => (
+                <button key={cat} onClick={() => setWsCategory(cat)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold font-mono border transition-all capitalize"
+                  style={wsCategory === cat
+                    ? { background: '#8b5cf618', borderColor: '#8b5cf650', color: '#8b5cf6' }
+                    : { background: '#121217', borderColor: '#2d2d3a', color: '#a1a1aa' }}>
+                  {cat === 'work' ? '💼 Work Space' : '🎯 Personal Space'}
+                </button>
+              ))}
+            </div>
+            <button onClick={() => setWsShowAdd(f => !f)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold font-mono border transition-all"
+              style={{ background: '#8b5cf618', color: '#8b5cf6', borderColor: '#8b5cf640' }}>
+              <Plus className="w-3.5 h-3.5" />{wsShowAdd ? 'Close' : 'Add Item'}
+            </button>
+          </div>
+
+          {wsShowAdd && (
+            <form onSubmit={(e) => { e.preventDefault(); triggerMutation('Add Workspace Item', handleCreateWorkspace); }}
+              className="p-5 rounded-2xl border border-[#8b5cf640] bg-[#121217] space-y-3">
+              <h4 className="text-xs font-bold font-mono uppercase text-[#8b5cf6]">Add {wsCategory === 'work' ? 'Work' : 'Personal'} Item</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className={lbl}>Category</label>
+                  <select className={inp} value={workspaceForm.category}
+                    onChange={e => setWorkspaceForm(p => ({ ...p, category: e.target.value }))}>
+                    <option value="work">Work</option>
+                    <option value="personal">Personal</option>
+                  </select>
+                </div>
+                <div><label className={lbl}>Name *</label><input required type="text" className={inp} value={workspaceForm.name} onChange={e => setWorkspaceForm(p => ({ ...p, name: e.target.value }))} /></div>
+              </div>
+              <div><label className={lbl}>Description *</label><textarea required rows={2} className={inp} value={workspaceForm.description} onChange={e => setWorkspaceForm(p => ({ ...p, description: e.target.value }))} /></div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className={lbl}>Cover Image * <span className="text-red-400">(Required)</span></label>
+                  <input ref={wsCoverRef} type="file" accept="image/*" className={inp + ' file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:bg-[#8b5cf6]/20 file:text-[#8b5cf6]'} />
+                </div>
+                <div>
+                  <label className={lbl}>Resource File (optional)</label>
+                  <input ref={wsResourceRef} type="file" accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx" className={inp + ' file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:bg-[#6366f1]/20 file:text-[#6366f1]'} />
+                </div>
+              </div>
+              {workspaceForm.category === 'personal' && (
+                <div><label className={lbl}>External URL (Personal Only)</label><input type="url" className={inp} placeholder="https://..." value={workspaceForm.externalUrl} onChange={e => setWorkspaceForm(p => ({ ...p, externalUrl: e.target.value }))} /></div>
+              )}
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className={lbl}>Display Order</label><input type="number" className={inp} value={workspaceForm.displayOrder} onChange={e => setWorkspaceForm(p => ({ ...p, displayOrder: +e.target.value }))} /></div>
+                <div className="flex items-end gap-2 pb-2">
+                  <label className="flex items-center gap-2 text-xs font-mono text-[#a1a1aa] cursor-pointer">
+                    <input type="checkbox" checked={workspaceForm.isVisible} onChange={e => setWorkspaceForm(p => ({ ...p, isVisible: e.target.checked }))} className="w-4 h-4 rounded" />
+                    Visible
+                  </label>
+                </div>
+              </div>
+              <button type="submit" className="w-full py-2.5 rounded-xl text-xs font-bold border mt-1 flex items-center justify-center gap-2 transition-all" style={{ background: '#8b5cf618', color: '#8b5cf6', borderColor: '#8b5cf640' }}>
+                <Lock className="w-3 h-3" />Save (Password Required)
+              </button>
+            </form>
+          )}
+
+          <div className="space-y-3">
+            {workspaceItems.filter(i => i.category === wsCategory).length === 0 && (
+              <div className="text-center py-12 text-[#a1a1aa] font-mono text-xs">
+                No {wsCategory} items yet. Click "Add Item" to get started.
+              </div>
+            )}
+            {workspaceItems.filter(i => i.category === wsCategory).map(item => (
+              <div key={item._id} className="p-4 rounded-2xl bg-[#121217] border border-[#2d2d3a]">
+                {wsEditingId === item._id ? (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div><label className={lbl}>Name</label><input type="text" className={inp} value={wsEditForm.name || ''} onChange={e => setWsEditForm(p => ({ ...p, name: e.target.value }))} /></div>
+                      <div><label className={lbl}>Display Order</label><input type="number" className={inp} value={wsEditForm.displayOrder || 0} onChange={e => setWsEditForm(p => ({ ...p, displayOrder: +e.target.value }))} /></div>
+                    </div>
+                    <div><label className={lbl}>Description</label><textarea rows={2} className={inp} value={wsEditForm.description || ''} onChange={e => setWsEditForm(p => ({ ...p, description: e.target.value }))} /></div>
+                    {item.category === 'personal' && (
+                      <div><label className={lbl}>External URL</label><input type="url" className={inp} value={wsEditForm.externalUrl || ''} onChange={e => setWsEditForm(p => ({ ...p, externalUrl: e.target.value }))} /></div>
+                    )}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className={lbl}>Replace Cover Image</label>
+                        <input ref={wsEditCoverRef} type="file" accept="image/*" className={inp + ' file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:bg-[#8b5cf6]/20 file:text-[#8b5cf6]'} />
+                      </div>
+                      <div>
+                        <label className={lbl}>Replace Resource</label>
+                        <input ref={wsEditResourceRef} type="file" accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx" className={inp + ' file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:bg-[#6366f1]/20 file:text-[#6366f1]'} />
+                      </div>
+                    </div>
+                    <label className="flex items-center gap-2 text-xs font-mono text-[#a1a1aa] cursor-pointer">
+                      <input type="checkbox" checked={wsEditForm.isVisible !== false} onChange={e => setWsEditForm(p => ({ ...p, isVisible: e.target.checked }))} className="w-4 h-4 rounded" />
+                      Visible
+                    </label>
+                    <div className="flex gap-2 pt-1">
+                      <button type="button" onClick={() => triggerMutation('Update Workspace Item', (pwd) => handleUpdateWorkspace(item._id, pwd))}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#8b5cf6] text-white text-xs font-bold transition-all hover:bg-[#7c3aed]">
+                        <Save className="w-3.5 h-3.5" />Save Changes
+                      </button>
+                      <button type="button" onClick={() => { setWsEditingId(null); setWsEditForm({}); }}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#2d2d3a] text-[#a1a1aa] text-xs font-bold">
+                        <X className="w-3.5 h-3.5" />Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-start gap-4">
+                    <img src={item.coverImage?.url} alt={item.name} className="w-16 h-16 rounded-xl object-cover border border-[#2d2d3a] shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="text-sm font-bold text-[#fafafa]">{item.name}</h4>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border"
+                          style={{ color: item.isVisible ? '#10b981' : '#a1a1aa', borderColor: item.isVisible ? '#10b98140' : '#2d2d3a', background: item.isVisible ? '#10b98110' : 'transparent' }}>
+                          {item.isVisible ? 'Visible' : 'Hidden'}
+                        </span>
+                        {item.resourceType && (
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-[#8b5cf640] bg-[#8b5cf610] text-[#8b5cf6] uppercase">{item.resourceType}</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-[#a1a1aa] mt-1 truncate">{item.description}</p>
+                      <p className="text-[10px] font-mono text-[#52525b] mt-0.5">Order: {item.displayOrder} · {new Date(item.createdAt).toLocaleDateString()}</p>
+                    </div>
+                    <div className="flex gap-2 shrink-0">
+                      <button onClick={() => { setWsEditingId(item._id); setWsEditForm({ ...item, isVisible: item.isVisible !== false }); }}
+                        className="p-1.5 rounded-lg bg-[#8b5cf6]/10 text-[#8b5cf6] hover:bg-[#8b5cf6]/25 border border-[#8b5cf6]/20 transition-colors">
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      <button onClick={() => handleDeleteWorkspace(item._id, item.name)}
+                        className="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 transition-colors">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ─── INBOX TAB ──────────────────────────────────────────────── */}
+      {activeTab === 'inbox' && (
+        <div className="glass-card p-6 sm:p-8 rounded-3xl border border-[#2d2d3a] space-y-8">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-bold text-[#fafafa] flex items-center gap-2">
+              <Inbox className="w-5 h-5 text-[#f43f5e]" /> Contact Inbox
+            </h3>
+            <button onClick={fetchInboxData} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#f43f5e]/10 border border-[#f43f5e]/30 text-[#f43f5e] text-xs font-mono font-bold hover:bg-[#f43f5e]/20 transition-all">
+              <RefreshCw className={`w-3.5 h-3.5 ${inboxLoading ? 'animate-spin' : ''}`} /> Refresh
+            </button>
+          </div>
+
+          <div>
+            <h4 className="text-sm font-bold text-[#fafafa] mb-3 flex items-center gap-2"><Mail className="w-4 h-4 text-[#6366f1]" /> Contact Messages ({adminMessages.length})</h4>
+            {adminMessages.length === 0 ? (
+              <p className="text-xs text-[#a1a1aa] font-mono text-center py-6">No messages yet. Use the "Load Inbox" button below.</p>
+            ) : (
+              <div className="space-y-3">
+                {adminMessages.map(msg => (
+                  <div key={msg._id} className="p-4 rounded-2xl bg-[#121217] border border-[#2d2d3a]">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <span className="text-sm font-bold text-[#fafafa]">{msg.name}</span>
+                          <span className="text-xs font-mono text-[#38bdf8]">{msg.email}</span>
+                          <span className="text-[10px] font-mono text-[#52525b]">{new Date(msg.createdAt).toLocaleDateString()}</span>
+                        </div>
+                        <p className="text-xs font-bold text-[#c084fc] mb-1">Subject: {msg.subject}</p>
+                        <p className="text-xs text-[#a1a1aa] leading-relaxed">{msg.message}</p>
+                      </div>
+                      <button onClick={() => handleDeleteMessage(msg._id, msg.name)}
+                        className="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 transition-colors shrink-0">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div>
+            <h4 className="text-sm font-bold text-[#fafafa] mb-3 flex items-center gap-2"><Briefcase className="w-4 h-4 text-[#10b981]" /> Freelance Opportunities ({adminFreelance.length})</h4>
+            {adminFreelance.length === 0 ? (
+              <p className="text-xs text-[#a1a1aa] font-mono text-center py-6">No freelance submissions yet. Use the "Load Inbox" button below.</p>
+            ) : (
+              <div className="space-y-3">
+                {adminFreelance.map(opp => (
+                  <div key={opp._id} className="p-4 rounded-2xl bg-[#121217] border border-[#2d2d3a]">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0 space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-bold text-[#fafafa]">{opp.projectTitle}</span>
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#10b981]/10 border border-[#10b981]/30 text-[#10b981]">{opp.budget} {opp.currency}</span>
+                        </div>
+                        <div className="flex items-center gap-3 flex-wrap text-xs font-mono">
+                          <span className="text-[#38bdf8]">{opp.name}</span>
+                          <span className="text-[#a1a1aa]">{opp.email}</span>
+                          {opp.phone && <span className="text-[#a1a1aa]">{opp.phone}</span>}
+                          {opp.company && <span className="text-[#c084fc]">{opp.company}</span>}
+                        </div>
+                        <p className="text-[10px] font-mono text-[#a1a1aa]">Duration: {opp.expectedDuration} · Start: {opp.startDate} · Skills: {opp.requiredSkills}</p>
+                        <p className="text-xs text-[#a1a1aa] leading-relaxed">{opp.description}</p>
+                        {opp.additionalRequirements && <p className="text-[10px] text-[#52525b]">Additional: {opp.additionalRequirements}</p>}
+                        <p className="text-[10px] font-mono text-[#52525b]">Submitted: {new Date(opp.createdAt).toLocaleDateString()}</p>
+                      </div>
+                      <button onClick={() => handleDeleteFreelance(opp._id, opp.projectTitle)}
+                        className="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 transition-colors shrink-0">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {adminMessages.length === 0 && adminFreelance.length === 0 && !inboxLoading && (
+            <div className="text-center pt-4">
+              <button onClick={() => {
+                setPendingAction({ title: 'Load Inbox', handler: async (pwd) => { sessionStorage.setItem('admin_password', pwd); await fetchInboxData(); } });
+                setModalOpen(true);
+              }} className="px-6 py-3 rounded-xl text-xs font-bold font-mono bg-[#f43f5e]/10 border border-[#f43f5e]/30 text-[#f43f5e] hover:bg-[#f43f5e]/20 transition-all">
+                <Lock className="w-3.5 h-3.5 inline mr-2" />Load Inbox (Admin Password Required)
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
     </div>
   );
 };

@@ -1,5 +1,6 @@
 const { Resend } = require("resend");
-
+const Message = require("../models/Message");
+const FreelanceOpportunity = require("../models/FreelanceOpportunity");
 // Helper to escape HTML characters in email content
 function escapeHtml(value) {
   return String(value || "")
@@ -44,6 +45,15 @@ const sendContactEmail = async (req, res) => {
 
     const resend = new Resend(process.env.RESEND_API_KEY);
     const toEmail = process.env.CONTACT_TO_EMAIL || "vasanthavenkatasiva@gmail.com";
+
+    // Save to Database
+    const newMessage = await Message.create({
+      name: cleanName,
+      email: cleanEmail,
+      subject: cleanSubject,
+      message: cleanMessage,
+      isRead: false
+    });
 
     // Send email through Resend HTTP API
     const { data, error } = await resend.emails.send({
@@ -191,7 +201,124 @@ const sendFeedbackEmail = async (req, res) => {
   }
 };
 
+/**
+ * POST /api/contact/freelance
+ * Sends freelance opportunity data directly to the owner's email using Resend API and saves to DB.
+ */
+const sendFreelanceEmail = async (req, res) => {
+  try {
+    const { name, email, phone, company, projectTitle, description, requiredSkills, expectedDuration, budget, currency, startDate, additionalRequirements } = req.body;
+
+    if (!name || !email || !projectTitle || !description || !requiredSkills || !expectedDuration || !budget || !currency || !startDate) {
+      return res.status(400).json({
+        success: false,
+        message: "Required fields are missing."
+      });
+    }
+
+    const cleanName = name.trim();
+    const cleanEmail = email.trim();
+
+    if (!process.env.RESEND_API_KEY) {
+      console.error("[Resend Error] RESEND_API_KEY is not set in environment variables.");
+      return res.status(500).json({
+        success: false,
+        message: "Email service is not configured. Please email vasanthavenkatasiva@gmail.com."
+      });
+    }
+
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const toEmail = process.env.CONTACT_TO_EMAIL || "vasanthavenkatasiva@gmail.com";
+
+    // Save to Database
+    const newOpportunity = await FreelanceOpportunity.create({
+      name: cleanName,
+      email: cleanEmail,
+      phone: phone?.trim(),
+      company: company?.trim(),
+      projectTitle: projectTitle.trim(),
+      description: description.trim(),
+      requiredSkills: requiredSkills.trim(),
+      expectedDuration: expectedDuration.trim(),
+      budget: budget.trim(),
+      currency: currency.trim(),
+      startDate: startDate.trim(),
+      additionalRequirements: additionalRequirements?.trim(),
+      isRead: false
+    });
+
+    const { data, error } = await resend.emails.send({
+      from: "Portfolio Freelance <onboarding@resend.dev>",
+      to: [toEmail],
+      subject: `New Freelance Opportunity: ${escapeHtml(projectTitle)}`,
+      replyTo: cleanEmail,
+      html: `
+        <!DOCTYPE html>
+        <html>
+          <body style="margin:0; padding:0; background:#09090B; font-family:Arial, sans-serif; color:#FAFAFA;">
+            <div style="max-width:650px; margin:30px auto; background:#18181B; border:1px solid #27272A; border-radius:16px; overflow:hidden;">
+              <div style="padding:24px; background:#09090B; border-bottom:1px solid #27272A;">
+                <h1 style="margin:0; color:#8B5CF6; font-size:24px;">🚀 New Freelance Opportunity</h1>
+                <p style="margin:8px 0 0; color:#A1A1AA;">A new freelance project was submitted through your portfolio.</p>
+              </div>
+
+              <div style="padding:24px;">
+                <p><strong style="color:#A1A1AA;">Name:</strong> <span style="color:#FAFAFA;">${escapeHtml(cleanName)}</span></p>
+                <p><strong style="color:#A1A1AA;">Email:</strong> <span style="color:#38BDF8;">${escapeHtml(cleanEmail)}</span></p>
+                <p><strong style="color:#A1A1AA;">Phone:</strong> <span style="color:#FAFAFA;">${escapeHtml(phone || 'N/A')}</span></p>
+                <p><strong style="color:#A1A1AA;">Company:</strong> <span style="color:#FAFAFA;">${escapeHtml(company || 'N/A')}</span></p>
+                <p><strong style="color:#A1A1AA;">Project Title:</strong> <span style="color:#F43F5E;">${escapeHtml(projectTitle)}</span></p>
+                <p><strong style="color:#A1A1AA;">Budget:</strong> <span style="color:#10B981;">${escapeHtml(budget)} ${escapeHtml(currency)}</span></p>
+                <p><strong style="color:#A1A1AA;">Expected Duration:</strong> <span style="color:#FAFAFA;">${escapeHtml(expectedDuration)}</span></p>
+                <p><strong style="color:#A1A1AA;">Start Date:</strong> <span style="color:#FAFAFA;">${escapeHtml(startDate)}</span></p>
+                <p><strong style="color:#A1A1AA;">Required Skills:</strong> <span style="color:#FAFAFA;">${escapeHtml(requiredSkills)}</span></p>
+
+                <div style="margin-top:24px; padding:18px; background:#09090B; border-left:3px solid #8B5CF6; border-radius:8px;">
+                  <p style="margin:0 0 8px 0; color:#A1A1AA; font-size:12px; font-weight:bold; letter-spacing:1px;">PROJECT DESCRIPTION</p>
+                  <p style="margin:0; color:#FAFAFA; line-height:1.7; white-space:pre-wrap;">${escapeHtml(description)}</p>
+                </div>
+                
+                ${additionalRequirements ? `
+                <div style="margin-top:24px; padding:18px; background:#09090B; border-left:3px solid #F59E0B; border-radius:8px;">
+                  <p style="margin:0 0 8px 0; color:#A1A1AA; font-size:12px; font-weight:bold; letter-spacing:1px;">ADDITIONAL REQUIREMENTS</p>
+                  <p style="margin:0; color:#FAFAFA; line-height:1.7; white-space:pre-wrap;">${escapeHtml(additionalRequirements)}</p>
+                </div>` : ''}
+              </div>
+
+              <div style="padding:18px 24px; border-top:1px solid #27272A; color:#71717A; font-size:12px; text-align:center;">
+                Siva Space Portfolio Contact System · Reply directly to this email to respond to ${escapeHtml(cleanName)}
+              </div>
+            </div>
+          </body>
+        </html>
+      `
+    });
+
+    if (error) {
+      console.error("[Resend Error]", error);
+      return res.status(500).json({
+        success: false,
+        message: error.message || "Email failed to send."
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Opportunity submitted successfully.",
+      emailId: data?.id || null
+    });
+
+  } catch (error) {
+    console.error("[Freelance Controller Error]", error);
+    return res.status(500).json({
+      success: false,
+      message: "Unable to submit opportunity."
+    });
+  }
+};
+
 module.exports = {
   sendContactEmail,
-  sendFeedbackEmail
+  sendFeedbackEmail,
+  sendFreelanceEmail
 };

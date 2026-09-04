@@ -171,4 +171,26 @@ export const exportAnalyticsCsv = (pwd, period) => {
   });
 };
 
+// Workspace API Endpoints
+export const getWorkspaceItems = () => api.get('/workspace');
+export const createWorkspaceItem = (formData, pwd) => api.post('/workspace', formData, {
+  headers: {
+    'Content-Type': 'multipart/form-data',
+    ...(pwd ? { 'x-admin-password': pwd } : {})
+  }
+});
+export const updateWorkspaceItem = (id, formData, pwd) => api.put(`/workspace/${id}`, formData, {
+  headers: {
+    'Content-Type': 'multipart/form-data',
+    ...(pwd ? { 'x-admin-password': pwd } : {})
+  }
+});
+export const deleteWorkspaceItem = (id, pwd) => api.delete(`/workspace/${id}`, authHeader(pwd));
+
+// Admin Messages & Freelance Opportunities
+export const getAdminMessages = (pwd) => api.get('/admin/messages', authHeader(pwd));
+export const deleteAdminMessage = (id, pwd) => api.delete(`/admin/messages/${id}`, authHeader(pwd));
+export const getAdminFreelance = (pwd) => api.get('/admin/freelance', authHeader(pwd));
+export const deleteAdminFreelance = (id, pwd) => api.delete(`/admin/freelance/${id}`, authHeader(pwd));
+
 export default api;

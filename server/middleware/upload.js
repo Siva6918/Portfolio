@@ -14,9 +14,9 @@ const fileFilter = (req, file, cb) => {
     return cb(new Error('Only PDF files are allowed for resume!'), false);
   }
 
-  // Allow images, PDFs, and video files for media uploads
-  const allowedMimeTypes = /jpeg|jpg|png|webp|svg\+xml|svg|pdf|mp4|webm|quicktime|ogg|x-msvideo/;
-  const allowedExtensions = /\.(jpe?g|png|webp|svg|pdf|mp4|webm|mov|ogg|avi)$/i;
+  // Allow images, PDFs, video files, and office docs for media uploads
+  const allowedMimeTypes = /jpeg|jpg|png|webp|svg\+xml|svg|pdf|mp4|webm|quicktime|ogg|x-msvideo|msword|officedocument|excel|spreadsheetml/;
+  const allowedExtensions = /\.(jpe?g|png|webp|svg|pdf|mp4|webm|mov|ogg|avi|doc|docx|xls|xlsx)$/i;
 
   const mimeOk = allowedMimeTypes.test(file.mimetype);
   const extOk = allowedExtensions.test(path.extname(file.originalname));
@@ -24,7 +24,7 @@ const fileFilter = (req, file, cb) => {
   if (mimeOk || extOk) {
     return cb(null, true);
   }
-  cb(new Error('Only image (JPG, PNG, WEBP, SVG), PDF, or video (MP4, WEBM, MOV) files are allowed!'), false);
+  cb(new Error('Only image, PDF, video, doc, or excel files are allowed!'), false);
 };
 
 const upload = multer({

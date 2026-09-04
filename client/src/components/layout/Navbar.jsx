@@ -24,7 +24,7 @@ const Navbar = () => {
   useEffect(() => {
     if (isAdmin || location.pathname !== '/') return;
 
-    const sections = ['about', 'projects', 'experiments', 'skills', 'experience', 'contact'];
+    const sections = ['about', 'projects', 'experiments', 'skills', 'experience', 'workspace', 'contact'];
     
     const handleScroll = () => {
       const scrollPosition = window.scrollY + 120;
@@ -63,6 +63,7 @@ const Navbar = () => {
     { name: 'Lab', id: 'experiments', href: '/#experiments' },
     { name: 'Skills', id: 'skills', href: '/#skills' },
     { name: 'Experience', id: 'experience', href: '/#experience' },
+    { name: 'Workspace', id: 'workspace', href: '/#workspace' },
     { name: 'Contact', id: 'contact', href: '/#contact' },
   ];
 

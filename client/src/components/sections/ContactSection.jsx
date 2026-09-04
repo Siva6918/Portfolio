@@ -1,88 +1,117 @@
 import React, { useState } from "react";
-import { Mail, Linkedin, Github, Send, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
+import { Mail, Linkedin, Github, Send, CheckCircle2, Loader2, AlertCircle, Briefcase } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAnalytics } from "../../context/AnalyticsContext";
+import { API_BASE } from "../../services/api";
 
 const easeCurve = [0.16, 1, 0.3, 1];
-const API_URL = (import.meta.env.VITE_API_URL || "/api").replace(/\/+$/, "");
+const API_URL = API_BASE.replace(/\/+$/, "");
 
 const ContactSection = ({ email = "vasanreddy1331@gmail.com", profile = {} }) => {
   const { trackInteraction } = useAnalytics();
 
-  const [formData, setFormData] = useState({
+  const [contactData, setContactData] = useState({
     name: "",
     email: "",
     subject: "",
     message: "",
   });
+  
+  const [freelanceData, setFreelanceData] = useState({
+    name: "", email: "", phone: "", company: "", projectTitle: "", description: "",
+    requiredSkills: "", expectedDuration: "", budget: "", currency: "USD",
+    startDate: "", additionalRequirements: ""
+  });
 
-  const [status, setStatus] = useState("idle");
-  const [errorMsg, setErrorMsg] = useState("");
+  const [contactStatus, setContactStatus] = useState("idle");
+  const [contactError, setContactError] = useState("");
 
-  const handleChange = (e) => {
+  const [freelanceStatus, setFreelanceStatus] = useState("idle");
+  const [freelanceError, setFreelanceError] = useState("");
+
+  const handleContactChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setContactData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleFreelanceChange = (e) => {
+    const { name, value } = e.target;
+    setFreelanceData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleContactSubmit = async (e) => {
     e.preventDefault();
+    if (contactStatus === "loading") return;
 
-    if (status === "loading") return;
-
-    if (!formData.name.trim() || !formData.email.trim() || !formData.subject.trim() || !formData.message.trim()) {
-      setStatus("error");
-      setErrorMsg("Please fill in all fields.");
+    if (!contactData.name.trim() || !contactData.email.trim() || !contactData.subject.trim() || !contactData.message.trim()) {
+      setContactStatus("error");
+      setContactError("Please fill in all required fields.");
       return;
     }
 
-    trackInteraction('contact_form_submit', formData.subject.trim() || 'Contact Form', 'Contact');
-
-    setStatus("loading");
-    setErrorMsg("");
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    trackInteraction('contact_form_submit', contactData.subject.trim() || 'Contact Form', 'Contact');
+    setContactStatus("loading");
+    setContactError("");
 
     try {
-      const endpoint = `${API_URL}/contact/send`;
-      const response = await fetch(endpoint, {
+      const response = await fetch(`${API_URL}/contact/send`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({
-          name: formData.name.trim(),
-          email: formData.email.trim(),
-          subject: formData.subject.trim(),
-          message: formData.message.trim(),
-        }),
-        signal: controller.signal,
+        body: JSON.stringify(contactData),
       });
 
-      clearTimeout(timeoutId);
-
-      let data = {};
-      const contentType = response.headers.get("content-type") || "";
-
-      if (contentType.includes("application/json")) {
-        data = await response.json();
-      } else {
-        data = { success: true };
-      }
+      const data = response.headers.get("content-type")?.includes("application/json") ? await response.json() : { success: true };
 
       if (response.ok || data.success) {
-        setStatus("success");
-        setFormData({ name: "", email: "", subject: "", message: "" });
-        setTimeout(() => setStatus("idle"), 6000);
-        return;
+        setContactStatus("success");
+        setContactData({ name: "", email: "", subject: "", message: "" });
+        setTimeout(() => setContactStatus("idle"), 6000);
+      } else {
+        throw new Error(data.message || "Failed to send message");
       }
-
-      throw new Error(data.message || "Failed to send message");
     } catch (error) {
       console.error("Contact submit error:", error);
-      setStatus("success");
-      setFormData({ name: "", email: "", subject: "", message: "" });
-      setTimeout(() => setStatus("idle"), 6000);
-    } finally {
-      clearTimeout(timeoutId);
+      setContactStatus("error");
+      setContactError(error.message || "Something went wrong.");
+      setTimeout(() => setContactStatus("idle"), 6000);
+    }
+  };
+
+  const handleFreelanceSubmit = async (e) => {
+    e.preventDefault();
+    if (freelanceStatus === "loading") return;
+
+    if (!freelanceData.name.trim() || !freelanceData.email.trim() || !freelanceData.projectTitle.trim() || !freelanceData.description.trim() || !freelanceData.requiredSkills.trim() || !freelanceData.expectedDuration.trim() || !freelanceData.budget.trim() || !freelanceData.startDate.trim()) {
+      setFreelanceStatus("error");
+      setFreelanceError("Please fill in all required fields.");
+      return;
+    }
+
+    trackInteraction('freelance_form_submit', freelanceData.projectTitle.trim() || 'Freelance Form', 'Contact');
+    setFreelanceStatus("loading");
+    setFreelanceError("");
+
+    try {
+      const response = await fetch(`${API_URL}/contact/freelance`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(freelanceData),
+      });
+
+      const data = response.headers.get("content-type")?.includes("application/json") ? await response.json() : { success: true };
+
+      if (response.ok || data.success) {
+        setFreelanceStatus("success");
+        setFreelanceData({ name: "", email: "", phone: "", company: "", projectTitle: "", description: "", requiredSkills: "", expectedDuration: "", budget: "", currency: "USD", startDate: "", additionalRequirements: "" });
+        setTimeout(() => setFreelanceStatus("idle"), 6000);
+      } else {
+        throw new Error(data.message || "Failed to send opportunity");
+      }
+    } catch (error) {
+      console.error("Freelance submit error:", error);
+      setFreelanceStatus("error");
+      setFreelanceError(error.message || "Something went wrong.");
+      setTimeout(() => setFreelanceStatus("idle"), 6000);
     }
   };
 
@@ -92,7 +121,7 @@ const ContactSection = ({ email = "vasanreddy1331@gmail.com", profile = {} }) =>
     <section id="contact" className="py-20 relative w-full border-t border-slate-200 dark:border-zinc-800/60">
       <div className="section-container">
         
-        {/* Header Stagger */}
+        {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
           <div>
             <motion.span
@@ -102,9 +131,8 @@ const ContactSection = ({ email = "vasanreddy1331@gmail.com", profile = {} }) =>
               transition={{ duration: 0.5, delay: 0.0, ease: easeCurve }}
               className="text-xs font-mono tracking-widest text-indigo-600 dark:text-indigo-400 uppercase font-semibold block"
             >
-              09 // GET IN TOUCH
+              11 // GET IN TOUCH
             </motion.span>
-
             <motion.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -115,7 +143,6 @@ const ContactSection = ({ email = "vasanreddy1331@gmail.com", profile = {} }) =>
               Have an idea, opportunity, or interesting problem?
             </motion.h2>
           </div>
-
           <motion.p
             initial={{ opacity: 0, y: 15 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -123,60 +150,44 @@ const ContactSection = ({ email = "vasanreddy1331@gmail.com", profile = {} }) =>
             transition={{ duration: 0.5, delay: 0.2, ease: easeCurve }}
             className="text-xs font-mono text-slate-600 dark:text-white/50 max-w-xs"
           >
-            Feel free to drop a message or reach out directly on LinkedIn / Email.
+            Feel free to drop a message, submit a project opportunity, or reach out directly.
           </motion.p>
         </div>
 
-        {/* 2 Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        {/* 3 Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* Left Column: Direct Links */}
+          {/* Column 1: Direct Contact */}
           <motion.div
             initial={{ opacity: 0, y: 25 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.15 }}
             transition={{ duration: 0.6, delay: 0.0, ease: easeCurve }}
-            className="lg:col-span-5 space-y-6"
+            className="space-y-6"
           >
-            <div className="editorial-card p-6 space-y-5">
+            <div className="editorial-card p-6 h-full space-y-5">
               <h3 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-wide">
-                DIRECT CONTACT
+                Contact Information
               </h3>
-
               <div className="space-y-4">
-                <a
-                  href={`mailto:${displayEmail}`}
-                  onClick={() => trackInteraction('email_click', displayEmail, 'Contact')}
-                  className="flex items-center gap-3.5 p-3.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-white/70 hover:text-indigo-600 dark:hover:text-indigo-300 hover:border-slate-300 dark:hover:border-zinc-700 transition-all duration-200 shadow-sm"
-                >
+                <a href={`mailto:${displayEmail}`} onClick={() => trackInteraction('email_click', displayEmail, 'Contact')}
+                   className="flex items-center gap-3.5 p-3.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-white/70 hover:text-indigo-600 dark:hover:text-indigo-300 hover:border-slate-300 dark:hover:border-zinc-700 transition-all duration-200 shadow-sm">
                   <Mail className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
                   <div className="min-w-0">
                     <span className="block text-[10px] font-mono text-slate-500 dark:text-white/50 uppercase">Email</span>
                     <span className="block text-xs font-bold text-slate-900 dark:text-white truncate">{displayEmail}</span>
                   </div>
                 </a>
-
-                <a
-                  href="https://www.linkedin.com/in/venkatasiva-reddy/"
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={() => trackInteraction('linkedin_click', 'LinkedIn Profile', 'Contact')}
-                  className="flex items-center gap-3.5 p-3.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-white/70 hover:text-indigo-600 dark:hover:text-indigo-300 hover:border-slate-300 dark:hover:border-zinc-700 transition-all duration-200 shadow-sm"
-                >
+                <a href="https://www.linkedin.com/in/venkatasiva-reddy/" target="_blank" rel="noreferrer" onClick={() => trackInteraction('linkedin_click', 'LinkedIn Profile', 'Contact')}
+                   className="flex items-center gap-3.5 p-3.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-white/70 hover:text-indigo-600 dark:hover:text-indigo-300 hover:border-slate-300 dark:hover:border-zinc-700 transition-all duration-200 shadow-sm">
                   <Linkedin className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
                   <div className="min-w-0">
                     <span className="block text-[10px] font-mono text-slate-500 dark:text-white/50 uppercase">LinkedIn</span>
                     <span className="block text-xs font-bold text-slate-900 dark:text-white truncate">linkedin.com/in/venkatasiva-reddy</span>
                   </div>
                 </a>
-
-                <a
-                  href="https://github.com/vasanreddy"
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={() => trackInteraction('github_click', 'GitHub Profile', 'Contact')}
-                  className="flex items-center gap-3.5 p-3.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-white/70 hover:text-indigo-600 dark:hover:text-indigo-300 hover:border-slate-300 dark:hover:border-zinc-700 transition-all duration-200 shadow-sm"
-                >
+                <a href="https://github.com/vasanreddy" target="_blank" rel="noreferrer" onClick={() => trackInteraction('github_click', 'GitHub Profile', 'Contact')}
+                   className="flex items-center gap-3.5 p-3.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-white/70 hover:text-indigo-600 dark:hover:text-indigo-300 hover:border-slate-300 dark:hover:border-zinc-700 transition-all duration-200 shadow-sm">
                   <Github className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
                   <div className="min-w-0">
                     <span className="block text-[10px] font-mono text-slate-500 dark:text-white/50 uppercase">GitHub</span>
@@ -187,127 +198,124 @@ const ContactSection = ({ email = "vasanreddy1331@gmail.com", profile = {} }) =>
             </div>
           </motion.div>
 
-          {/* Right Column: Clean Contact Form */}
+          {/* Column 2: Contact Form */}
           <motion.div
             initial={{ opacity: 0, y: 25 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.15 }}
-            transition={{ duration: 0.6, delay: 0.15, ease: easeCurve }}
-            className="lg:col-span-7"
+            transition={{ duration: 0.6, delay: 0.1, ease: easeCurve }}
+            id="contact-me-form"
           >
-            <div className="editorial-card p-6 sm:p-8 space-y-4">
+            <div className="editorial-card p-6 h-full space-y-4">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-wide flex items-center gap-2">
+                <Mail className="w-4 h-4 text-indigo-500" /> Contact Me
+              </h3>
               
-              {status === "success" && (
+              {contactStatus === "success" && (
                 <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center gap-3 text-xs font-mono animate-fade-in">
                   <CheckCircle2 className="w-5 h-5 shrink-0" />
-                  <span>Thank you! Your message has been sent successfully.</span>
+                  <span>Message sent successfully!</span>
                 </div>
               )}
-
-              {status === "error" && (
+              {contactStatus === "error" && (
                 <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 flex items-center gap-3 text-xs font-mono animate-fade-in">
                   <AlertCircle className="w-5 h-5 shrink-0" />
-                  <span>{errorMsg}</span>
+                  <span>{contactError}</span>
                 </div>
               )}
 
-              {status !== "success" && (
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {contactStatus !== "success" && (
+                <form onSubmit={handleContactSubmit} className="space-y-4 flex flex-col h-[calc(100%-3rem)]">
+                  <div className="space-y-3 flex-grow">
                     <div>
-                      <label htmlFor="name" className="block text-xs font-mono text-slate-700 dark:text-white/70 mb-1">
-                        Name
-                      </label>
-                      <input
-                        id="name"
-                        type="text"
-                        name="name"
-                        required
-                        value={formData.name}
-                        onChange={handleChange}
-                        placeholder="Your Name"
-                        disabled={status === "loading"}
-                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors duration-200 disabled:opacity-50"
-                      />
+                      <input type="text" name="name" required value={contactData.name} onChange={handleContactChange} placeholder="Name" disabled={contactStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors" />
                     </div>
-
                     <div>
-                      <label htmlFor="email" className="block text-xs font-mono text-slate-700 dark:text-white/70 mb-1">
-                        Email
-                      </label>
-                      <input
-                        id="email"
-                        type="email"
-                        name="email"
-                        required
-                        value={formData.email}
-                        onChange={handleChange}
-                        placeholder="name@company.com"
-                        disabled={status === "loading"}
-                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors duration-200 disabled:opacity-50"
-                      />
+                      <input type="email" name="email" required value={contactData.email} onChange={handleContactChange} placeholder="Email" disabled={contactStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors" />
+                    </div>
+                    <div>
+                      <input type="text" name="subject" required value={contactData.subject} onChange={handleContactChange} placeholder="Subject" disabled={contactStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors" />
+                    </div>
+                    <div>
+                      <textarea name="message" required rows={4} value={contactData.message} onChange={handleContactChange} placeholder="Message" disabled={contactStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors resize-none" />
                     </div>
                   </div>
-
-                  <div>
-                    <label htmlFor="subject" className="block text-xs font-mono text-slate-700 dark:text-white/70 mb-1">
-                      Subject
-                    </label>
-                    <input
-                      id="subject"
-                      type="text"
-                      name="subject"
-                      required
-                      value={formData.subject}
-                      onChange={handleChange}
-                      placeholder="Role Discussion / Project Opportunity"
-                      disabled={status === "loading"}
-                      className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors duration-200 disabled:opacity-50"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="message" className="block text-xs font-mono text-slate-700 dark:text-white/70 mb-1">
-                      Message
-                    </label>
-                    <textarea
-                      id="message"
-                      rows={4}
-                      name="message"
-                      required
-                      value={formData.message}
-                      onChange={handleChange}
-                      placeholder="Hi Venkata Siva Reddy..."
-                      disabled={status === "loading"}
-                      className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors duration-200 disabled:opacity-50 resize-none"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={status === "loading"}
-                    className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white font-mono text-xs font-semibold shadow-lg transition-all duration-200 disabled:opacity-50"
-                  >
-                    {status === "loading" ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>SENDING...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-4 h-4" />
-                        <span>SEND MESSAGE</span>
-                      </>
-                    )}
+                  <button type="submit" disabled={contactStatus === "loading"} className="w-full mt-auto flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white font-mono text-xs font-semibold shadow-lg transition-all duration-200 disabled:opacity-50">
+                    {contactStatus === "loading" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                    <span>{contactStatus === "loading" ? "SENDING..." : "SEND MESSAGE"}</span>
                   </button>
                 </form>
               )}
+            </div>
+          </motion.div>
 
+          {/* Column 3: Freelance Opportunity Form */}
+          <motion.div
+            initial={{ opacity: 0, y: 25 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.15 }}
+            transition={{ duration: 0.6, delay: 0.2, ease: easeCurve }}
+            id="freelance-form"
+          >
+            <div className="editorial-card p-6 h-full space-y-4">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-wide flex items-center gap-2">
+                <Briefcase className="w-4 h-4 text-emerald-500" /> Freelance Opportunity
+              </h3>
+              
+              {freelanceStatus === "success" && (
+                <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center gap-3 text-xs font-mono animate-fade-in">
+                  <CheckCircle2 className="w-5 h-5 shrink-0" />
+                  <span>Opportunity submitted! I'll be in touch soon.</span>
+                </div>
+              )}
+              {freelanceStatus === "error" && (
+                <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 flex items-center gap-3 text-xs font-mono animate-fade-in">
+                  <AlertCircle className="w-5 h-5 shrink-0" />
+                  <span>{freelanceError}</span>
+                </div>
+              )}
+
+              {freelanceStatus !== "success" && (
+                <form onSubmit={handleFreelanceSubmit} className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                  <div className="grid grid-cols-2 gap-3">
+                    <input type="text" name="name" required value={freelanceData.name} onChange={handleFreelanceChange} placeholder="Name *" disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors" />
+                    <input type="email" name="email" required value={freelanceData.email} onChange={handleFreelanceChange} placeholder="Email *" disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <input type="text" name="phone" value={freelanceData.phone} onChange={handleFreelanceChange} placeholder="Phone (opt)" disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors" />
+                    <input type="text" name="company" value={freelanceData.company} onChange={handleFreelanceChange} placeholder="Company (opt)" disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors" />
+                  </div>
+                  <input type="text" name="projectTitle" required value={freelanceData.projectTitle} onChange={handleFreelanceChange} placeholder="Project Title *" disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors" />
+                  <textarea name="description" required rows={2} value={freelanceData.description} onChange={handleFreelanceChange} placeholder="Project Description *" disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors resize-none" />
+                  <input type="text" name="requiredSkills" required value={freelanceData.requiredSkills} onChange={handleFreelanceChange} placeholder="Required Skills (e.g., React, Node) *" disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors" />
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <input type="text" name="expectedDuration" required value={freelanceData.expectedDuration} onChange={handleFreelanceChange} placeholder="Duration (e.g. 2 mos) *" disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors" />
+                    <input type="text" name="startDate" required value={freelanceData.startDate} onChange={handleFreelanceChange} placeholder="Start Date *" disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors" />
+                  </div>
+                  
+                  <div className="grid grid-cols-[2fr_1fr] gap-3">
+                    <input type="text" name="budget" required value={freelanceData.budget} onChange={handleFreelanceChange} placeholder="Budget / Hourly Rate *" disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors" />
+                    <select name="currency" value={freelanceData.currency} onChange={handleFreelanceChange} disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                      <option value="USD">USD</option>
+                      <option value="EUR">EUR</option>
+                      <option value="GBP">GBP</option>
+                      <option value="INR">INR</option>
+                      <option value="AUD">AUD</option>
+                    </select>
+                  </div>
+                  <input type="text" name="additionalRequirements" value={freelanceData.additionalRequirements} onChange={handleFreelanceChange} placeholder="Additional Requirements (opt)" disabled={freelanceStatus === "loading"} className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors" />
+                  
+                  <button type="submit" disabled={freelanceStatus === "loading"} className="w-full mt-4 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] text-white font-mono text-xs font-semibold shadow-lg transition-all duration-200 disabled:opacity-50">
+                    {freelanceStatus === "loading" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Briefcase className="w-4 h-4" />}
+                    <span>{freelanceStatus === "loading" ? "SUBMITTING..." : "SUBMIT OPPORTUNITY"}</span>
+                  </button>
+                </form>
+              )}
             </div>
           </motion.div>
 
         </div>
-
       </div>
     </section>
   );
