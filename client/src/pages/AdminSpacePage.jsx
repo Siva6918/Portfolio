@@ -6,7 +6,7 @@ import {
   Briefcase, Image, Code2, Sparkles, MapPin, Target,
   BarChart3, Activity, Eye, Download, Globe, Clock, Smartphone,
   RefreshCw, FileSpreadsheet, UserCheck, ChevronRight, Filter,
-  ExternalLink, Mail, Video, Inbox
+  ExternalLink, Mail, Video, Inbox, Play, FileType, Sheet, Link as LinkIcon, CheckCircle2
 } from 'lucide-react';
 import {
   getProfile, updateProfile,
@@ -95,11 +95,28 @@ const AdminSpacePage = () => {
   const [wsEditForm, setWsEditForm] = useState({});
   const [wsEditingId, setWsEditingId] = useState(null);
   const [wsShowAdd, setWsShowAdd] = useState(false);
+  const [wsCategory, setWsCategory] = useState('work'); // 'work' | 'personal'
+  
+  // File preview & dropzone states for create
+  const [wsCoverFile, setWsCoverFile] = useState(null);
+  const [wsCoverPreview, setWsCoverPreview] = useState(null);
+  const [wsResourceFile, setWsResourceFile] = useState(null);
+  const [wsResourceMode, setWsResourceMode] = useState('file'); // 'file' | 'link'
+  const [wsDragCover, setWsDragCover] = useState(false);
+  const [wsDragResource, setWsDragResource] = useState(false);
+  
+  // File preview & dropzone states for edit
+  const [wsEditCoverFile, setWsEditCoverFile] = useState(null);
+  const [wsEditCoverPreview, setWsEditCoverPreview] = useState(null);
+  const [wsEditResourceFile, setWsEditResourceFile] = useState(null);
+  const [wsEditResourceMode, setWsEditResourceMode] = useState('file');
+  const [wsEditDragCover, setWsEditDragCover] = useState(false);
+  const [wsEditDragResource, setWsEditDragResource] = useState(false);
+  
   const wsCoverRef = useRef(null);
   const wsResourceRef = useRef(null);
   const wsEditCoverRef = useRef(null);
   const wsEditResourceRef = useRef(null);
-  const [wsCategory, setWsCategory] = useState('work');
 
   // Admin inbox state
   const [adminMessages, setAdminMessages] = useState([]);
@@ -248,12 +265,14 @@ const AdminSpacePage = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
+      const pwd = sessionStorage.getItem('admin_password');
       const results = await Promise.allSettled([
         getProfile(), getProjects(), getSkills(), getEducation(),
         getCertifications(), getAchievements(), getExperience(), getResume(),
-        getCodingProfiles(), getCareerNodes()
+        getCodingProfiles(), getCareerNodes(), getWorkspaceItems(),
+        getAdminMessages(pwd), getAdminFreelance(pwd)
       ]);
-      const [profRes, projRes, skillRes, eduRes, certRes, achRes, expRes, resRes, codRes, carRes] = results;
+      const [profRes, projRes, skillRes, eduRes, certRes, achRes, expRes, resRes, codRes, carRes, wsRes, msgRes, flRes] = results;
       if (profRes.status === 'fulfilled' && profRes.value?.data?.data) {
         setProfile(profRes.value.data.data);
         setProfileForm(profRes.value.data.data);
@@ -267,6 +286,9 @@ const AdminSpacePage = () => {
       if (resRes.status === 'fulfilled' && resRes.value?.data?.data) setResume(resRes.value.data.data);
       if (codRes.status === 'fulfilled' && codRes.value?.data?.data) setCodingProfiles(codRes.value.data.data);
       if (carRes.status === 'fulfilled' && carRes.value?.data?.data) setCareerNodes(carRes.value.data.data);
+      if (wsRes.status === 'fulfilled' && wsRes.value?.data?.data) setWorkspaceItems(wsRes.value.data.data);
+      if (msgRes.status === 'fulfilled' && msgRes.value?.data?.data) setAdminMessages(msgRes.value.data.data);
+      if (flRes.status === 'fulfilled' && flRes.value?.data?.data) setAdminFreelance(flRes.value.data.data);
     } catch (err) { console.error('Fetch error:', err); }
     finally { setLoading(false); }
   };
@@ -426,40 +448,82 @@ const AdminSpacePage = () => {
   };
 
   // ── WORKSPACE ─────────────────────────────────────────────────────────────
+  const formatBytes = (bytes) => {
+    if (!bytes || bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  };
+
   const fetchWorkspaceItems = async () => {
-    try { const res = await getWorkspaceItems(); setWorkspaceItems(res.data?.data || []); } catch {}
+    try {
+      const res = await getWorkspaceItems();
+      setWorkspaceItems(res.data?.data || []);
+    } catch (err) {
+      console.error('Failed to fetch workspace items:', err);
+    }
   };
   useEffect(() => { fetchWorkspaceItems(); }, []);
 
   const handleCreateWorkspace = async (pwd) => {
     const fd = new FormData();
-    Object.entries(workspaceForm).forEach(([k, v]) => fd.append(k, v));
-    const coverFile = wsCoverRef.current?.files?.[0];
-    if (!coverFile) throw new Error('Cover image is required');
+    fd.append('category', wsCategory);
+    fd.append('name', workspaceForm.name);
+    fd.append('description', workspaceForm.description);
+    fd.append('isVisible', workspaceForm.isVisible);
+    fd.append('displayOrder', workspaceForm.displayOrder || 0);
+
+    if (wsCategory === 'personal' && wsResourceMode === 'link' && workspaceForm.externalUrl) {
+      fd.append('externalUrl', workspaceForm.externalUrl);
+    }
+
+    const coverFile = wsCoverFile || wsCoverRef.current?.files?.[0];
+    if (!coverFile) throw new Error('Cover photo is required');
     fd.append('coverImage', coverFile);
-    const resFile = wsResourceRef.current?.files?.[0];
+
+    const resFile = wsResourceMode === 'file' ? (wsResourceFile || wsResourceRef.current?.files?.[0]) : null;
     if (resFile) fd.append('resource', resFile);
+
     await createWorkspaceItem(fd, pwd);
     setWsShowAdd(false);
+    setWsCoverFile(null);
+    setWsCoverPreview(null);
+    setWsResourceFile(null);
     setWorkspaceForm({ category: wsCategory, name: '', description: '', externalUrl: '', isVisible: true, displayOrder: 0 });
     fetchWorkspaceItems();
   };
 
   const handleUpdateWorkspace = async (id, pwd) => {
     const fd = new FormData();
-    Object.entries(wsEditForm).forEach(([k, v]) => { if (v !== undefined && v !== null) fd.append(k, v); });
-    const coverFile = wsEditCoverRef.current?.files?.[0];
+    if (wsEditForm.name) fd.append('name', wsEditForm.name);
+    if (wsEditForm.description) fd.append('description', wsEditForm.description);
+    if (wsEditForm.displayOrder !== undefined) fd.append('displayOrder', wsEditForm.displayOrder);
+    if (wsEditForm.isVisible !== undefined) fd.append('isVisible', wsEditForm.isVisible);
+
+    if (wsCategory === 'personal') {
+      if (wsEditResourceMode === 'link') {
+        fd.append('externalUrl', wsEditForm.externalUrl || '');
+      }
+    }
+
+    const coverFile = wsEditCoverFile || wsEditCoverRef.current?.files?.[0];
     if (coverFile) fd.append('coverImage', coverFile);
-    const resFile = wsEditResourceRef.current?.files?.[0];
+
+    const resFile = wsEditResourceMode === 'file' ? (wsEditResourceFile || wsEditResourceRef.current?.files?.[0]) : null;
     if (resFile) fd.append('resource', resFile);
+
     await updateWorkspaceItem(id, fd, pwd);
     setWsEditingId(null);
     setWsEditForm({});
+    setWsEditCoverFile(null);
+    setWsEditCoverPreview(null);
+    setWsEditResourceFile(null);
     fetchWorkspaceItems();
   };
 
   const handleDeleteWorkspace = (id, name) => {
-    if (!window.confirm(`Delete workspace item "${name}"? This will also remove files from Cloudinary.`)) return;
+    if (!window.confirm(`Are you sure you want to delete "${name}"?\nThis will permanently delete the item and remove associated files from Cloudinary.`)) return;
     triggerMutation('Delete: ' + name, async (pwd) => {
       await deleteWorkspaceItem(id, pwd);
       fetchWorkspaceItems();
@@ -1705,144 +1769,740 @@ const AnalyticsView = ({
 
       {/* ─── WORKSPACE TAB ──────────────────────────────────────────── */}
       {activeTab === 'workspace' && (
-        <div className="glass-card p-6 sm:p-8 rounded-3xl border border-[#2d2d3a] space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="flex gap-2">
-              {['work', 'personal'].map(cat => (
-                <button key={cat} onClick={() => setWsCategory(cat)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold font-mono border transition-all capitalize"
-                  style={wsCategory === cat
-                    ? { background: '#8b5cf618', borderColor: '#8b5cf650', color: '#8b5cf6' }
-                    : { background: '#121217', borderColor: '#2d2d3a', color: '#a1a1aa' }}>
-                  {cat === 'work' ? '💼 Work Space' : '🎯 Personal Space'}
-                </button>
-              ))}
+        <div className="glass-card p-6 sm:p-8 rounded-3xl border border-[#2d2d3a] space-y-8">
+          {/* Sub-navigation Tabs */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[#2d2d3a] pb-6">
+            <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-[#09090b] border border-[#2d2d3a]">
+              <button
+                type="button"
+                onClick={() => { setWsCategory('work'); setWsShowAdd(false); setWsEditingId(null); }}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold font-mono transition-all ${
+                  wsCategory === 'work'
+                    ? 'bg-[#6366f1] text-white shadow-lg shadow-[#6366f1]/25'
+                    : 'text-[#a1a1aa] hover:text-white hover:bg-[#181820]'
+                }`}
+              >
+                <Briefcase className="w-4 h-4" />
+                <span>Work Space</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] bg-black/30 border border-white/10">
+                  {workspaceItems.filter(i => i.category === 'work').length}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => { setWsCategory('personal'); setWsShowAdd(false); setWsEditingId(null); }}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold font-mono transition-all ${
+                  wsCategory === 'personal'
+                    ? 'bg-[#8b5cf6] text-white shadow-lg shadow-[#8b5cf6]/25'
+                    : 'text-[#a1a1aa] hover:text-white hover:bg-[#181820]'
+                }`}
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Personal Space</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] bg-black/30 border border-white/10">
+                  {workspaceItems.filter(i => i.category === 'personal').length}
+                </span>
+              </button>
             </div>
-            <button onClick={() => setWsShowAdd(f => !f)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold font-mono border transition-all"
-              style={{ background: '#8b5cf618', color: '#8b5cf6', borderColor: '#8b5cf640' }}>
-              <Plus className="w-3.5 h-3.5" />{wsShowAdd ? 'Close' : 'Add Item'}
+
+            <button
+              type="button"
+              onClick={() => {
+                setWsShowAdd(f => !f);
+                setWsEditingId(null);
+                setWsCoverFile(null);
+                setWsCoverPreview(null);
+                setWsResourceFile(null);
+                setWorkspaceForm({ category: wsCategory, name: '', description: '', externalUrl: '', isVisible: true, displayOrder: 0 });
+              }}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold font-mono border transition-all"
+              style={{
+                background: (wsCategory === 'work' ? '#6366f1' : '#8b5cf6') + '18',
+                color: wsCategory === 'work' ? '#6366f1' : '#8b5cf6',
+                borderColor: (wsCategory === 'work' ? '#6366f1' : '#8b5cf6') + '40'
+              }}
+            >
+              <Plus className="w-4 h-4" />
+              <span>{wsShowAdd ? 'Close Form' : `+ Add ${wsCategory === 'work' ? 'Work' : 'Personal'} Item`}</span>
             </button>
           </div>
 
-          {wsShowAdd && (
-            <form onSubmit={(e) => { e.preventDefault(); triggerMutation('Add Workspace Item', handleCreateWorkspace); }}
-              className="p-5 rounded-2xl border border-[#8b5cf640] bg-[#121217] space-y-3">
-              <h4 className="text-xs font-bold font-mono uppercase text-[#8b5cf6]">Add {wsCategory === 'work' ? 'Work' : 'Personal'} Item</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className={lbl}>Category</label>
-                  <select className={inp} value={workspaceForm.category}
-                    onChange={e => setWorkspaceForm(p => ({ ...p, category: e.target.value }))}>
-                    <option value="work">Work</option>
-                    <option value="personal">Personal</option>
-                  </select>
-                </div>
-                <div><label className={lbl}>Name *</label><input required type="text" className={inp} value={workspaceForm.name} onChange={e => setWorkspaceForm(p => ({ ...p, name: e.target.value }))} /></div>
-              </div>
-              <div><label className={lbl}>Description *</label><textarea required rows={2} className={inp} value={workspaceForm.description} onChange={e => setWorkspaceForm(p => ({ ...p, description: e.target.value }))} /></div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className={lbl}>Cover Image * <span className="text-red-400">(Required)</span></label>
-                  <input ref={wsCoverRef} type="file" accept="image/*" className={inp + ' file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:bg-[#8b5cf6]/20 file:text-[#8b5cf6]'} />
-                </div>
-                <div>
-                  <label className={lbl}>Resource File (optional)</label>
-                  <input ref={wsResourceRef} type="file" accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx" className={inp + ' file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:bg-[#6366f1]/20 file:text-[#6366f1]'} />
-                </div>
-              </div>
-              {workspaceForm.category === 'personal' && (
-                <div><label className={lbl}>External URL (Personal Only)</label><input type="url" className={inp} placeholder="https://..." value={workspaceForm.externalUrl} onChange={e => setWorkspaceForm(p => ({ ...p, externalUrl: e.target.value }))} /></div>
-              )}
-              <div className="grid grid-cols-2 gap-3">
-                <div><label className={lbl}>Display Order</label><input type="number" className={inp} value={workspaceForm.displayOrder} onChange={e => setWorkspaceForm(p => ({ ...p, displayOrder: +e.target.value }))} /></div>
-                <div className="flex items-end gap-2 pb-2">
-                  <label className="flex items-center gap-2 text-xs font-mono text-[#a1a1aa] cursor-pointer">
-                    <input type="checkbox" checked={workspaceForm.isVisible} onChange={e => setWorkspaceForm(p => ({ ...p, isVisible: e.target.checked }))} className="w-4 h-4 rounded" />
-                    Visible
-                  </label>
-                </div>
-              </div>
-              <button type="submit" className="w-full py-2.5 rounded-xl text-xs font-bold border mt-1 flex items-center justify-center gap-2 transition-all" style={{ background: '#8b5cf618', color: '#8b5cf6', borderColor: '#8b5cf640' }}>
-                <Lock className="w-3 h-3" />Save (Password Required)
-              </button>
-            </form>
-          )}
+          {/* Section Subtitle Banner */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 p-4 rounded-2xl bg-[#09090b]/60 border border-[#2d2d3a]">
+            <div>
+              <h3 className="text-base font-extrabold text-[#fafafa] flex items-center gap-2">
+                {wsCategory === 'work' ? <Briefcase className="w-4 h-4 text-[#6366f1]" /> : <Sparkles className="w-4 h-4 text-[#8b5cf6]" />}
+                <span>{wsCategory === 'work' ? 'Work Space' : 'Personal Space'}</span>
+              </h3>
+              <p className="text-xs text-[#a1a1aa] font-mono mt-0.5">
+                {wsCategory === 'work'
+                  ? 'Manage professional projects, documents, demonstrations and other work-related resources.'
+                  : 'Manage personal projects, memories, experiments, files and links.'}
+              </p>
+            </div>
+            <div className="text-xs font-mono text-[#a1a1aa]">
+              Total: <span className="text-white font-bold">{workspaceItems.filter(i => i.category === wsCategory).length} Items</span>
+            </div>
+          </div>
 
-          <div className="space-y-3">
-            {workspaceItems.filter(i => i.category === wsCategory).length === 0 && (
-              <div className="text-center py-12 text-[#a1a1aa] font-mono text-xs">
-                No {wsCategory} items yet. Click "Add Item" to get started.
+          {/* ADD ITEM FORM */}
+          {wsShowAdd && (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!wsCoverFile && !wsCoverRef.current?.files?.[0]) {
+                  setToast({ message: 'Cover photo is compulsory. Please select or drop an image.', type: 'error' });
+                  return;
+                }
+                triggerMutation(`Create ${wsCategory === 'work' ? 'Work' : 'Personal'} Item`, handleCreateWorkspace);
+              }}
+              className="p-6 sm:p-8 rounded-3xl border bg-[#121217] space-y-6 shadow-2xl"
+              style={{ borderColor: (wsCategory === 'work' ? '#6366f1' : '#8b5cf6') + '50' }}
+            >
+              <div className="flex items-center justify-between border-b border-[#2d2d3a] pb-4">
+                <div>
+                  <h4 className="text-sm font-bold font-mono uppercase" style={{ color: wsCategory === 'work' ? '#6366f1' : '#8b5cf6' }}>
+                    + New {wsCategory === 'work' ? 'Work Space' : 'Personal Space'} Item
+                  </h4>
+                  <p className="text-xs text-[#a1a1aa] font-mono">Fill in information, upload required cover image, and attach primary resource.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setWsShowAdd(false)}
+                  className="p-2 rounded-xl text-[#a1a1aa] hover:bg-[#2d2d3a] transition-all"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
-            )}
-            {workspaceItems.filter(i => i.category === wsCategory).map(item => (
-              <div key={item._id} className="p-4 rounded-2xl bg-[#121217] border border-[#2d2d3a]">
-                {wsEditingId === item._id ? (
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div><label className={lbl}>Name</label><input type="text" className={inp} value={wsEditForm.name || ''} onChange={e => setWsEditForm(p => ({ ...p, name: e.target.value }))} /></div>
-                      <div><label className={lbl}>Display Order</label><input type="number" className={inp} value={wsEditForm.displayOrder || 0} onChange={e => setWsEditForm(p => ({ ...p, displayOrder: +e.target.value }))} /></div>
-                    </div>
-                    <div><label className={lbl}>Description</label><textarea rows={2} className={inp} value={wsEditForm.description || ''} onChange={e => setWsEditForm(p => ({ ...p, description: e.target.value }))} /></div>
-                    {item.category === 'personal' && (
-                      <div><label className={lbl}>External URL</label><input type="url" className={inp} value={wsEditForm.externalUrl || ''} onChange={e => setWsEditForm(p => ({ ...p, externalUrl: e.target.value }))} /></div>
-                    )}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className={lbl}>Replace Cover Image</label>
-                        <input ref={wsEditCoverRef} type="file" accept="image/*" className={inp + ' file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:bg-[#8b5cf6]/20 file:text-[#8b5cf6]'} />
+
+              {/* 1. Item Information */}
+              <div className="space-y-3">
+                <span className="text-[10px] font-mono uppercase text-[#a1a1aa] font-bold tracking-wider block">
+                  1. ITEM INFORMATION
+                </span>
+                <div className="grid grid-cols-1 gap-3">
+                  <div>
+                    <label className={lbl}>Item Name / Title *</label>
+                    <input
+                      required
+                      type="text"
+                      placeholder="e.g., AI Resume Analyzer, System Architecture Demo, etc."
+                      className={inp}
+                      value={workspaceForm.name}
+                      onChange={e => setWorkspaceForm(p => ({ ...p, name: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <label className={lbl}>Work Description *</label>
+                    <textarea
+                      required
+                      rows={3}
+                      placeholder="Concise overview of what this item showcases..."
+                      className={inp}
+                      value={workspaceForm.description}
+                      onChange={e => setWorkspaceForm(p => ({ ...p, description: e.target.value }))}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. Cover Photo (Required) */}
+              <div className="space-y-3">
+                <span className="text-[10px] font-mono uppercase text-[#a1a1aa] font-bold tracking-wider flex items-center gap-1.5">
+                  <span>2. COVER PHOTO</span>
+                  <span className="text-red-400 font-bold">* (Compulsory thumbnail for card)</span>
+                </span>
+
+                {wsCoverPreview ? (
+                  <div className="p-4 rounded-2xl bg-[#09090b] border border-[#6366f1]/40 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4 min-w-0">
+                      <img src={wsCoverPreview} alt="Cover preview" className="w-20 h-16 rounded-xl object-cover border border-[#2d2d3a] shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-white truncate">{wsCoverFile?.name || 'Cover Photo'}</p>
+                        <p className="text-[10px] font-mono text-[#a1a1aa] mt-0.5">{formatBytes(wsCoverFile?.size)}</p>
+                        <span className="inline-flex items-center gap-1 text-[10px] font-mono text-emerald-400 mt-1">
+                          <CheckCircle2 className="w-3 h-3" /> Ready to upload
+                        </span>
                       </div>
-                      <div>
-                        <label className={lbl}>Replace Resource</label>
-                        <input ref={wsEditResourceRef} type="file" accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx" className={inp + ' file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:bg-[#6366f1]/20 file:text-[#6366f1]'} />
-                      </div>
                     </div>
-                    <label className="flex items-center gap-2 text-xs font-mono text-[#a1a1aa] cursor-pointer">
-                      <input type="checkbox" checked={wsEditForm.isVisible !== false} onChange={e => setWsEditForm(p => ({ ...p, isVisible: e.target.checked }))} className="w-4 h-4 rounded" />
-                      Visible
-                    </label>
-                    <div className="flex gap-2 pt-1">
-                      <button type="button" onClick={() => triggerMutation('Update Workspace Item', (pwd) => handleUpdateWorkspace(item._id, pwd))}
-                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#8b5cf6] text-white text-xs font-bold transition-all hover:bg-[#7c3aed]">
-                        <Save className="w-3.5 h-3.5" />Save Changes
+                    <div className="flex gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => wsCoverRef.current?.click()}
+                        className="px-3 py-1.5 rounded-xl bg-[#2d2d3a] hover:bg-[#3f3f4e] text-xs font-mono font-bold text-white transition-all"
+                      >
+                        Replace
                       </button>
-                      <button type="button" onClick={() => { setWsEditingId(null); setWsEditForm({}); }}
-                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#2d2d3a] text-[#a1a1aa] text-xs font-bold">
-                        <X className="w-3.5 h-3.5" />Cancel
+                      <button
+                        type="button"
+                        onClick={() => { setWsCoverFile(null); setWsCoverPreview(null); }}
+                        className="p-1.5 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all"
+                      >
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-start gap-4">
-                    <img src={item.coverImage?.url} alt={item.name} className="w-16 h-16 rounded-xl object-cover border border-[#2d2d3a] shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h4 className="text-sm font-bold text-[#fafafa]">{item.name}</h4>
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border"
-                          style={{ color: item.isVisible ? '#10b981' : '#a1a1aa', borderColor: item.isVisible ? '#10b98140' : '#2d2d3a', background: item.isVisible ? '#10b98110' : 'transparent' }}>
-                          {item.isVisible ? 'Visible' : 'Hidden'}
-                        </span>
-                        {item.resourceType && (
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-[#8b5cf640] bg-[#8b5cf610] text-[#8b5cf6] uppercase">{item.resourceType}</span>
-                        )}
-                      </div>
-                      <p className="text-xs text-[#a1a1aa] mt-1 truncate">{item.description}</p>
-                      <p className="text-[10px] font-mono text-[#52525b] mt-0.5">Order: {item.displayOrder} · {new Date(item.createdAt).toLocaleDateString()}</p>
+                  <div
+                    onDragOver={(e) => { e.preventDefault(); setWsDragCover(true); }}
+                    onDragLeave={() => setWsDragCover(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setWsDragCover(false);
+                      const file = e.dataTransfer.files?.[0];
+                      if (file && file.type.startsWith('image/')) {
+                        setWsCoverFile(file);
+                        const r = new FileReader();
+                        r.onload = () => setWsCoverPreview(r.result);
+                        r.readAsDataURL(file);
+                      }
+                    }}
+                    onClick={() => wsCoverRef.current?.click()}
+                    className={`cursor-pointer p-8 rounded-2xl border-2 border-dashed transition-all flex flex-col items-center justify-center text-center gap-2 ${
+                      wsDragCover
+                        ? 'border-[#6366f1] bg-[#6366f1]/10'
+                        : 'border-[#2d2d3a] hover:border-[#6366f1]/50 bg-[#09090b]/80 hover:bg-[#09090b]'
+                    }`}
+                  >
+                    <div className="w-12 h-12 rounded-2xl bg-[#6366f1]/10 text-[#6366f1] border border-[#6366f1]/20 flex items-center justify-center">
+                      <ImageIcon className="w-6 h-6" />
                     </div>
-                    <div className="flex gap-2 shrink-0">
-                      <button onClick={() => { setWsEditingId(item._id); setWsEditForm({ ...item, isVisible: item.isVisible !== false }); }}
-                        className="p-1.5 rounded-lg bg-[#8b5cf6]/10 text-[#8b5cf6] hover:bg-[#8b5cf6]/25 border border-[#8b5cf6]/20 transition-colors">
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
-                      <button onClick={() => handleDeleteWorkspace(item._id, item.name)}
-                        className="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 transition-colors">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                    <div>
+                      <p className="text-xs font-bold text-[#fafafa]">Drag & drop Cover Photo or click to browse</p>
+                      <p className="text-[10px] font-mono text-[#a1a1aa] mt-0.5">Supports JPG, JPEG, PNG, WEBP (Compulsory card thumbnail)</p>
                     </div>
                   </div>
                 )}
+                <input
+                  ref={wsCoverRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/jpg"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setWsCoverFile(file);
+                      const r = new FileReader();
+                      r.onload = () => setWsCoverPreview(r.result);
+                      r.readAsDataURL(file);
+                    }
+                  }}
+                />
               </div>
-            ))}
+
+              {/* 3. Primary Resource (Optional) */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono uppercase text-[#a1a1aa] font-bold tracking-wider block">
+                    3. PRIMARY RESOURCE (OPTIONAL)
+                  </span>
+                  {wsCategory === 'personal' && (
+                    <div className="flex items-center gap-1 p-1 rounded-xl bg-[#09090b] border border-[#2d2d3a]">
+                      <button
+                        type="button"
+                        onClick={() => setWsResourceMode('file')}
+                        className={`px-3 py-1 rounded-lg text-[10px] font-mono font-bold transition-all ${
+                          wsResourceMode === 'file' ? 'bg-[#8b5cf6] text-white' : 'text-[#a1a1aa]'
+                        }`}
+                      >
+                        Upload File
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setWsResourceMode('link')}
+                        className={`px-3 py-1 rounded-lg text-[10px] font-mono font-bold transition-all ${
+                          wsResourceMode === 'link' ? 'bg-[#8b5cf6] text-white' : 'text-[#a1a1aa]'
+                        }`}
+                      >
+                        External Link
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {wsCategory === 'personal' && wsResourceMode === 'link' ? (
+                  <div>
+                    <label className={lbl}>External Destination URL (Opens safely in new tab)</label>
+                    <div className="relative">
+                      <LinkIcon className="w-4 h-4 text-[#8b5cf6] absolute left-3 top-3" />
+                      <input
+                        type="url"
+                        placeholder="https://example.com/project"
+                        className={inp + ' pl-9'}
+                        value={workspaceForm.externalUrl}
+                        onChange={e => setWorkspaceForm(p => ({ ...p, externalUrl: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+                ) : wsResourceFile ? (
+                  <div className="p-4 rounded-2xl bg-[#09090b] border border-[#8b5cf6]/40 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4 min-w-0">
+                      <div className="w-12 h-12 rounded-xl bg-[#8b5cf6]/10 text-[#8b5cf6] border border-[#8b5cf6]/20 flex items-center justify-center shrink-0">
+                        {wsResourceFile.type.startsWith('video/') ? <Play className="w-5 h-5" /> : wsResourceFile.name.endsWith('.pdf') ? <FileText className="w-5 h-5" /> : wsResourceFile.name.includes('xls') ? <FileSpreadsheet className="w-5 h-5" /> : <FileType className="w-5 h-5" />}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-white truncate">{wsResourceFile.name}</p>
+                        <p className="text-[10px] font-mono text-[#a1a1aa] mt-0.5">{formatBytes(wsResourceFile.size)} · {wsResourceFile.type || 'Document'}</p>
+                        <span className="inline-flex items-center gap-1 text-[10px] font-mono text-emerald-400 mt-1">
+                          <CheckCircle2 className="w-3 h-3" /> Ready to attach
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => wsResourceRef.current?.click()}
+                        className="px-3 py-1.5 rounded-xl bg-[#2d2d3a] hover:bg-[#3f3f4e] text-xs font-mono font-bold text-white transition-all"
+                      >
+                        Replace
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setWsResourceFile(null)}
+                        className="p-1.5 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    onDragOver={(e) => { e.preventDefault(); setWsDragResource(true); }}
+                    onDragLeave={() => setWsDragResource(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setWsDragResource(false);
+                      const file = e.dataTransfer.files?.[0];
+                      if (file) setWsResourceFile(file);
+                    }}
+                    onClick={() => wsResourceRef.current?.click()}
+                    className={`cursor-pointer p-8 rounded-2xl border-2 border-dashed transition-all flex flex-col items-center justify-center text-center gap-2 ${
+                      wsDragResource
+                        ? 'border-[#8b5cf6] bg-[#8b5cf6]/10'
+                        : 'border-[#2d2d3a] hover:border-[#8b5cf6]/50 bg-[#09090b]/80 hover:bg-[#09090b]'
+                    }`}
+                  >
+                    <div className="w-12 h-12 rounded-2xl bg-[#8b5cf6]/10 text-[#8b5cf6] border border-[#8b5cf6]/20 flex items-center justify-center">
+                      <Upload className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-[#fafafa]">Drag & drop Primary Resource or click to browse</p>
+                      <p className="text-[10px] font-mono text-[#a1a1aa] mt-0.5">
+                        Supports MP4, WEBM, PDF, DOC, DOCX, PNG, JPG {wsCategory === 'personal' ? ', XLS, XLSX' : ''}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                <input
+                  ref={wsResourceRef}
+                  type="file"
+                  accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) setWsResourceFile(file);
+                  }}
+                />
+              </div>
+
+              {/* 4. Settings & Visibility */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-[#2d2d3a]">
+                <div>
+                  <label className={lbl}>Display Order</label>
+                  <input
+                    type="number"
+                    className={inp}
+                    value={workspaceForm.displayOrder}
+                    onChange={e => setWorkspaceForm(p => ({ ...p, displayOrder: +e.target.value }))}
+                  />
+                </div>
+                <div className="flex items-center gap-3 pt-6">
+                  <label className="flex items-center gap-2 text-xs font-mono text-[#fafafa] cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={workspaceForm.isVisible}
+                      onChange={e => setWorkspaceForm(p => ({ ...p, isVisible: e.target.checked }))}
+                      className="w-4 h-4 rounded bg-[#09090b] border-[#2d2d3a] text-[#6366f1] focus:ring-0"
+                    />
+                    <span>Card Visibility (Visible in public portfolio)</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#2d2d3a]">
+                <button
+                  type="button"
+                  onClick={() => setWsShowAdd(false)}
+                  className="px-5 py-2.5 rounded-xl bg-[#2d2d3a] hover:bg-[#3f3f4e] text-xs font-mono font-bold text-[#a1a1aa] transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-xl text-xs font-bold font-mono border flex items-center gap-2 transition-all shadow-lg"
+                  style={{
+                    background: (wsCategory === 'work' ? '#6366f1' : '#8b5cf6') + '25',
+                    color: wsCategory === 'work' ? '#6366f1' : '#8b5cf6',
+                    borderColor: (wsCategory === 'work' ? '#6366f1' : '#8b5cf6') + '60'
+                  }}
+                >
+                  <Lock className="w-3.5 h-3.5" />
+                  <span>Create {wsCategory === 'work' ? 'Work' : 'Personal'} Item</span>
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* EDIT ITEM INLINE MODAL/FORM */}
+          {wsEditingId && (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                triggerMutation(`Update Workspace Item`, (pwd) => handleUpdateWorkspace(wsEditingId, pwd));
+              }}
+              className="p-6 sm:p-8 rounded-3xl border border-[#f59e0b]/50 bg-[#121217] space-y-6 shadow-2xl"
+            >
+              <div className="flex items-center justify-between border-b border-[#2d2d3a] pb-4">
+                <div>
+                  <h4 className="text-sm font-bold font-mono uppercase text-[#f59e0b]">
+                    ✏️ Edit Workspace Item: {wsEditForm.name}
+                  </h4>
+                  <p className="text-xs text-[#a1a1aa] font-mono">Update metadata or replace uploaded cloud assets.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setWsEditingId(null); setWsEditForm({}); }}
+                  className="p-2 rounded-xl text-[#a1a1aa] hover:bg-[#2d2d3a] transition-all"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className={lbl}>Item Name *</label>
+                  <input
+                    required
+                    type="text"
+                    className={inp}
+                    value={wsEditForm.name || ''}
+                    onChange={e => setWsEditForm(p => ({ ...p, name: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className={lbl}>Display Order</label>
+                  <input
+                    type="number"
+                    className={inp}
+                    value={wsEditForm.displayOrder || 0}
+                    onChange={e => setWsEditForm(p => ({ ...p, displayOrder: +e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className={lbl}>Description *</label>
+                <textarea
+                  required
+                  rows={3}
+                  className={inp}
+                  value={wsEditForm.description || ''}
+                  onChange={e => setWsEditForm(p => ({ ...p, description: e.target.value }))}
+                />
+              </div>
+
+              {/* Cover Photo Replacement */}
+              <div className="space-y-2">
+                <label className={lbl}>Cover Photo</label>
+                <div className="flex items-center gap-4 p-4 rounded-2xl bg-[#09090b] border border-[#2d2d3a]">
+                  <img
+                    src={wsEditCoverPreview || wsEditForm.coverImage?.url}
+                    alt="Cover preview"
+                    className="w-20 h-16 rounded-xl object-cover border border-[#2d2d3a] shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-white truncate">{wsEditCoverFile ? wsEditCoverFile.name : 'Current Cloud Cover Photo'}</p>
+                    <p className="text-[10px] font-mono text-[#a1a1aa] mt-0.5">
+                      {wsEditCoverFile ? formatBytes(wsEditCoverFile.size) : 'Stored in Cloudinary'}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => wsEditCoverRef.current?.click()}
+                    className="px-3 py-1.5 rounded-xl bg-[#2d2d3a] hover:bg-[#3f3f4e] text-xs font-mono font-bold text-white transition-all shrink-0"
+                  >
+                    Replace Image
+                  </button>
+                </div>
+                <input
+                  ref={wsEditCoverRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setWsEditCoverFile(file);
+                      const r = new FileReader();
+                      r.onload = () => setWsEditCoverPreview(r.result);
+                      r.readAsDataURL(file);
+                    }
+                  }}
+                />
+              </div>
+
+              {/* Primary Resource Replacement */}
+              <div className="space-y-2">
+                <label className={lbl}>Primary Attached Resource</label>
+                {wsCategory === 'personal' && (
+                  <div className="flex items-center gap-2 mb-2">
+                    <button
+                      type="button"
+                      onClick={() => setWsEditResourceMode('file')}
+                      className={`px-3 py-1 rounded-lg text-[10px] font-mono font-bold ${
+                        wsEditResourceMode === 'file' ? 'bg-[#8b5cf6] text-white' : 'bg-[#09090b] text-[#a1a1aa] border border-[#2d2d3a]'
+                      }`}
+                    >
+                      File Resource
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setWsEditResourceMode('link')}
+                      className={`px-3 py-1 rounded-lg text-[10px] font-mono font-bold ${
+                        wsEditResourceMode === 'link' ? 'bg-[#8b5cf6] text-white' : 'bg-[#09090b] text-[#a1a1aa] border border-[#2d2d3a]'
+                      }`}
+                    >
+                      External Link
+                    </button>
+                  </div>
+                )}
+
+                {wsCategory === 'personal' && wsEditResourceMode === 'link' ? (
+                  <div className="relative">
+                    <LinkIcon className="w-4 h-4 text-[#8b5cf6] absolute left-3 top-3" />
+                    <input
+                      type="url"
+                      placeholder="https://example.com"
+                      className={inp + ' pl-9'}
+                      value={wsEditForm.externalUrl || ''}
+                      onChange={e => setWsEditForm(p => ({ ...p, externalUrl: e.target.value }))}
+                    />
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-4 p-4 rounded-2xl bg-[#09090b] border border-[#2d2d3a]">
+                    <div className="w-12 h-12 rounded-xl bg-[#6366f1]/10 text-[#6366f1] border border-[#6366f1]/20 flex items-center justify-center shrink-0">
+                      {wsEditResourceFile ? <Upload className="w-5 h-5" /> : wsEditForm.resourceType === 'video' ? <Play className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-white truncate">
+                        {wsEditResourceFile ? wsEditResourceFile.name : wsEditForm.resource?.url ? 'Current Resource Attached' : 'No resource attached'}
+                      </p>
+                      <p className="text-[10px] font-mono text-[#a1a1aa] mt-0.5">
+                        {wsEditResourceFile ? formatBytes(wsEditResourceFile.size) : wsEditForm.resourceType ? `Type: ${wsEditForm.resourceType}` : 'Optional'}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => wsEditResourceRef.current?.click()}
+                      className="px-3 py-1.5 rounded-xl bg-[#2d2d3a] hover:bg-[#3f3f4e] text-xs font-mono font-bold text-white transition-all shrink-0"
+                    >
+                      Replace File
+                    </button>
+                  </div>
+                )}
+                <input
+                  ref={wsEditResourceRef}
+                  type="file"
+                  accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) setWsEditResourceFile(file);
+                  }}
+                />
+              </div>
+
+              {/* Visibility */}
+              <div className="flex items-center gap-3 pt-2">
+                <label className="flex items-center gap-2 text-xs font-mono text-[#fafafa] cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={wsEditForm.isVisible !== false}
+                    onChange={e => setWsEditForm(p => ({ ...p, isVisible: e.target.checked }))}
+                    className="w-4 h-4 rounded bg-[#09090b] border-[#2d2d3a] text-[#6366f1] focus:ring-0"
+                  />
+                  <span>Visible in Public Portfolio</span>
+                </label>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#2d2d3a]">
+                <button
+                  type="button"
+                  onClick={() => { setWsEditingId(null); setWsEditForm({}); }}
+                  className="px-5 py-2.5 rounded-xl bg-[#2d2d3a] hover:bg-[#3f3f4e] text-xs font-mono font-bold text-[#a1a1aa] transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-xl bg-[#f59e0b] hover:bg-[#d97706] text-black text-xs font-bold font-mono flex items-center gap-2 transition-all shadow-lg"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                  <span>Save Changes</span>
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* ITEM LIST GRID */}
+          <div className="space-y-4">
+            {workspaceItems.filter(i => i.category === wsCategory).length === 0 ? (
+              <div className="p-12 rounded-3xl bg-[#09090b]/80 border border-[#2d2d3a] text-center space-y-4">
+                <div className="w-14 h-14 mx-auto rounded-2xl bg-[#6366f1]/10 text-[#6366f1] border border-[#6366f1]/20 flex items-center justify-center">
+                  <Sparkles className="w-7 h-7" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-white">No {wsCategory === 'work' ? 'work' : 'personal'} items yet.</h4>
+                  <p className="text-xs text-[#a1a1aa] font-mono mt-1 max-w-sm mx-auto">
+                    {wsCategory === 'work'
+                      ? 'Upload projects, case studies, documents, or video demos to display in your Work Space.'
+                      : 'Add experiments, tools, spreadsheets, or external links to display in your Personal Space.'}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setWsShowAdd(true);
+                    setWsEditingId(null);
+                    setWorkspaceForm({ category: wsCategory, name: '', description: '', externalUrl: '', isVisible: true, displayOrder: 0 });
+                  }}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold font-mono border transition-all"
+                  style={{
+                    background: (wsCategory === 'work' ? '#6366f1' : '#8b5cf6') + '18',
+                    color: wsCategory === 'work' ? '#6366f1' : '#8b5cf6',
+                    borderColor: (wsCategory === 'work' ? '#6366f1' : '#8b5cf6') + '40'
+                  }}
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>+ Add {wsCategory === 'work' ? 'Work' : 'Personal'} Item</span>
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {workspaceItems.filter(i => i.category === wsCategory).map((item) => (
+                  <div
+                    key={item._id}
+                    className="rounded-2xl bg-[#121217] border border-[#2d2d3a] overflow-hidden flex flex-col justify-between transition-all hover:border-[#6366f1]/40 hover:shadow-xl"
+                  >
+                    {/* Card Thumbnail */}
+                    <div className="relative h-44 overflow-hidden bg-black/40">
+                      <img
+                        src={item.coverImage?.url}
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                      
+                      {/* Top Badges */}
+                      <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
+                        <span className="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-black/60 backdrop-blur-md border border-white/15 text-white capitalize">
+                          {item.category === 'work' ? '💼 Work' : '🎯 Personal'}
+                        </span>
+                        {item.resourceType && (
+                          <span
+                            className="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold uppercase border backdrop-blur-md"
+                            style={{
+                              background: item.resourceType === 'video' ? '#f43f5e22' : item.resourceType === 'pdf' ? '#6366f122' : item.resourceType === 'excel' ? '#10b98122' : '#8b5cf622',
+                              color: item.resourceType === 'video' ? '#f43f5e' : item.resourceType === 'pdf' ? '#6366f1' : item.resourceType === 'excel' ? '#10b981' : '#8b5cf6',
+                              borderColor: (item.resourceType === 'video' ? '#f43f5e' : item.resourceType === 'pdf' ? '#6366f1' : item.resourceType === 'excel' ? '#10b981' : '#8b5cf6') + '40'
+                            }}
+                          >
+                            {item.resourceType}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Bottom Info Overlay */}
+                      <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-black/70 border border-white/10"
+                          style={{ color: item.isVisible !== false ? '#10b981' : '#a1a1aa' }}>
+                          <span className="w-1.5 h-1.5 rounded-full" style={{ background: item.isVisible !== false ? '#10b981' : '#a1a1aa' }} />
+                          {item.isVisible !== false ? 'Visible' : 'Hidden'}
+                        </span>
+                        <span className="text-[10px] font-mono text-[#a1a1aa]">Order: {item.displayOrder || 0}</span>
+                      </div>
+                    </div>
+
+                    {/* Card Body */}
+                    <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                      <div className="space-y-1.5">
+                        <h4 className="text-sm font-bold text-white line-clamp-1">{item.name}</h4>
+                        <p className="text-xs text-[#a1a1aa] line-clamp-2 leading-relaxed">{item.description}</p>
+                        <p className="text-[10px] font-mono text-[#52525b] pt-1">
+                          Created: {new Date(item.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="pt-3 border-t border-[#2d2d3a] flex items-center justify-between gap-2">
+                        {item.resourceType === 'link' && item.externalUrl ? (
+                          <a
+                            href={item.externalUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-[11px] font-mono font-bold text-[#8b5cf6] hover:underline"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" /> Visit Link
+                          </a>
+                        ) : item.resource?.url ? (
+                          <a
+                            href={item.resource.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-[11px] font-mono font-bold text-[#6366f1] hover:underline"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" /> Open Resource
+                          </a>
+                        ) : (
+                          <span className="text-[10px] font-mono text-[#52525b]">No resource attached</span>
+                        )}
+
+                        <div className="flex gap-1.5 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setWsEditingId(item._id);
+                              setWsEditForm({ ...item, isVisible: item.isVisible !== false });
+                              setWsEditResourceMode(item.resourceType === 'link' ? 'link' : 'file');
+                              setWsEditCoverFile(null);
+                              setWsEditCoverPreview(null);
+                              setWsEditResourceFile(null);
+                              setWsShowAdd(false);
+                            }}
+                            className="p-2 rounded-xl bg-[#6366f1]/10 text-[#6366f1] hover:bg-[#6366f1]/25 border border-[#6366f1]/20 transition-all"
+                            title="Edit Item"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteWorkspace(item._id, item.name)}
+                            className="p-2 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 transition-all"
+                            title="Delete Item"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
