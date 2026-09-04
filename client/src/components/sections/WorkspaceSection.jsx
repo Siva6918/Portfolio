@@ -270,17 +270,20 @@ const WorkspaceSection = () => {
   const [workItems, setWorkItems] = useState([]);
   const [personalItems, setPersonalItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [exploreModal, setExploreModal] = useState(null); // 'work' | 'personal' | null
 
   useEffect(() => {
     const fetchItems = async () => {
       try {
+        setError(false);
         const res = await getWorkspaceItems();
         const all = (res.data?.data || []).filter(i => i.isVisible);
         setWorkItems(all.filter(i => i.category === 'work'));
         setPersonalItems(all.filter(i => i.category === 'personal'));
       } catch (err) {
         console.error('Failed to fetch workspace items:', err);
+        setError(true);
       } finally {
         setLoading(false);
       }
@@ -290,7 +293,8 @@ const WorkspaceSection = () => {
 
   const hasAny = workItems.length > 0 || personalItems.length > 0;
 
-  if (!hasAny && !loading) return null; // Hide section if nothing to show
+  // Only hide section when fetch succeeded and genuinely has zero items
+  if (!loading && !error && !hasAny) return null;
 
   return (
     <section id="workspace" className="py-20 relative w-full border-t border-slate-200 dark:border-zinc-800/60">
@@ -325,7 +329,13 @@ const WorkspaceSection = () => {
           </motion.p>
         </div>
 
-        {loading ? (
+        {error ? (
+          <div className="editorial-card p-10 text-center rounded-3xl border border-slate-200 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900/50">
+            <p className="text-xs font-mono text-slate-500 dark:text-white/50">
+              Workspace is temporarily unavailable — please check back soon.
+            </p>
+          </div>
+        ) : loading ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
             {[0, 1].map(i => (
               <div key={i} className="space-y-4">
