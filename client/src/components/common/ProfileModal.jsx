@@ -32,7 +32,8 @@ const ProfileModal = () => {
       role="dialog"
       aria-modal="true"
       aria-label="Full Profile View"
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 md:p-8 animate-fade-in"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 md:p-8"
+      style={{ animation: 'fadeUp 0.35s cubic-bezier(0.16,1,0.3,1) both' }}
       onClick={closeProfile}
     >
       {/* 1. Deep backdrop blur blurring the entire homepage portion */}
@@ -43,11 +44,12 @@ const ProfileModal = () => {
       {/* 2. Centered Modal Dialog Card with Timeline Card Aesthetics */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative z-10 max-w-xl w-full rounded-3xl border overflow-hidden flex flex-col items-center transition-all duration-300 animate-scale-in"
+        className="relative z-10 max-w-xl w-full rounded-3xl border overflow-hidden flex flex-col items-center"
         style={{
           background: 'rgba(12, 12, 18, 0.96)',
           borderColor: 'rgba(74, 222, 128, 0.45)',
           boxShadow: '0 0 50px -10px rgba(74, 222, 128, 0.35), 0 25px 50px -12px rgba(0, 0, 0, 0.9)',
+          animation: 'scaleIn 0.45s cubic-bezier(0.16,1,0.3,1) both',
         }}
       >
         {/* Top vibrant accent gradient line */}
