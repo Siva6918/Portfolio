@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import {
   GraduationCap, Cpu, Code2, FlaskConical, Briefcase, Rocket, Trophy, Target,
   Eye, ChevronLeft, ChevronRight, ArrowRight, CheckCircle2, Flame, Sparkles, TrendingUp
@@ -69,7 +69,7 @@ const CareerRoadSection = ({ careerNodes = [] }) => {
           <div>
             <motion.div
               initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.15 }} transition={{ duration: 0.5, ease: easeCurve }}
+              viewport={{ once: false, amount: 0.15 }} transition={{ duration: 0.5, ease: easeCurve }}
               className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/25 text-xs font-mono tracking-widest text-indigo-600 dark:text-indigo-400 uppercase font-semibold mb-3"
             >
               <TrendingUp className="w-3.5 h-3.5" />
@@ -77,7 +77,7 @@ const CareerRoadSection = ({ careerNodes = [] }) => {
             </motion.div>
             <motion.h2
               initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.15 }} transition={{ duration: 0.6, delay: 0.1, ease: easeCurve }}
+              viewport={{ once: false, amount: 0.15 }} transition={{ duration: 0.6, delay: 0.1, ease: easeCurve }}
               className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight"
             >
               Engineering{" "}
@@ -93,7 +93,7 @@ const CareerRoadSection = ({ careerNodes = [] }) => {
           <div className="flex flex-wrap items-center gap-3">
             <motion.div
               initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.15 }} transition={{ duration: 0.5, delay: 0.2, ease: easeCurve }}
+              viewport={{ once: false, amount: 0.15 }} transition={{ duration: 0.5, delay: 0.2, ease: easeCurve }}
               className="hidden lg:flex items-center gap-4 px-4 py-2 rounded-2xl bg-slate-100/80 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800 text-[11px] font-mono backdrop-blur-md"
             >
               <span className="flex items-center gap-1.5 text-slate-600 dark:text-white/60"><span className="w-2 h-2 rounded-full bg-emerald-400 shadow-emerald-400/60 shadow-sm" /> Done</span>
@@ -124,7 +124,7 @@ const CareerRoadSection = ({ careerNodes = [] }) => {
                 key={node.id}
                 initial={{ opacity: 0, x: -36, y: 8 }}
                 whileInView={{ opacity: 1, x: 0, y: 0 }}
-                viewport={{ once: true, amount: 0.1 }}
+                viewport={{ once: false, amount: 0.1 }}
                 transition={{ duration: 0.5, delay: idx * 0.08, ease: easeCurve }}
                 className="relative flex items-stretch"
                 style={{ paddingLeft: `${indent}px` }}
@@ -237,7 +237,7 @@ const CareerRoadSection = ({ careerNodes = [] }) => {
           {/* Rainbow baseline */}
           <motion.div
             initial={{ scaleX: 0, opacity: 0 }} whileInView={{ scaleX: 1, opacity: 1 }}
-            viewport={{ once: true }} transition={{ duration: 1.2, delay: 0.6, ease: easeCurve }}
+            viewport={{ once: false }} transition={{ duration: 1.2, delay: 0.6, ease: easeCurve }}
             className="mt-1 h-px origin-left"
             style={{
               marginLeft: `${(total - 1) * STEP_INDENT + 6}px`,

@@ -173,6 +173,31 @@ export const exportAnalyticsCsv = (pwd, period) => {
 
 // Workspace API Endpoints
 export const getWorkspaceItems = () => api.get('/workspace');
+export const getWorkspaceItemBySlug = async (category, slug) => {
+  try {
+    const res = await api.get(`/workspace/${category}/${slug}`);
+    if (res.data && res.data.success && res.data.data) {
+      return res;
+    }
+  } catch (err) {
+    console.warn(`Direct workspace item fetch failed for /workspace/${category}/${slug}, falling back to list lookup...`, err?.message);
+  }
+  
+  const allRes = await api.get('/workspace');
+  const items = allRes.data?.data || [];
+  const slugify = (t) => (t || '').toString().toLowerCase().trim().replace(/[\s\W-]+/g, '-').replace(/^-+|-+$/g, '');
+  const found = items.find(i => 
+    i.category === category && (i.slug === slug || slugify(i.name) === slug || i._id === slug)
+  );
+
+  if (!found) {
+    const error = new Error('Workspace item not found');
+    error.response = { data: { message: 'Workspace item not found' }, status: 404 };
+    throw error;
+  }
+
+  return { data: { success: true, data: found } };
+};
 export const createWorkspaceItem = (formData, pwd) => api.post('/workspace', formData, {
   headers: {
     'Content-Type': 'multipart/form-data',

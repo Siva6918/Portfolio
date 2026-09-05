@@ -2,11 +2,13 @@ import { useState, useEffect, useRef } from 'react';
 
 /**
  * useScrollReveal hook observes an element's visibility in the viewport.
- * Triggers once when the element scrolls into view.
- * Degrades gracefully if IntersectionObserver is unsupported or prefers-reduced-motion is active.
+ * When element enters viewport -> isVisible = true
+ * When element leaves viewport -> isVisible = false (resets for replay!)
+ * Supports both scroll-down and scroll-up repeated triggers.
+ * Respects prefers-reduced-motion.
  */
 export const useScrollReveal = (options = {}) => {
-  const { threshold = 0.12, rootMargin = '0px 0px -50px 0px' } = options;
+  const { threshold = 0.15, rootMargin = '0px 0px -40px 0px', reenter = true } = options;
   const [isVisible, setIsVisible] = useState(false);
   const elementRef = useRef(null);
 
@@ -23,29 +25,27 @@ export const useScrollReveal = (options = {}) => {
       return;
     }
 
+    const currentElement = elementRef.current;
+    if (!currentElement) return;
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsVisible(true);
-          if (elementRef.current) {
-            observer.unobserve(elementRef.current);
-          }
+        } else if (reenter) {
+          // Reset animation state when leaving viewport so it replays!
+          setIsVisible(false);
         }
       },
       { threshold, rootMargin }
     );
 
-    const currentElement = elementRef.current;
-    if (currentElement) {
-      observer.observe(currentElement);
-    }
+    observer.observe(currentElement);
 
     return () => {
-      if (currentElement) {
-        observer.unobserve(currentElement);
-      }
+      observer.disconnect();
     };
-  }, [threshold, rootMargin]);
+  }, [threshold, rootMargin, reenter]);
 
   return { ref: elementRef, isVisible };
 };

@@ -93,6 +93,7 @@ const adminDataController = require('../controllers/adminDataController');
 
 // Workspace Routes
 router.get('/workspace', workspaceController.getAll);
+router.get('/workspace/:category/:slug', workspaceController.getByCategoryAndSlug);
 router.post('/workspace', requireAdminAuth, upload.fields([{ name: 'coverImage', maxCount: 1 }, { name: 'resource', maxCount: 1 }]), workspaceController.create);
 router.put('/workspace/:id', requireAdminAuth, upload.fields([{ name: 'coverImage', maxCount: 1 }, { name: 'resource', maxCount: 1 }]), workspaceController.update);
 router.delete('/workspace/:id', requireAdminAuth, workspaceController.delete);

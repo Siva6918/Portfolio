@@ -15,6 +15,7 @@ import ProfileModal from './components/common/ProfileModal';
 
 import HomePage from './pages/HomePage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
+import WorkspaceResourcePage from './pages/WorkspaceResourcePage';
 import AdminSpacePage from './pages/AdminSpacePage';
 import NotFoundPage from './pages/NotFoundPage';
 
@@ -61,6 +62,7 @@ function App() {
                     <Routes>
                       <Route path="/" element={<HomePage />} />
                       <Route path="/projects/:slug" element={<ProjectDetailPage />} />
+                      <Route path="/workspace/:category/:slug" element={<WorkspaceResourcePage />} />
                       <Route path="/admin" element={<AdminSpacePage />} />
                       <Route path="*" element={<NotFoundPage />} />
                     </Routes>

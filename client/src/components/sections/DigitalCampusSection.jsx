@@ -52,7 +52,7 @@ const DigitalCampusSection = ({ profile, education = [] }) => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {cards.map((card, idx) => (
             <motion.div key={card.num}
-              initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.1 }}
+              initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, amount: 0.1 }}
               transition={{ duration: 0.55, delay: idx * 0.1, ease: easeCurve }}
               className="rounded-2xl border overflow-hidden flex flex-col justify-between transition-all duration-300"
               style={{ background: "rgba(9,9,11,0.85)", borderColor: "rgba(63,63,70,0.65)", minHeight: "260px" }}

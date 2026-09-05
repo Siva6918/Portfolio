@@ -26,19 +26,19 @@ const AboutSection = ({ profile }) => {
         {/* Header */}
         <div className="flex items-center gap-3 mb-14">
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }}
+            initial={{ opacity: 0, scale: 0.8 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: false, amount: 0.15 }}
             transition={{ duration: 0.4, ease: easeCurve }}
             className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
             style={{ background: "rgba(250,204,21,0.15)", border: "1px solid rgba(250,204,21,0.35)", boxShadow: "0 0 24px rgba(250,204,21,0.18)" }}>
             <User className="w-6 h-6" style={{ color: "#facc15" }} />
           </motion.div>
           <div>
-            <motion.span initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            <motion.span initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, amount: 0.15 }}
               transition={{ duration: 0.4, ease: easeCurve }}
               className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/25 text-xs font-mono tracking-widest text-yellow-600 dark:text-yellow-400 uppercase font-semibold mb-1">
               01.5 // ABOUT ME
             </motion.span>
-            <motion.h2 initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            <motion.h2 initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, amount: 0.15 }}
               transition={{ duration: 0.5, delay: 0.08, ease: easeCurve }}
               className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
               Development Vision &{" "}
@@ -52,7 +52,7 @@ const AboutSection = ({ profile }) => {
 
           {/* Bio Card */}
           <motion.div
-            initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.1 }}
+            initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, amount: 0.1 }}
             transition={{ duration: 0.6, ease: easeCurve }}
             className="lg:col-span-7 rounded-2xl border overflow-hidden transition-all duration-300"
             style={{ background: "rgba(9,9,11,0.88)", borderColor: "rgba(63,63,70,0.65)" }}
@@ -94,7 +94,7 @@ const AboutSection = ({ profile }) => {
           <div className="lg:col-span-5 space-y-5">
             {/* Quick Metrics */}
             <motion.div
-              initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.1 }}
+              initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, amount: 0.1 }}
               transition={{ duration: 0.6, delay: 0.12, ease: easeCurve }}
               className="rounded-2xl border overflow-hidden transition-all duration-300"
               style={{ background: "rgba(9,9,11,0.88)", borderColor: "rgba(63,63,70,0.65)" }}
@@ -121,7 +121,7 @@ const AboutSection = ({ profile }) => {
 
             {/* Philosophy */}
             <motion.div
-              initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.1 }}
+              initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, amount: 0.1 }}
               transition={{ duration: 0.6, delay: 0.22, ease: easeCurve }}
               className="rounded-2xl border overflow-hidden transition-all duration-300"
               style={{ background: "linear-gradient(135deg,rgba(56,189,248,0.08),rgba(9,9,11,0.95))", borderColor: "rgba(56,189,248,0.35)", boxShadow: "0 4px 24px rgba(56,189,248,0.1)" }}

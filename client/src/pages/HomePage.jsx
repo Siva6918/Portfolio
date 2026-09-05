@@ -12,6 +12,7 @@ import LearningJournalSection from '../components/sections/LearningJournalSectio
 import ContactSection from '../components/sections/ContactSection';
 import WorkspaceSection from '../components/sections/WorkspaceSection';
 import { useAnalytics } from '../context/AnalyticsContext';
+import useScrollObserver from '../hooks/useScrollObserver';
 
 import { 
   getProfile, getProjects, getSkills, getEducation, 
@@ -20,6 +21,7 @@ import {
 } from '../services/api';
 
 const HomePage = () => {
+  useScrollObserver();
   const [profile, setProfile] = useState({});
   const [projects, setProjects] = useState([]);
   const [skills, setSkills] = useState([]);

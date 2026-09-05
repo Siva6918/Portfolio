@@ -31,7 +31,7 @@ const SectionHeader = ({
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.15 }}
+          viewport={{ once: false, amount: 0.15 }}
           transition={{ duration: 0.5, ease: easeCurve }}
           className="relative inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl border overflow-hidden transition-all duration-300 shadow-md mb-3"
           style={{
@@ -79,7 +79,7 @@ const SectionHeader = ({
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.15 }}
+          viewport={{ once: false, amount: 0.15 }}
           transition={{ duration: 0.6, delay: 0.1, ease: easeCurve }}
           style={{ fontFamily: "'Space Grotesk', sans-serif" }}
           className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight"
@@ -105,7 +105,7 @@ const SectionHeader = ({
           <motion.p
             initial={{ opacity: 0, y: 15 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.15 }}
+            viewport={{ once: false, amount: 0.15 }}
             transition={{ duration: 0.5, delay: 0.2, ease: easeCurve }}
             style={{ fontFamily: "'Space Grotesk', sans-serif" }}
             className="text-xs sm:text-sm font-medium text-slate-600 dark:text-zinc-400 mt-2 max-w-xl leading-relaxed"

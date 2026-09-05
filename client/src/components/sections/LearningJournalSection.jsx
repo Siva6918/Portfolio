@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { motion } from "framer-motion";
 import { BookMarked } from "lucide-react";
 
@@ -33,11 +33,11 @@ const LearningJournalSection = () => (
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-14 gap-4">
         <div>
-          <motion.span initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, ease: easeCurve }}
+          <motion.span initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, amount: 0.15 }} transition={{ duration: 0.5, ease: easeCurve }}
             className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/25 text-xs font-mono tracking-widest text-teal-600 dark:text-teal-400 uppercase font-semibold mb-3">
             <BookMarked className="w-3.5 h-3.5" />08 // CONTINUOUS LEARNING
           </motion.span>
-          <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.1, ease: easeCurve }}
+          <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, amount: 0.15 }} transition={{ duration: 0.6, delay: 0.1, ease: easeCurve }}
             className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
             Currently{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-sky-400 to-purple-400">Learning Journal</span>
@@ -52,7 +52,7 @@ const LearningJournalSection = () => (
           const c = palette[idx % palette.length];
           return (
             <motion.div key={item.topic}
-              initial={{ opacity: 0, y: 22 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.1 }}
+              initial={{ opacity: 0, y: 22 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, amount: 0.1 }}
               transition={{ duration: 0.5, delay: idx * 0.09, ease: easeCurve }}
               className="rounded-2xl border overflow-hidden flex flex-col justify-between space-y-4 transition-all duration-300"
               style={{ background: "rgba(9,9,11,0.85)", borderColor: "rgba(63,63,70,0.65)", minHeight: "180px" }}

@@ -183,7 +183,7 @@ const ProjectsSection = ({ projects = [] }) => {
                 key={project._id || project.slug || idx}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.15 }}
+                viewport={{ once: false, amount: 0.15 }}
                 transition={{ duration: 0.7, delay: idx * 0.1, ease: easeCurve }}
                 className="group rounded-2xl border overflow-hidden transition-all duration-300"
                 style={{ background: "rgba(9,9,11,0.88)", borderColor: "rgba(63,63,70,0.65)" }}
@@ -208,7 +208,7 @@ const ProjectsSection = ({ projects = [] }) => {
                     <motion.div 
                       initial={{ opacity: 0, scale: 0.98 }}
                       whileInView={{ opacity: 1, scale: 1 }}
-                      viewport={{ once: true, amount: 0.15 }}
+                      viewport={{ once: false, amount: 0.15 }}
                       transition={{ duration: 0.6, delay: 0.1, ease: easeCurve }}
                       className={`lg:col-span-6 ${isEven ? 'lg:order-1' : 'lg:order-2'}`}
                     >

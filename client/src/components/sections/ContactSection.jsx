@@ -139,7 +139,7 @@ const ContactSection = ({ email = "vasanreddy1331@gmail.com", profile = {} }) =>
           <motion.div
             initial={{ opacity: 0, y: 25 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.15 }}
+            viewport={{ once: false, amount: 0.15 }}
             transition={{ duration: 0.6, delay: 0.0, ease: easeCurve }}
             className="space-y-6"
           >
@@ -189,7 +189,7 @@ const ContactSection = ({ email = "vasanreddy1331@gmail.com", profile = {} }) =>
           <motion.div
             initial={{ opacity: 0, y: 25 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.15 }}
+            viewport={{ once: false, amount: 0.15 }}
             transition={{ duration: 0.6, delay: 0.1, ease: easeCurve }}
             id="contact-me-form"
           >
@@ -244,7 +244,7 @@ const ContactSection = ({ email = "vasanreddy1331@gmail.com", profile = {} }) =>
           <motion.div
             initial={{ opacity: 0, y: 25 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.15 }}
+            viewport={{ once: false, amount: 0.15 }}
             transition={{ duration: 0.6, delay: 0.2, ease: easeCurve }}
             id="freelance-form"
           >

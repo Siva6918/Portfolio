@@ -7,6 +7,7 @@ const workspaceItemSchema = new mongoose.Schema({
     required: true 
   },
   name: { type: String, required: true },
+  slug: { type: String, trim: true, lowercase: true },
   description: { type: String, required: true },
   
   // Cover Image

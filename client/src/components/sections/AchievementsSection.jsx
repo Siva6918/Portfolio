@@ -61,8 +61,8 @@ const AchievementsSection = ({ achievements = [] }) => {
             const isHov = hov === idx;
             return (
               <motion.div key={item._id||idx}
-                initial={{opacity:0,y:24}} whileInView={{opacity:1,y:0}} viewport={{once:true,amount:0.1}}
-                transition={{duration:0.5,delay:idx*0.09,ease:easeCurve}}
+                initial={{opacity:0,y:24}} whileInView={{opacity:1,y:0}} viewport={{once:false,amount:0.1}}
+                transition={{duration:0.5,delay:(idx % 6)*0.08,ease:easeCurve}}
                 onMouseEnter={()=>setHov(idx)} onMouseLeave={()=>setHov(null)}
                 className="relative rounded-2xl border overflow-hidden flex flex-col transition-all duration-300"
                 style={{

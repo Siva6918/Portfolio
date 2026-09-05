@@ -93,12 +93,12 @@ const SkillsSection = ({ skills=[] }) => {
         {/* Compact grouped view */}
         {viewMode==="compact" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {grouped.map(group => {
+            {grouped.map((group, gIdx) => {
               const c = catPalette[group.category] || {hex:"#fb923c",glow:"rgba(251,146,60,0.4)"};
               return (
                 <motion.div key={group.category}
-                  initial={{opacity:0,y:20}} whileInView={{opacity:1,y:0}} viewport={{once:true,amount:0.1}}
-                  transition={{duration:0.4,ease:easeCurve}}
+                  initial={{opacity:0,y:20}} whileInView={{opacity:1,y:0}} viewport={{once:false,amount:0.1}}
+                  transition={{duration:0.4,delay:(gIdx % 6) * 0.08,ease:easeCurve}}
                   className="rounded-2xl border overflow-hidden transition-all duration-300"
                   style={{background:"rgba(9,9,11,0.85)",borderColor:"rgba(63,63,70,0.65)"}}
                   onMouseEnter={e=>{e.currentTarget.style.borderColor=c.hex;e.currentTarget.style.boxShadow=`0 8px 32px -6px ${c.glow.replace("0.4","0.18")}`;}}

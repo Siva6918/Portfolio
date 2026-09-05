@@ -130,8 +130,122 @@
   transform: translateY(0px) scale(0.99);
 }
 
-/* ─── Keyframe Animations ─── */
-@keyframes fadeInUp {
+/* ─── Reusable Scroll Animation Keyframes ─── */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeLeft {
+  from {
+    opacity: 0;
+    transform: translateX(35px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeRight {
+  from {
+    opacity: 0;
+    transform: translateX(-35px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes blurIn {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0px);
+    transform: scale(1);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cardEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(24px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes imageReveal {
+  0% {
+    opacity: 0;
+    clip-path: inset(8% 0 8% 0 round 16px);
+    transform: scale(1.03);
+  }
+  100% {
+    opacity: 1;
+    clip-path: inset(0% 0 0% 0 round 16px);
+    transform: scale(1);
+  }
+}
+
+@keyframes staggerItem {
   from {
     opacity: 0;
     transform: translateY(20px);
@@ -142,8 +256,110 @@
   }
 }
 
+/* ─── Scroll-Triggered Replayable System ─── */
+/* Initial un-animated state (removed when leaving viewport so it replays) */
+.animate-on-scroll {
+  opacity: 0;
+  will-change: opacity, transform, filter;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.animate-on-scroll[data-animation="fade-up"], .animate-fade-up {
+  opacity: 0;
+  transform: translateY(30px);
+}
+.animate-on-scroll[data-animation="fade-down"], .animate-fade-down {
+  opacity: 0;
+  transform: translateY(-30px);
+}
+.animate-on-scroll[data-animation="fade-left"], .animate-fade-left {
+  opacity: 0;
+  transform: translateX(35px);
+}
+.animate-on-scroll[data-animation="fade-right"], .animate-fade-right {
+  opacity: 0;
+  transform: translateX(-35px);
+}
+.animate-on-scroll[data-animation="scale-in"], .animate-scale-in {
+  opacity: 0;
+  transform: scale(0.92);
+}
+.animate-on-scroll[data-animation="blur-in"], .animate-blur-in {
+  opacity: 0;
+  filter: blur(10px);
+  transform: scale(0.96);
+}
+.animate-on-scroll[data-animation="slide-up"], .animate-slide-up {
+  opacity: 0;
+  transform: translateY(40px);
+}
+.animate-on-scroll[data-animation="slide-down"], .animate-slide-down {
+  opacity: 0;
+  transform: translateY(-40px);
+}
+.animate-on-scroll[data-animation="card-enter"], .animate-card-enter {
+  opacity: 0;
+  transform: translateY(24px) scale(0.96);
+}
+.animate-on-scroll[data-animation="image-reveal"], .animate-image-reveal {
+  opacity: 0;
+}
+.animate-on-scroll[data-animation="stagger-item"], .animate-stagger-item {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+/* Triggered State (Active when in viewport) */
+.animate-on-scroll.is-visible[data-animation="fade-up"],
+.animate-fade-up.is-visible {
+  animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.animate-on-scroll.is-visible[data-animation="fade-down"],
+.animate-fade-down.is-visible {
+  animation: fadeDown 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.animate-on-scroll.is-visible[data-animation="fade-left"],
+.animate-fade-left.is-visible {
+  animation: fadeLeft 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.animate-on-scroll.is-visible[data-animation="fade-right"],
+.animate-fade-right.is-visible {
+  animation: fadeRight 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.animate-on-scroll.is-visible[data-animation="scale-in"],
+.animate-scale-in.is-visible {
+  animation: scaleIn 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.animate-on-scroll.is-visible[data-animation="blur-in"],
+.animate-blur-in.is-visible {
+  animation: blurIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.animate-on-scroll.is-visible[data-animation="slide-up"],
+.animate-slide-up.is-visible {
+  animation: slideUp 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.animate-on-scroll.is-visible[data-animation="slide-down"],
+.animate-slide-down.is-visible {
+  animation: slideDown 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.animate-on-scroll.is-visible[data-animation="card-enter"],
+.animate-card-enter.is-visible {
+  animation: cardEnter 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.animate-on-scroll.is-visible[data-animation="image-reveal"],
+.animate-image-reveal.is-visible {
+  animation: imageReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.animate-on-scroll.is-visible[data-animation="stagger-item"],
+.animate-stagger-item.is-visible {
+  animation: staggerItem 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.animate-on-scroll.is-visible:not([data-animation]) {
+  animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 .animate-fade-in {
-  animation: fadeInUp var(--duration-slow) var(--ease-smooth) both;
+  animation: fadeUp var(--duration-slow) var(--ease-smooth) both;
 }
 
 /* ─── Custom Scrollbar ─── */

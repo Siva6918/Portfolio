@@ -173,7 +173,7 @@ const ExperienceSection = ({ experience=[], codingProfiles=[] }) => {
               const isEx = expandedId===exp._id;
               return (
                 <motion.div key={exp._id||exp.role}
-                  initial={{opacity:0,y:20}} whileInView={{opacity:1,y:0}} viewport={{once:true,amount:0.1}}
+                  initial={{opacity:0,y:20}} whileInView={{opacity:1,y:0}} viewport={{once:false,amount:0.1}}
                   transition={{duration:0.5,delay:idx*0.1,ease:easeCurve}}
                   className="rounded-2xl border overflow-hidden cursor-pointer transition-all duration-300"
                   style={{background:isEx?`linear-gradient(135deg,${c.hex}12,rgba(9,9,11,0.97))`:"rgba(9,9,11,0.85)",borderColor:isEx?c.hex:"rgba(63,63,70,0.65)",boxShadow:isEx?`0 8px 32px -6px ${c.shadow}`:"0 2px 10px rgba(0,0,0,0.3)"}}
@@ -221,7 +221,7 @@ const ExperienceSection = ({ experience=[], codingProfiles=[] }) => {
               const c = codePalette[idx%codePalette.length];
               return (
                 <motion.div key={p.platform}
-                  initial={{opacity:0,y:20}} whileInView={{opacity:1,y:0}} viewport={{once:true,amount:0.1}}
+                  initial={{opacity:0,y:20}} whileInView={{opacity:1,y:0}} viewport={{once:false,amount:0.1}}
                   transition={{duration:0.5,delay:idx*0.1,ease:easeCurve}}
                   className="rounded-2xl border overflow-hidden transition-all duration-300 group flex flex-col"
                   style={{background:"rgba(9,9,11,0.88)",borderColor:"rgba(63,63,70,0.65)"}}
