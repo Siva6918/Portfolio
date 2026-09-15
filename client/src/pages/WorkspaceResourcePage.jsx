@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { getWorkspaceItemBySlug } from '../services/api';
 import SkeletonLoader from '../components/common/SkeletonLoader';
+import FormattedDescription from '../components/common/FormattedDescription';
 
 const RESOURCE_META = {
   video:          { label: 'Video Resource',       icon: Play,      color: '#f43f5e', bgTint: 'rgba(244, 63, 94, 0.12)' },
@@ -399,9 +400,11 @@ const WorkspaceResourcePage = () => {
               </h1>
             </div>
 
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 leading-relaxed font-sans">
-              {item.description}
-            </p>
+            <FormattedDescription
+              text={item.description}
+              className="text-xs sm:text-sm text-slate-600 dark:text-zinc-300 leading-relaxed font-sans"
+              linkColorClass="text-red-500 hover:text-red-600 dark:text-rose-400 dark:hover:text-rose-300"
+            />
 
             <div className="flex flex-wrap items-center gap-4 pt-2 text-[11px] font-mono text-slate-400 dark:text-zinc-500">
               <span className="flex items-center gap-1.5">

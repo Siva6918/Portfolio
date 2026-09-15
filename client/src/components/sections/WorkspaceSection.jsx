@@ -6,6 +6,7 @@ import {
   Link as LinkIcon, Image as ImageIcon, Grid3x3, X, ExternalLink
 } from 'lucide-react';
 import SectionHeader from '../common/SectionHeader';
+import FormattedDescription from '../common/FormattedDescription';
 import { getWorkspaceItems } from '../../services/api';
 import { useAnalytics } from '../../context/AnalyticsContext';
 
@@ -102,9 +103,11 @@ const WorkspaceCard = ({ item, onNavigate }) => {
         >
           {item.name}
         </h4>
-        <p className="text-xs text-zinc-300 leading-relaxed line-clamp-2">
-          {item.description}
-        </p>
+        <FormattedDescription
+          text={item.description}
+          className="text-xs text-zinc-300 leading-relaxed line-clamp-2"
+          linkColorClass="text-rose-400 hover:text-rose-300"
+        />
 
         {/* Primary Portfolio Navigation Button */}
         <button
