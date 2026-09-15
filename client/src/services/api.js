@@ -133,18 +133,22 @@ export const deleteCareerNode = (id, pwd) => api.delete(`/career-nodes/${id}`, a
 
 export const getResume = () => api.get('/resume');
 
-export const uploadMedia = (formData, pwd) => api.post('/upload', formData, {
+export const uploadMedia = (formData, pwd, uploadOptions = {}) => api.post('/upload', formData, {
   headers: {
     'Content-Type': 'multipart/form-data',
     ...(pwd ? { 'x-admin-password': pwd } : {})
-  }
+  },
+  onUploadProgress: uploadOptions.onUploadProgress,
+  signal: uploadOptions.signal,
 });
 
-export const uploadResumeFile = (formData, pwd) => api.post('/resume/upload', formData, {
+export const uploadResumeFile = (formData, pwd, uploadOptions = {}) => api.post('/resume/upload', formData, {
   headers: {
     'Content-Type': 'multipart/form-data',
     ...(pwd ? { 'x-admin-password': pwd } : {})
-  }
+  },
+  onUploadProgress: uploadOptions.onUploadProgress,
+  signal: uploadOptions.signal,
 });
 
 // Analytics API Endpoints
@@ -198,17 +202,21 @@ export const getWorkspaceItemBySlug = async (category, slug) => {
 
   return { data: { success: true, data: found } };
 };
-export const createWorkspaceItem = (formData, pwd) => api.post('/workspace', formData, {
+export const createWorkspaceItem = (formData, pwd, uploadOptions = {}) => api.post('/workspace', formData, {
   headers: {
     'Content-Type': 'multipart/form-data',
     ...(pwd ? { 'x-admin-password': pwd } : {})
-  }
+  },
+  onUploadProgress: uploadOptions.onUploadProgress,
+  signal: uploadOptions.signal,
 });
-export const updateWorkspaceItem = (id, formData, pwd) => api.put(`/workspace/${id}`, formData, {
+export const updateWorkspaceItem = (id, formData, pwd, uploadOptions = {}) => api.put(`/workspace/${id}`, formData, {
   headers: {
     'Content-Type': 'multipart/form-data',
     ...(pwd ? { 'x-admin-password': pwd } : {})
-  }
+  },
+  onUploadProgress: uploadOptions.onUploadProgress,
+  signal: uploadOptions.signal,
 });
 export const deleteWorkspaceItem = (id, pwd) => api.delete(`/workspace/${id}`, authHeader(pwd));
 

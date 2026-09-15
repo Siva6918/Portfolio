@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useSearchParams, useLocation } from 'react-router-dom';
 import {
   Shield, User, FolderGit2, Cpu, GraduationCap, Award, Trophy,
@@ -28,6 +28,8 @@ import { getSocket } from '../services/socket';
 import PasswordModal from '../components/common/PasswordModal';
 import { openPdfInNewTab } from '../utils/pdfHelpers';
 import Toast from '../components/common/Toast';
+import useUploadProgress from '../hooks/useUploadProgress';
+import UploadProgressCard from '../components/common/UploadProgressCard';
 
 // ─── Reusable input styling ─────────────────────────────────────────────
 const inp = "w-full px-3 py-2 rounded-xl bg-[#09090b] border border-[#2d2d3a] text-[#fafafa] text-xs focus:outline-none focus:ring-1 focus:ring-[#ef4444] placeholder:text-[#52525b]";
@@ -57,19 +59,19 @@ const ActionBtns = ({ onEdit, onDelete }) => (
   </div>
 );
 
-const EditActions = ({ onSave, onCancel }) => (
+const EditActions = ({ onSave, onCancel, disabled = false }) => (
   <div className="flex gap-2 pt-1">
-    <button type="button" onClick={onSave} className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#ef4444] text-white text-xs font-bold transition-all hover:bg-[#dc2626]"><Save className="w-3.5 h-3.5" />Save Changes</button>
+    <button type="button" onClick={onSave} disabled={disabled} className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#ef4444] text-white text-xs font-bold transition-all hover:bg-[#dc2626] disabled:opacity-50 disabled:cursor-not-allowed"><Save className="w-3.5 h-3.5" />{disabled ? 'Uploading…' : 'Save Changes'}</button>
     <button type="button" onClick={onCancel} className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#2d2d3a] text-[#a1a1aa] text-xs font-bold"><X className="w-3.5 h-3.5" />Cancel</button>
   </div>
 );
 
-const FormCard = ({ children, onSubmit, color, title }) => (
+const FormCard = ({ children, onSubmit, color, title, disabled = false }) => (
   <form onSubmit={onSubmit} className="p-5 rounded-2xl border space-y-3" style={{ borderColor: color + '40', background: '#121217' }}>
     <h4 className="text-xs font-bold font-mono uppercase" style={{ color }}>{title}</h4>
     {children}
-    <button type="submit" className="w-full py-2.5 rounded-xl text-xs font-bold border mt-1 flex items-center justify-center gap-2 transition-all" style={{ background: color + '18', color, borderColor: color + '40' }}>
-      <Lock className="w-3 h-3" />Save (Password Required)
+    <button type="submit" disabled={disabled} className="w-full py-2.5 rounded-xl text-xs font-bold border mt-1 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed" style={{ background: color + '18', color, borderColor: color + '40' }}>
+      <Lock className="w-3 h-3" />{disabled ? 'Uploading…' : 'Save (Password Required)'}
     </button>
   </form>
 );
@@ -185,6 +187,20 @@ const AdminSpacePage = () => {
   const certImgRef = useRef(null);
   const skillLogoRef = useRef(null);
   const achieveImgRef = useRef(null);
+
+  // ─── Upload progress hooks (one per upload slot) ─────────────────────────
+  const avatarUp     = useUploadProgress(); // Profile avatar
+  const projImgUp    = useUploadProgress(); // Project thumbnail (create)
+  const projVidUp    = useUploadProgress(); // Project video (create)
+  const projEditVidUp = useUploadProgress(); // Project video (edit)
+  const skillLogoUp  = useUploadProgress(); // Skill logo
+  const certImgUp    = useUploadProgress(); // Certification image
+  const achImgUp     = useUploadProgress(); // Achievement image
+  const resumeUp     = useUploadProgress(); // Resume PDF
+  const wsCoverUp    = useUploadProgress(); // Workspace create: cover
+  const wsResUp      = useUploadProgress(); // Workspace create: resource
+  const wsEditCoverUp = useUploadProgress(); // Workspace edit: cover
+  const wsEditResUp  = useUploadProgress(); // Workspace edit: resource
 
   useEffect(() => { 
     fetchData(); 
@@ -338,11 +354,24 @@ const AdminSpacePage = () => {
     } finally { setPendingAction(null); }
   };
 
+  /**
+   * Upload a single file with real progress tracking.
+   * Returns the resolved media URL, or throws on failure.
+   */
+  const uploadFileWithProgress = async (file, pwd, upHook) => {
+    const url = await upHook.upload(
+      file,
+      (fd, axiosExtras) => uploadMedia(fd, pwd, axiosExtras),
+      { fieldName: 'file' }
+    );
+    return resolveMediaUrl(url);
+  };
+
+  // Silent upload (legacy — for fields that don't need progress UI, e.g. URL-based fields)
   const uploadFile = async (file, pwd) => {
     const fd = new FormData();
     fd.append('file', file);
     const res = await uploadMedia(fd, pwd);
-    // Resolve to full URL so it works across origins (client ≠ server)
     return resolveMediaUrl(res.data.url);
   };
 
@@ -361,7 +390,7 @@ const AdminSpacePage = () => {
     triggerMutation('Update Profile', async (pwd) => {
       let payload = { ...profile, ...profileForm };
       const avatarFile = avatarRef.current?.files?.[0];
-      if (avatarFile) payload.profileImage = await uploadFile(avatarFile, pwd);
+      if (avatarFile) payload.profileImage = await uploadFileWithProgress(avatarFile, pwd, avatarUp);
       await updateProfile(payload, pwd);
       setAvatarPreview(null);
     });
@@ -385,9 +414,9 @@ const AdminSpacePage = () => {
     triggerMutation('Add Project', async (pwd) => {
       let payload = { ...projectForm, technologies: csvToArr(projectForm.technologies) };
       const imgFile = projectImgRef.current?.files?.[0];
-      if (imgFile) payload.thumbnail = await uploadFile(imgFile, pwd);
+      if (imgFile) payload.thumbnail = await uploadFileWithProgress(imgFile, pwd, projImgUp);
       const videoFile = projectVideoRef.current?.files?.[0];
-      if (videoFile) payload.videoUrl = await uploadFile(videoFile, pwd);
+      if (videoFile) payload.videoUrl = await uploadFileWithProgress(videoFile, pwd, projVidUp);
       await createProject(payload, pwd);
     });
   };
@@ -395,7 +424,7 @@ const AdminSpacePage = () => {
     triggerMutation('Update Project', async (pwd) => {
       let payload = { ...editForm, technologies: csvToArr(editForm.technologies) };
       const videoFile = projectVideoRef.current?.files?.[0];
-      if (videoFile) payload.videoUrl = await uploadFile(videoFile, pwd);
+      if (videoFile) payload.videoUrl = await uploadFileWithProgress(videoFile, pwd, projEditVidUp);
       await updateProject(id, payload, pwd);
     });
   };
@@ -407,7 +436,7 @@ const AdminSpacePage = () => {
     triggerMutation('Add Skill', async (pwd) => {
       let payload = { ...skillForm };
       const logoFile = skillLogoRef.current?.files?.[0];
-      if (logoFile) payload.logo = await uploadFile(logoFile, pwd);
+      if (logoFile) payload.logo = await uploadFileWithProgress(logoFile, pwd, skillLogoUp);
       await createSkill(payload, pwd);
     });
   };
@@ -428,7 +457,7 @@ const AdminSpacePage = () => {
     triggerMutation('Add Certification', async (pwd) => {
       let payload = { ...certForm };
       const imgFile = certImgRef.current?.files?.[0];
-      if (imgFile) payload.image = await uploadFile(imgFile, pwd);
+      if (imgFile) payload.image = await uploadFileWithProgress(imgFile, pwd, certImgUp);
       await createCertification(payload, pwd);
     });
   };
@@ -441,7 +470,7 @@ const AdminSpacePage = () => {
     triggerMutation('Add Achievement', async (pwd) => {
       let payload = { ...achieveForm };
       const imgFile = achieveImgRef.current?.files?.[0];
-      if (imgFile) payload.image = await uploadFile(imgFile, pwd);
+      if (imgFile) payload.image = await uploadFileWithProgress(imgFile, pwd, achImgUp);
       await createAchievement(payload, pwd);
     });
   };
@@ -468,9 +497,14 @@ const AdminSpacePage = () => {
   const handleResumeUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const fd = new FormData();
-    fd.append('resume', file);
-    triggerMutation('Upload Resume PDF', async (pwd) => { await uploadResumeFile(fd, pwd); });
+    triggerMutation('Upload Resume PDF', async (pwd) => {
+    await resumeUp.upload(
+      file,
+      (fd, axiosExtras) => uploadResumeFile(fd, pwd, axiosExtras),
+      { fieldName: 'resume' }
+    );
+    resumeUp.reset();
+    });
   };
 
   // ── WORKSPACE ─────────────────────────────────────────────────────────────
@@ -511,7 +545,17 @@ const AdminSpacePage = () => {
     const resFile = wsResourceMode === 'file' ? (wsResourceFile || wsResourceRef.current?.files?.[0]) : null;
     if (resFile) fd.append('resource', resFile);
 
-    await createWorkspaceItem(fd, pwd);
+    // Track upload progress — single multipart request containing cover + optional resource
+    // Use the cover hook's upload mechanics to drive progress on the combined upload
+    const coverFileRef = coverFile;
+    const resFileRef = resFile;
+    await wsCoverUp.upload(
+      coverFileRef,
+      (_, axiosExtras) => createWorkspaceItem(fd, pwd, axiosExtras),
+      { formData: fd }
+    );
+    wsCoverUp.reset();
+    wsResUp.reset();
     setWsShowAdd(false);
     setWsCoverFile(null);
     setWsCoverPreview(null);
@@ -539,7 +583,19 @@ const AdminSpacePage = () => {
     const resFile = wsEditResourceMode === 'file' ? (wsEditResourceFile || wsEditResourceRef.current?.files?.[0]) : null;
     if (resFile) fd.append('resource', resFile);
 
-    await updateWorkspaceItem(id, fd, pwd);
+    const hasFileUpload = !!(coverFile || resFile);
+    if (hasFileUpload) {
+      // Track combined multipart upload progress via wsEditCoverUp hook
+      await wsEditCoverUp.upload(
+        coverFile || resFile, // use whichever file is present for metadata
+        (_, axiosExtras) => updateWorkspaceItem(id, fd, pwd, axiosExtras),
+        { formData: fd }
+      );
+      wsEditCoverUp.reset();
+      wsEditResUp.reset();
+    } else {
+      await updateWorkspaceItem(id, fd, pwd);
+    }
     setWsEditingId(null);
     setWsEditForm({});
     setWsEditCoverFile(null);
@@ -744,9 +800,21 @@ const AdminSpacePage = () => {
                   </label>
                 </div>
               </div>
+              <UploadProgressCard
+                info={avatarUp.info}
+                onCancel={avatarUp.cancel}
+                onRetry={() => { avatarRef.current?.click(); }}
+                onDismiss={avatarUp.reset}
+                label="Profile Avatar"
+              />
               <div className="flex justify-end">
-                <button type="submit" className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#ef4444] hover:bg-[#dc2626] text-white font-bold text-xs transition-all">
-                  <Lock className="w-3.5 h-3.5" /> Save Profile Changes
+                <button
+                  type="submit"
+                  disabled={avatarUp.isActive}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#ef4444] hover:bg-[#dc2626] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs transition-all"
+                >
+                  <Lock className="w-3.5 h-3.5" />
+                  {avatarUp.isActive ? 'Uploading…' : 'Save Profile Changes'}
                 </button>
               </div>
             </form>
@@ -832,7 +900,7 @@ const AdminSpacePage = () => {
             <SectionHeader icon={FolderGit2} title="Projects" count={projects.length} color="#e11d48" onAdd={() => setShowAddForm(f => !f)} addOpen={showAddForm} />
 
             {showAddForm && (
-              <FormCard onSubmit={handleCreateProject} color="#e11d48" title="Add New Project">
+              <FormCard onSubmit={handleCreateProject} color="#e11d48" title="Add New Project" disabled={projImgUp.isActive || projVidUp.isActive}>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div><label className={lbl}>Title *</label><input required type="text" className={inp} placeholder="Project Name" value={projectForm.title} onChange={e => setProjectForm(p => ({ ...p, title: e.target.value }))} /></div>
                   <div><label className={lbl}>Category</label><input type="text" className={inp} placeholder="Full Stack MERN / Frontend / AI" value={projectForm.category} onChange={e => setProjectForm(p => ({ ...p, category: e.target.value }))} /></div>
@@ -851,6 +919,7 @@ const AdminSpacePage = () => {
                       <Image className="w-4 h-4" /><span>Upload Screenshot</span>
                       <input type="file" ref={projectImgRef} accept="image/*" className="hidden" />
                     </label>
+                    <UploadProgressCard info={projImgUp.info} onCancel={projImgUp.cancel} onDismiss={projImgUp.reset} label="Thumbnail" />
                   </div>
                   <div><label className={lbl}>Display Order</label><input type="number" className={inp} value={projectForm.displayOrder} onChange={e => setProjectForm(p => ({ ...p, displayOrder: +e.target.value }))} /></div>
                 </div>
@@ -862,6 +931,7 @@ const AdminSpacePage = () => {
                       <input type="file" ref={projectVideoRef} accept="video/*" className="hidden" />
                     </label>
                     <p className="text-[10px] text-[#52525b] font-mono mt-1">Or paste a URL below (YouTube, Cloudinary, etc.)</p>
+                    <UploadProgressCard info={projVidUp.info} onCancel={projVidUp.cancel} onDismiss={projVidUp.reset} label="Demo Video" />
                   </div>
                   <div><label className={lbl}>Video URL (optional)</label><input type="text" className={inp} placeholder="https://..." value={projectForm.videoUrl} onChange={e => setProjectForm(p => ({ ...p, videoUrl: e.target.value }))} /></div>
                 </div>
@@ -899,9 +969,10 @@ const AdminSpacePage = () => {
                             <Video className="w-3.5 h-3.5" /><span>Choose Video</span>
                             <input type="file" ref={projectVideoRef} accept="video/*" className="hidden" />
                           </label>
+                          <UploadProgressCard info={projEditVidUp.info} onCancel={projEditVidUp.cancel} onDismiss={projEditVidUp.reset} label="New Video" />
                         </div>
                       </div>
-                      <EditActions onSave={() => handleUpdateProject(proj._id)} onCancel={cancelEdit} />
+                      <EditActions onSave={() => handleUpdateProject(proj._id)} onCancel={cancelEdit} disabled={projEditVidUp.isActive} />
                     </div>
                   ) : (
                     <div className="flex items-center justify-between gap-4">
@@ -928,7 +999,7 @@ const AdminSpacePage = () => {
             <SectionHeader icon={Cpu} title="Skills & Technologies" count={skills.length} color="#fb7185" onAdd={() => setShowAddForm(f => !f)} addOpen={showAddForm} />
 
             {showAddForm && (
-              <FormCard onSubmit={handleCreateSkill} color="#fb7185" title="Add New Skill">
+              <FormCard onSubmit={handleCreateSkill} color="#fb7185" title="Add New Skill" disabled={skillLogoUp.isActive}>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div><label className={lbl}>Skill Name *</label><input required type="text" className={inp} placeholder="React, Problem Solving..." value={skillForm.name} onChange={e => setSkillForm(p => ({ ...p, name: e.target.value }))} /></div>
                   <div><label className={lbl}>Category *</label><input required type="text" className={inp} placeholder="Frontend / Soft Skills / Backend" value={skillForm.category} onChange={e => setSkillForm(p => ({ ...p, category: e.target.value }))} /></div>
@@ -955,6 +1026,7 @@ const AdminSpacePage = () => {
                       <Upload className="w-3.5 h-3.5" /><span>Upload</span>
                       <input type="file" ref={skillLogoRef} accept="image/*" className="hidden" />
                     </label>
+                    <UploadProgressCard info={skillLogoUp.info} onCancel={skillLogoUp.cancel} onDismiss={skillLogoUp.reset} label="Skill Logo" />
                   </div>
                 </div>
               </FormCard>
@@ -1089,7 +1161,7 @@ const AdminSpacePage = () => {
             <SectionHeader icon={Award} title="Certifications" count={certifications.length} color="#ea580c" onAdd={() => setShowAddForm(f => !f)} addOpen={showAddForm} />
 
             {showAddForm && (
-              <FormCard onSubmit={handleCreateCertification} color="#ea580c" title="Add New Certification">
+              <FormCard onSubmit={handleCreateCertification} color="#ea580c" title="Add New Certification" disabled={certImgUp.isActive}>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div><label className={lbl}>Title *</label><input required type="text" className={inp} placeholder="AWS Solutions Architect" value={certForm.title} onChange={e => setCertForm(p => ({ ...p, title: e.target.value }))} /></div>
                   <div><label className={lbl}>Issuing Organization *</label><input required type="text" className={inp} placeholder="Amazon Web Services" value={certForm.organization} onChange={e => setCertForm(p => ({ ...p, organization: e.target.value }))} /></div>
@@ -1104,6 +1176,7 @@ const AdminSpacePage = () => {
                     <Image className="w-4 h-4" /><span>Upload Certificate Image</span>
                     <input type="file" ref={certImgRef} accept="image/*" className="hidden" />
                   </label>
+                  <UploadProgressCard info={certImgUp.info} onCancel={certImgUp.cancel} onDismiss={certImgUp.reset} label="Certificate Image" />
                 </div>
                 <div><label className={lbl}>Description</label><textarea rows={2} className={inp} value={certForm.description} onChange={e => setCertForm(p => ({ ...p, description: e.target.value }))} /></div>
               </FormCard>
@@ -1151,7 +1224,7 @@ const AdminSpacePage = () => {
             <SectionHeader icon={Trophy} title="Achievements & Honors" count={achievements.length} color="#fb7185" onAdd={() => setShowAddForm(f => !f)} addOpen={showAddForm} />
 
             {showAddForm && (
-              <FormCard onSubmit={handleCreateAchievement} color="#fb7185" title="Add New Achievement">
+              <FormCard onSubmit={handleCreateAchievement} color="#fb7185" title="Add New Achievement" disabled={achImgUp.isActive}>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div><label className={lbl}>Title *</label><input required type="text" className={inp} placeholder="Hackathon Winner / Academic Topper" value={achieveForm.title} onChange={e => setAchieveForm(p => ({ ...p, title: e.target.value }))} /></div>
                   <div><label className={lbl}>Rank / Position</label><input type="text" className={inp} placeholder="1st Place / Top 10" value={achieveForm.rank} onChange={e => setAchieveForm(p => ({ ...p, rank: e.target.value }))} /></div>
@@ -1167,6 +1240,7 @@ const AdminSpacePage = () => {
                         <input type="file" ref={achieveImgRef} accept="image/*" className="hidden" />
                       </label>
                     </div>
+                    <UploadProgressCard info={achImgUp.info} onCancel={achImgUp.cancel} onDismiss={achImgUp.reset} label="Achievement Image" />
                   </div>
                 </div>
                 <div><label className={lbl}>Description</label><textarea rows={2} className={inp} value={achieveForm.description} onChange={e => setAchieveForm(p => ({ ...p, description: e.target.value }))} /></div>
@@ -1406,6 +1480,7 @@ const AdminSpacePage = () => {
                   <Upload className="w-4 h-4" /><span>Upload New Resume PDF (Admin Protected)</span>
                   <input type="file" accept="application/pdf,.pdf" onChange={handleResumeUpload} className="hidden" />
                 </label>
+                <UploadProgressCard info={resumeUp.info} onCancel={resumeUp.cancel} onDismiss={resumeUp.reset} label="Resume PDF" />
               </div>
             </div>
           </div>
@@ -1774,6 +1849,14 @@ const AdminSpacePage = () => {
                 </div>
               </div>
 
+              {/* Upload Progress */}
+              <UploadProgressCard
+                info={wsCoverUp.info}
+                onCancel={wsCoverUp.cancel}
+                onDismiss={wsCoverUp.reset}
+                label="Uploading to Cloud"
+              />
+
               {/* Buttons */}
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#2d2d3a]">
                 <button
@@ -1785,7 +1868,8 @@ const AdminSpacePage = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-xl text-xs font-bold font-mono border flex items-center gap-2 transition-all shadow-lg"
+                  disabled={wsCoverUp.isActive}
+                  className="px-6 py-2.5 rounded-xl text-xs font-bold font-mono border flex items-center gap-2 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{
                     background: (wsCategory === 'work' ? '#ef4444' : '#fb7185') + '25',
                     color: wsCategory === 'work' ? '#ef4444' : '#fb7185',
@@ -1793,7 +1877,7 @@ const AdminSpacePage = () => {
                   }}
                 >
                   <Lock className="w-3.5 h-3.5" />
-                  <span>Create {wsCategory === 'work' ? 'Work' : 'Personal'} Item</span>
+                  <span>{wsCoverUp.isActive ? 'Uploading…' : `Create ${wsCategory === 'work' ? 'Work' : 'Personal'} Item`}</span>
                 </button>
               </div>
             </form>
@@ -1981,6 +2065,14 @@ const AdminSpacePage = () => {
                 </label>
               </div>
 
+              {/* Upload Progress for edit */}
+              <UploadProgressCard
+                info={wsEditCoverUp.info}
+                onCancel={wsEditCoverUp.cancel}
+                onDismiss={wsEditCoverUp.reset}
+                label="Uploading to Cloud"
+              />
+
               {/* Action Buttons */}
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#2d2d3a]">
                 <button
@@ -1992,10 +2084,11 @@ const AdminSpacePage = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-[#f59e0b] hover:bg-[#d97706] text-black text-xs font-bold font-mono flex items-center gap-2 transition-all shadow-lg"
+                  disabled={wsEditCoverUp.isActive}
+                  className="px-6 py-2.5 rounded-xl bg-[#f59e0b] hover:bg-[#d97706] disabled:opacity-50 disabled:cursor-not-allowed text-black text-xs font-bold font-mono flex items-center gap-2 transition-all shadow-lg"
                 >
                   <Save className="w-3.5 h-3.5" />
-                  <span>Save Changes</span>
+                  <span>{wsEditCoverUp.isActive ? 'Uploading…' : 'Save Changes'}</span>
                 </button>
               </div>
             </form>
