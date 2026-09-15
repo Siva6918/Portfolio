@@ -263,6 +263,43 @@ const uploadMediaHandler = async (req, res) => {
   }
 };
 
+// Cloudinary Direct Signed Upload Handler
+const getUploadSignature = async (req, res) => {
+  try {
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+    const apiKey = process.env.CLOUDINARY_API_KEY;
+    const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+    if (!cloudName || !apiKey || !apiSecret) {
+      return res.json({ success: true, direct: false, message: 'Cloudinary not configured for direct upload.' });
+    }
+
+    const { folder = 'portfolio/media', resourceType = 'auto' } = req.body || {};
+    const timestamp = Math.round(Date.now() / 1000);
+
+    const paramsToSign = {
+      folder,
+      timestamp
+    };
+
+    const signature = cloudinary.utils.api_sign_request(paramsToSign, apiSecret);
+
+    res.json({
+      success: true,
+      direct: true,
+      cloudName,
+      apiKey,
+      timestamp,
+      signature,
+      folder,
+      resourceType
+    });
+  } catch (err) {
+    console.error('[Upload Signature Error]', err);
+    res.status(500).json({ success: false, message: 'Failed to generate upload signature.' });
+  }
+};
+
 module.exports = {
   getProfile,
   updateProfile,
@@ -280,5 +317,6 @@ module.exports = {
   goal: createCrudHandlers(Goal),
   focusArea: createCrudHandlers(FocusArea),
   careerNode: createCrudHandlers(CareerNode),
-  uploadMedia: uploadMediaHandler
+  uploadMedia: uploadMediaHandler,
+  getUploadSignature
 };

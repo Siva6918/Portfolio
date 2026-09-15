@@ -52,27 +52,54 @@ const workspaceController = {
       const { category, name, description, externalUrl, isVisible, displayOrder } = req.body;
       const files = req.files || {};
       
-      if (!files.coverImage || !files.coverImage[0]) {
+      let coverUpload = null;
+      let coverInput = req.body.coverImage;
+      if (typeof coverInput === 'string' && coverInput.startsWith('{')) {
+        try { coverInput = JSON.parse(coverInput); } catch (e) {}
+      }
+
+      if (coverInput && (coverInput.url || typeof coverInput === 'string')) {
+        coverUpload = {
+          secure_url: typeof coverInput === 'string' ? coverInput : coverInput.url,
+          public_id: typeof coverInput === 'object' ? coverInput.public_id : (req.body.coverImagePublicId || '')
+        };
+      } else if (files.coverImage && files.coverImage[0]) {
+        if (!process.env.CLOUDINARY_CLOUD_NAME) {
+          return res.status(500).json({ success: false, message: 'Cloudinary not configured' });
+        }
+        const coverImageFile = files.coverImage[0];
+        const resUp = await uploadStreamToCloudinary(coverImageFile.buffer, {
+          folder: `portfolio/workspace/${category}/cover`,
+          resource_type: 'image'
+        });
+        coverUpload = { secure_url: resUp.secure_url, public_id: resUp.public_id };
+      }
+
+      if (!coverUpload) {
         return res.status(400).json({ success: false, message: 'Cover image is compulsory' });
       }
-      if (!process.env.CLOUDINARY_CLOUD_NAME) {
-        return res.status(500).json({ success: false, message: 'Cloudinary not configured' });
-      }
-
-      // Upload Cover Image
-      const coverImageFile = files.coverImage[0];
-      const coverUpload = await uploadStreamToCloudinary(coverImageFile.buffer, {
-        folder: `portfolio/workspace/${category}/cover`,
-        resource_type: 'image'
-      });
 
       let resourceObj = {};
-      let resourceType = null;
-      let resourceMimeType = null;
-      let resourceFormat = null;
+      let resourceType = req.body.resourceType || null;
+      let resourceMimeType = req.body.resourceMimeType || null;
+      let resourceFormat = req.body.resourceFormat || null;
 
-      // Handle File Resource
-      if (files.resource && files.resource[0]) {
+      let resInput = req.body.resource;
+      if (typeof resInput === 'string' && resInput.startsWith('{')) {
+        try { resInput = JSON.parse(resInput); } catch (e) {}
+      }
+
+      if (resInput && (resInput.url || typeof resInput === 'string')) {
+        const url = typeof resInput === 'string' ? resInput : resInput.url;
+        const public_id = typeof resInput === 'object' ? resInput.public_id : (req.body.resourcePublicId || '');
+        resourceObj = { url, public_id };
+        if (!resourceType) {
+          resourceType = getResourceType(resourceMimeType || '', req.body.resourceName || url);
+        }
+        if (!resourceFormat && typeof resInput === 'object' && resInput.format) {
+          resourceFormat = resInput.format;
+        }
+      } else if (files.resource && files.resource[0]) {
         const resFile = files.resource[0];
         resourceMimeType = resFile.mimetype;
         resourceType = getResourceType(resourceMimeType, resFile.originalname);
@@ -106,7 +133,7 @@ const workspaceController = {
         resourceMimeType,
         resourceFormat,
         externalUrl,
-        isVisible: isVisible !== undefined ? isVisible === 'true' : true,
+        isVisible: isVisible !== undefined ? (isVisible === 'true' || isVisible === true) : true,
         displayOrder: displayOrder || 0
       });
 
@@ -127,7 +154,19 @@ const workspaceController = {
       if (!item) return res.status(404).json({ success: false, message: 'Item not found' });
 
       let coverImageObj = item.coverImage;
-      if (files.coverImage && files.coverImage[0]) {
+      let coverInput = req.body.coverImage;
+      if (typeof coverInput === 'string' && coverInput.startsWith('{')) {
+        try { coverInput = JSON.parse(coverInput); } catch (e) {}
+      }
+
+      if (coverInput && (coverInput.url || typeof coverInput === 'string')) {
+        const newUrl = typeof coverInput === 'string' ? coverInput : coverInput.url;
+        const newPublicId = typeof coverInput === 'object' ? coverInput.public_id : (req.body.coverImagePublicId || '');
+        if (coverImageObj?.public_id && coverImageObj.public_id !== newPublicId) {
+          await cloudinary.uploader.destroy(coverImageObj.public_id, { resource_type: 'image' }).catch(() => {});
+        }
+        coverImageObj = { url: newUrl, public_id: newPublicId };
+      } else if (files.coverImage && files.coverImage[0]) {
         if (coverImageObj.public_id) {
           await cloudinary.uploader.destroy(coverImageObj.public_id, { resource_type: 'image' });
         }
@@ -139,11 +178,30 @@ const workspaceController = {
       }
 
       let resourceObj = item.resource || {};
-      let resourceType = item.resourceType;
-      let resourceMimeType = item.resourceMimeType;
-      let resourceFormat = item.resourceFormat;
+      let resourceType = req.body.resourceType !== undefined ? req.body.resourceType : item.resourceType;
+      let resourceMimeType = req.body.resourceMimeType !== undefined ? req.body.resourceMimeType : item.resourceMimeType;
+      let resourceFormat = req.body.resourceFormat !== undefined ? req.body.resourceFormat : item.resourceFormat;
 
-      if (files.resource && files.resource[0]) {
+      let resInput = req.body.resource;
+      if (typeof resInput === 'string' && resInput.startsWith('{')) {
+        try { resInput = JSON.parse(resInput); } catch (e) {}
+      }
+
+      if (resInput && (resInput.url || typeof resInput === 'string')) {
+        const newUrl = typeof resInput === 'string' ? resInput : resInput.url;
+        const newPublicId = typeof resInput === 'object' ? resInput.public_id : (req.body.resourcePublicId || '');
+        if (resourceObj?.public_id && resourceObj.public_id !== newPublicId) {
+          const resTypeToDestroy = item.resourceType === 'video' ? 'video' : (['document', 'excel', 'pdf'].includes(item.resourceType) ? 'raw' : 'image');
+          await cloudinary.uploader.destroy(resourceObj.public_id, { resource_type: resTypeToDestroy }).catch(() => {});
+        }
+        resourceObj = { url: newUrl, public_id: newPublicId };
+        if (!resourceType) {
+          resourceType = getResourceType(resourceMimeType || '', req.body.resourceName || newUrl);
+        }
+        if (!resourceFormat && typeof resInput === 'object' && resInput.format) {
+          resourceFormat = resInput.format;
+        }
+      } else if (files.resource && files.resource[0]) {
         if (resourceObj.public_id) {
           const oldResType = item.resourceType === 'video' ? 'video' : 'raw';
           // auto/image destruction usually works with 'image' type which is default if not raw/video

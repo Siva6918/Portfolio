@@ -29,7 +29,7 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({
   storage,
-  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB limit for video files
+  limits: { fileSize: 25 * 1024 * 1024 }, // Safe 25MB limit for server memory proxy (large files upload directly to Cloudinary)
   fileFilter
 });
 

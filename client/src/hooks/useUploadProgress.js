@@ -181,7 +181,9 @@ const useUploadProgress = () => {
       }));
 
       // Extract URL from response
-      const url = response?.data?.url || response?.data?.data?.url || response?.data?.secure_url || '';
+      const resData = response?.data || response;
+      const url = resData?.url || resData?.secure_url || (typeof response === 'string' ? response : '');
+      const public_id = resData?.public_id || '';
 
       safeSet((prev) => ({
         ...prev,
@@ -189,7 +191,15 @@ const useUploadProgress = () => {
         percent: 100,
       }));
 
-      return url;
+      const resObj = new String(url);
+      resObj.url = url;
+      resObj.public_id = public_id;
+      resObj.format = resData?.format;
+      resObj.bytes = resData?.bytes;
+      resObj.resource_type = resData?.resource_type;
+      resObj.raw = resData;
+
+      return resObj;
     } catch (err) {
       if (err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED' || ctrl.signal.aborted) {
         safeSet((prev) => ({

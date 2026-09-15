@@ -133,6 +133,27 @@ export const deleteCareerNode = (id, pwd) => api.delete(`/career-nodes/${id}`, a
 
 export const getResume = () => api.get('/resume');
 
+export const getUploadSignature = (params = {}, pwd) => api.post('/upload/sign', params, authHeader(pwd));
+
+export const uploadDirectToCloudinary = async (file, signData, uploadOptions = {}) => {
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('api_key', signData.apiKey);
+  fd.append('timestamp', signData.timestamp);
+  fd.append('signature', signData.signature);
+  if (signData.folder) fd.append('folder', signData.folder);
+
+  const resourceType = signData.resourceType || (file.type?.startsWith('video/') ? 'video' : 'auto');
+  const url = `https://api.cloudinary.com/v1_1/${signData.cloudName}/${resourceType}/upload`;
+
+  const res = await axios.post(url, fd, {
+    onUploadProgress: uploadOptions.onUploadProgress,
+    signal: uploadOptions.signal,
+  });
+
+  return res.data;
+};
+
 export const uploadMedia = (formData, pwd, uploadOptions = {}) => api.post('/upload', formData, {
   headers: {
     'Content-Type': 'multipart/form-data',
@@ -202,22 +223,28 @@ export const getWorkspaceItemBySlug = async (category, slug) => {
 
   return { data: { success: true, data: found } };
 };
-export const createWorkspaceItem = (formData, pwd, uploadOptions = {}) => api.post('/workspace', formData, {
-  headers: {
-    'Content-Type': 'multipart/form-data',
-    ...(pwd ? { 'x-admin-password': pwd } : {})
-  },
-  onUploadProgress: uploadOptions.onUploadProgress,
-  signal: uploadOptions.signal,
-});
-export const updateWorkspaceItem = (id, formData, pwd, uploadOptions = {}) => api.put(`/workspace/${id}`, formData, {
-  headers: {
-    'Content-Type': 'multipart/form-data',
-    ...(pwd ? { 'x-admin-password': pwd } : {})
-  },
-  onUploadProgress: uploadOptions.onUploadProgress,
-  signal: uploadOptions.signal,
-});
+export const createWorkspaceItem = (data, pwd, uploadOptions = {}) => {
+  const isFormData = typeof FormData !== 'undefined' && data instanceof FormData;
+  return api.post('/workspace', data, {
+    headers: {
+      ...(isFormData ? { 'Content-Type': 'multipart/form-data' } : { 'Content-Type': 'application/json' }),
+      ...(pwd ? { 'x-admin-password': pwd } : {})
+    },
+    onUploadProgress: uploadOptions.onUploadProgress,
+    signal: uploadOptions.signal,
+  });
+};
+export const updateWorkspaceItem = (id, data, pwd, uploadOptions = {}) => {
+  const isFormData = typeof FormData !== 'undefined' && data instanceof FormData;
+  return api.put(`/workspace/${id}`, data, {
+    headers: {
+      ...(isFormData ? { 'Content-Type': 'multipart/form-data' } : { 'Content-Type': 'application/json' }),
+      ...(pwd ? { 'x-admin-password': pwd } : {})
+    },
+    onUploadProgress: uploadOptions.onUploadProgress,
+    signal: uploadOptions.signal,
+  });
+};
 export const deleteWorkspaceItem = (id, pwd) => api.delete(`/workspace/${id}`, authHeader(pwd));
 
 // Admin Messages & Freelance Opportunities

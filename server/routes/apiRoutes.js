@@ -48,6 +48,7 @@ router.post('/contact/freelance', sendFreelanceEmail);
 router.post('/feedback/send', sendFeedbackEmail);
 
 // Media & File Uploads
+router.post('/upload/sign', requireAdminAuth, portfolioController.getUploadSignature);
 router.post('/upload', requireAdminAuth, upload.single('file'), portfolioController.uploadMedia);
 router.post('/resume/upload', requireAdminAuth, upload.single('resume'), portfolioController.resume.upload);
 

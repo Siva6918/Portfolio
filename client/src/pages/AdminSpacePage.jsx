@@ -22,7 +22,8 @@ import {
   getResume, uploadResumeFile, uploadMedia, resolveMediaUrl,
   getAnalyticsDashboard, exportAnalyticsCsv,
   getWorkspaceItems, createWorkspaceItem, updateWorkspaceItem, deleteWorkspaceItem,
-  getAdminMessages, deleteAdminMessage, getAdminFreelance, deleteAdminFreelance
+  getAdminMessages, deleteAdminMessage, getAdminFreelance, deleteAdminFreelance,
+  getUploadSignature, uploadDirectToCloudinary
 } from '../services/api';
 import { getSocket } from '../services/socket';
 import PasswordModal from '../components/common/PasswordModal';
@@ -356,15 +357,29 @@ const AdminSpacePage = () => {
 
   /**
    * Upload a single file with real progress tracking.
-   * Returns the resolved media URL, or throws on failure.
+   * Uses direct signed upload to Cloudinary (bypassing Render RAM completely).
+   * Falls back to server proxy upload if Cloudinary is not configured.
+   * Returns String-wrapped object containing url, public_id, and metadata.
    */
-  const uploadFileWithProgress = async (file, pwd, upHook) => {
-    const url = await upHook.upload(
+  const uploadFileWithProgress = async (file, pwd, upHook, options = {}) => {
+    const { folder = 'portfolio/media', resourceType } = options;
+    const res = await upHook.upload(
       file,
-      (fd, axiosExtras) => uploadMedia(fd, pwd, axiosExtras),
+      async (fd, axiosExtras) => {
+        try {
+          const targetType = resourceType || (file.type?.startsWith('video/') ? 'video' : 'auto');
+          const signRes = await getUploadSignature({ folder, resourceType: targetType }, pwd);
+          if (signRes.data?.success && signRes.data?.direct) {
+            return await uploadDirectToCloudinary(file, signRes.data, axiosExtras);
+          }
+        } catch (signErr) {
+          console.warn('Direct upload signature unavailable, falling back to server upload:', signErr?.message);
+        }
+        return await uploadMedia(fd, pwd, axiosExtras);
+      },
       { fieldName: 'file' }
     );
-    return resolveMediaUrl(url);
+    return res;
   };
 
   // Silent upload (legacy — for fields that don't need progress UI, e.g. URL-based fields)
@@ -527,33 +542,64 @@ const AdminSpacePage = () => {
   useEffect(() => { fetchWorkspaceItems(); }, []);
 
   const handleCreateWorkspace = async (pwd) => {
-    const fd = new FormData();
-    fd.append('category', wsCategory);
-    fd.append('name', workspaceForm.name);
-    fd.append('description', workspaceForm.description);
-    fd.append('isVisible', workspaceForm.isVisible);
-    fd.append('displayOrder', workspaceForm.displayOrder || 0);
-
-    if (wsCategory === 'personal' && wsResourceMode === 'link' && workspaceForm.externalUrl) {
-      fd.append('externalUrl', workspaceForm.externalUrl);
-    }
-
     const coverFile = wsCoverFile || wsCoverRef.current?.files?.[0];
     if (!coverFile) throw new Error('Cover photo is required');
-    fd.append('coverImage', coverFile);
 
     const resFile = wsResourceMode === 'file' ? (wsResourceFile || wsResourceRef.current?.files?.[0]) : null;
-    if (resFile) fd.append('resource', resFile);
 
-    // Track upload progress — single multipart request containing cover + optional resource
-    // Use the cover hook's upload mechanics to drive progress on the combined upload
-    const coverFileRef = coverFile;
-    const resFileRef = resFile;
-    await wsCoverUp.upload(
-      coverFileRef,
-      (_, axiosExtras) => createWorkspaceItem(fd, pwd, axiosExtras),
-      { formData: fd }
-    );
+    // Step 1: Upload Cover Image independently with its own hook & progress card
+    const coverRes = await uploadFileWithProgress(coverFile, pwd, wsCoverUp, {
+      folder: `portfolio/workspace/${wsCategory}/cover`,
+      resourceType: 'image'
+    });
+
+    const coverImage = {
+      url: coverRes?.url || String(coverRes),
+      public_id: coverRes?.public_id || ''
+    };
+
+    // Step 2: Upload Resource File (if any) independently with its own hook & progress card
+    let resource = undefined;
+    let resourceType = undefined;
+    let resourceFormat = undefined;
+    let resourceMimeType = undefined;
+
+    if (resFile) {
+      resourceMimeType = resFile.type || 'application/octet-stream';
+      const isVideo = resourceMimeType.startsWith('video/') || /\.(mp4|webm|mov|avi)$/i.test(resFile.name);
+      resourceType = isVideo ? 'video' : (resourceMimeType === 'application/pdf' || resFile.name.endsWith('.pdf') ? 'pdf' : (resourceMimeType.startsWith('image/') ? 'image' : 'document'));
+
+      const resUpload = await uploadFileWithProgress(resFile, pwd, wsResUp, {
+        folder: `portfolio/workspace/${wsCategory}/resource`,
+        resourceType: isVideo ? 'video' : 'auto'
+      });
+
+      resource = {
+        url: resUpload?.url || String(resUpload),
+        public_id: resUpload?.public_id || ''
+      };
+      resourceFormat = resUpload?.format || resFile.name.split('.').pop();
+    } else if (wsCategory === 'personal' && wsResourceMode === 'link' && workspaceForm.externalUrl) {
+      resourceType = 'link';
+    }
+
+    // Step 3: Save metadata via lightweight JSON POST — 0 MB of media data touches Render!
+    const payload = {
+      category: wsCategory,
+      name: workspaceForm.name,
+      description: workspaceForm.description,
+      isVisible: workspaceForm.isVisible,
+      displayOrder: workspaceForm.displayOrder || 0,
+      coverImage,
+      resource,
+      resourceType,
+      resourceMimeType,
+      resourceFormat,
+      externalUrl: (wsCategory === 'personal' && wsResourceMode === 'link') ? workspaceForm.externalUrl : undefined
+    };
+
+    await createWorkspaceItem(payload, pwd);
+
     wsCoverUp.reset();
     wsResUp.reset();
     setWsShowAdd(false);
@@ -565,37 +611,58 @@ const AdminSpacePage = () => {
   };
 
   const handleUpdateWorkspace = async (id, pwd) => {
-    const fd = new FormData();
-    if (wsEditForm.name) fd.append('name', wsEditForm.name);
-    if (wsEditForm.description) fd.append('description', wsEditForm.description);
-    if (wsEditForm.displayOrder !== undefined) fd.append('displayOrder', wsEditForm.displayOrder);
-    if (wsEditForm.isVisible !== undefined) fd.append('isVisible', wsEditForm.isVisible);
-
-    if (wsCategory === 'personal') {
-      if (wsEditResourceMode === 'link') {
-        fd.append('externalUrl', wsEditForm.externalUrl || '');
-      }
-    }
-
     const coverFile = wsEditCoverFile || wsEditCoverRef.current?.files?.[0];
-    if (coverFile) fd.append('coverImage', coverFile);
-
     const resFile = wsEditResourceMode === 'file' ? (wsEditResourceFile || wsEditResourceRef.current?.files?.[0]) : null;
-    if (resFile) fd.append('resource', resFile);
 
-    const hasFileUpload = !!(coverFile || resFile);
-    if (hasFileUpload) {
-      // Track combined multipart upload progress via wsEditCoverUp hook
-      await wsEditCoverUp.upload(
-        coverFile || resFile, // use whichever file is present for metadata
-        (_, axiosExtras) => updateWorkspaceItem(id, fd, pwd, axiosExtras),
-        { formData: fd }
-      );
-      wsEditCoverUp.reset();
-      wsEditResUp.reset();
-    } else {
-      await updateWorkspaceItem(id, fd, pwd);
+    let coverImage = undefined;
+    if (coverFile) {
+      const coverRes = await uploadFileWithProgress(coverFile, pwd, wsEditCoverUp, {
+        folder: `portfolio/workspace/${wsCategory}/cover`,
+        resourceType: 'image'
+      });
+      coverImage = {
+        url: coverRes?.url || String(coverRes),
+        public_id: coverRes?.public_id || ''
+      };
     }
+
+    let resource = undefined;
+    let resourceType = undefined;
+    let resourceFormat = undefined;
+    let resourceMimeType = undefined;
+
+    if (resFile) {
+      resourceMimeType = resFile.type || 'application/octet-stream';
+      const isVideo = resourceMimeType.startsWith('video/') || /\.(mp4|webm|mov|avi)$/i.test(resFile.name);
+      resourceType = isVideo ? 'video' : (resourceMimeType === 'application/pdf' || resFile.name.endsWith('.pdf') ? 'pdf' : (resourceMimeType.startsWith('image/') ? 'image' : 'document'));
+
+      const resUpload = await uploadFileWithProgress(resFile, pwd, wsEditResUp, {
+        folder: `portfolio/workspace/${wsCategory}/resource`,
+        resourceType: isVideo ? 'video' : 'auto'
+      });
+      resource = {
+        url: resUpload?.url || String(resUpload),
+        public_id: resUpload?.public_id || ''
+      };
+      resourceFormat = resUpload?.format || resFile.name.split('.').pop();
+    } else if (wsCategory === 'personal' && wsEditResourceMode === 'link') {
+      resourceType = 'link';
+    }
+
+    const payload = {
+      ...(wsEditForm.name ? { name: wsEditForm.name } : {}),
+      ...(wsEditForm.description !== undefined ? { description: wsEditForm.description } : {}),
+      ...(wsEditForm.displayOrder !== undefined ? { displayOrder: wsEditForm.displayOrder } : {}),
+      ...(wsEditForm.isVisible !== undefined ? { isVisible: wsEditForm.isVisible } : {}),
+      ...(coverImage ? { coverImage } : {}),
+      ...(resource ? { resource, resourceType, resourceFormat, resourceMimeType } : {}),
+      ...(wsCategory === 'personal' && wsEditResourceMode === 'link' ? { externalUrl: wsEditForm.externalUrl || '', resourceType: 'link' } : {})
+    };
+
+    await updateWorkspaceItem(id, payload, pwd);
+
+    wsEditCoverUp.reset();
+    wsEditResUp.reset();
     setWsEditingId(null);
     setWsEditForm({});
     setWsEditCoverFile(null);
@@ -1823,6 +1890,11 @@ const AdminSpacePage = () => {
                     if (file) setWsResourceFile(file);
                   }}
                 />
+                {wsResourceFile && wsResourceFile.size > 100 * 1024 * 1024 && (
+                  <p className="text-[11px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 p-2.5 rounded-xl mt-2">
+                    ⚠️ Note: Selected file is {formatBytes(wsResourceFile.size)}. Cloudinary Free tier limits video uploads to 100 MB. Direct upload will proceed, but if your Cloudinary plan enforces a 100 MB cap, consider using an external link (YouTube, Vimeo, Google Drive, S3) instead.
+                  </p>
+                )}
               </div>
 
               {/* 4. Settings & Visibility */}
@@ -1850,12 +1922,20 @@ const AdminSpacePage = () => {
               </div>
 
               {/* Upload Progress */}
-              <UploadProgressCard
-                info={wsCoverUp.info}
-                onCancel={wsCoverUp.cancel}
-                onDismiss={wsCoverUp.reset}
-                label="Uploading to Cloud"
-              />
+              <div className="space-y-2">
+                <UploadProgressCard
+                  info={wsCoverUp.info}
+                  onCancel={wsCoverUp.cancel}
+                  onDismiss={wsCoverUp.reset}
+                  label="Cover Photo"
+                />
+                <UploadProgressCard
+                  info={wsResUp.info}
+                  onCancel={wsResUp.cancel}
+                  onDismiss={wsResUp.reset}
+                  label="Resource File"
+                />
+              </div>
 
               {/* Buttons */}
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#2d2d3a]">
@@ -1868,7 +1948,7 @@ const AdminSpacePage = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={wsCoverUp.isActive}
+                  disabled={wsCoverUp.isActive || wsResUp.isActive}
                   className="px-6 py-2.5 rounded-xl text-xs font-bold font-mono border flex items-center gap-2 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{
                     background: (wsCategory === 'work' ? '#ef4444' : '#fb7185') + '25',
@@ -1877,7 +1957,7 @@ const AdminSpacePage = () => {
                   }}
                 >
                   <Lock className="w-3.5 h-3.5" />
-                  <span>{wsCoverUp.isActive ? 'Uploading…' : `Create ${wsCategory === 'work' ? 'Work' : 'Personal'} Item`}</span>
+                  <span>{(wsCoverUp.isActive || wsResUp.isActive) ? 'Uploading…' : `Create ${wsCategory === 'work' ? 'Work' : 'Personal'} Item`}</span>
                 </button>
               </div>
             </form>
@@ -2050,6 +2130,11 @@ const AdminSpacePage = () => {
                     if (file) setWsEditResourceFile(file);
                   }}
                 />
+                {wsEditResourceFile && wsEditResourceFile.size > 100 * 1024 * 1024 && (
+                  <p className="text-[11px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 p-2.5 rounded-xl mt-2">
+                    ⚠️ Note: Selected file is {formatBytes(wsEditResourceFile.size)}. Cloudinary Free tier limits video uploads to 100 MB. Direct upload will proceed, but if your Cloudinary plan enforces a 100 MB cap, consider using an external link (YouTube, Vimeo, Google Drive, S3) instead.
+                  </p>
+                )}
               </div>
 
               {/* Visibility */}
@@ -2066,12 +2151,20 @@ const AdminSpacePage = () => {
               </div>
 
               {/* Upload Progress for edit */}
-              <UploadProgressCard
-                info={wsEditCoverUp.info}
-                onCancel={wsEditCoverUp.cancel}
-                onDismiss={wsEditCoverUp.reset}
-                label="Uploading to Cloud"
-              />
+              <div className="space-y-2">
+                <UploadProgressCard
+                  info={wsEditCoverUp.info}
+                  onCancel={wsEditCoverUp.cancel}
+                  onDismiss={wsEditCoverUp.reset}
+                  label="Cover Photo"
+                />
+                <UploadProgressCard
+                  info={wsEditResUp.info}
+                  onCancel={wsEditResUp.cancel}
+                  onDismiss={wsEditResUp.reset}
+                  label="Resource File"
+                />
+              </div>
 
               {/* Action Buttons */}
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#2d2d3a]">
@@ -2084,11 +2177,11 @@ const AdminSpacePage = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={wsEditCoverUp.isActive}
+                  disabled={wsEditCoverUp.isActive || wsEditResUp.isActive}
                   className="px-6 py-2.5 rounded-xl bg-[#f59e0b] hover:bg-[#d97706] disabled:opacity-50 disabled:cursor-not-allowed text-black text-xs font-bold font-mono flex items-center gap-2 transition-all shadow-lg"
                 >
                   <Save className="w-3.5 h-3.5" />
-                  <span>{wsEditCoverUp.isActive ? 'Uploading…' : 'Save Changes'}</span>
+                  <span>{(wsEditCoverUp.isActive || wsEditResUp.isActive) ? 'Uploading…' : 'Save Changes'}</span>
                 </button>
               </div>
             </form>
