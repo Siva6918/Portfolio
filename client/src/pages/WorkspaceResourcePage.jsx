@@ -9,12 +9,13 @@ import { getWorkspaceItemBySlug } from '../services/api';
 import SkeletonLoader from '../components/common/SkeletonLoader';
 
 const RESOURCE_META = {
-  video:    { label: 'Video Resource',       icon: Play,      color: '#f43f5e', bgTint: 'rgba(244, 63, 94, 0.12)' },
-  pdf:      { label: 'PDF Document',         icon: FileText,  color: '#6366f1', bgTint: 'rgba(99, 102, 241, 0.12)' },
-  document: { label: 'Word Document',        icon: FileType,  color: '#3b82f6', bgTint: 'rgba(59, 130, 246, 0.12)' },
-  excel:    { label: 'Excel Spreadsheet',    icon: Sheet,     color: '#10b981', bgTint: 'rgba(16, 185, 129, 0.12)' },
-  image:    { label: 'Image Asset',          icon: ImageIcon, color: '#f59e0b', bgTint: 'rgba(245, 158, 11, 0.12)' },
-  link:     { label: 'External Resource',    icon: LinkIcon,  color: '#8b5cf6', bgTint: 'rgba(139, 92, 246, 0.12)' },
+  video:          { label: 'Video Resource',       icon: Play,      color: '#f43f5e', bgTint: 'rgba(244, 63, 94, 0.12)' },
+  external_video: { label: 'External Video',       icon: Play,      color: '#ef4444', bgTint: 'rgba(239, 68, 68, 0.12)' },
+  pdf:            { label: 'PDF Document',         icon: FileText,  color: '#6366f1', bgTint: 'rgba(99, 102, 241, 0.12)' },
+  document:       { label: 'Word Document',        icon: FileType,  color: '#3b82f6', bgTint: 'rgba(59, 130, 246, 0.12)' },
+  excel:          { label: 'Excel Spreadsheet',    icon: Sheet,     color: '#10b981', bgTint: 'rgba(16, 185, 129, 0.12)' },
+  image:          { label: 'Image Asset',          icon: ImageIcon, color: '#f59e0b', bgTint: 'rgba(245, 158, 11, 0.12)' },
+  link:           { label: 'External Resource',    icon: LinkIcon,  color: '#8b5cf6', bgTint: 'rgba(139, 92, 246, 0.12)' },
 };
 
 const WorkspaceResourcePage = () => {
@@ -230,8 +231,67 @@ const WorkspaceResourcePage = () => {
       );
     }
 
+    // EXTERNAL VIDEO VIEWER (YouTube / Google Drive)
+    if (item.resourceType === 'external_video') {
+      const embedUrl = item.embedUrl;
+      const provider = item.videoProvider || 'video';
+      const isYouTube = provider === 'youtube';
+      const isDrive = provider === 'google_drive';
+      const fallbackUrl = item.externalUrl || item.embedUrl;
+
+      return (
+        <div className="space-y-4">
+          <div className="rounded-2xl overflow-hidden border border-slate-300/80 dark:border-zinc-800 bg-black shadow-2xl relative aspect-video w-full max-h-[75vh]">
+            {embedUrl ? (
+              <iframe
+                src={embedUrl}
+                title={item.name}
+                allow={
+                  isYouTube
+                    ? "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    : "autoplay; fullscreen"
+                }
+                allowFullScreen
+                className="w-full h-full border-0"
+              />
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center text-slate-400">
+                <AlertCircle className="w-10 h-10 text-rose-500 mb-2" />
+                <p>No valid embed URL available.</p>
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-xl border border-slate-200 dark:border-zinc-800/80 bg-slate-50 dark:bg-zinc-900/60 text-xs text-slate-600 dark:text-zinc-400">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-500/10 text-red-500 font-mono font-bold uppercase text-[11px]">
+                <Play className="w-3 h-3" />
+                {isYouTube ? 'YouTube Player' : isDrive ? 'Google Drive Player' : 'External Video'}
+              </span>
+              {isDrive && (
+                <span className="text-[11px] text-slate-500 dark:text-zinc-400">
+                  Note: Google Drive file must have "Anyone with the link can view" permission.
+                </span>
+              )}
+            </div>
+            {fallbackUrl && (
+              <a
+                href={fallbackUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-zinc-800 hover:bg-slate-300 dark:hover:bg-zinc-700 text-slate-800 dark:text-zinc-200 font-mono text-xs font-semibold transition-colors ml-auto"
+              >
+                <span>{isDrive ? 'Open in Google Drive' : 'Watch on YouTube'}</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            )}
+          </div>
+        </div>
+      );
+    }
+
     // EXTERNAL LINK
-    if (item.resourceType === 'link' || item.externalUrl) {
+    if (item.resourceType === 'link' || (item.externalUrl && item.resourceType !== 'external_video')) {
       const targetUrl = item.externalUrl || resourceUrl;
       return (
         <div className="p-8 sm:p-12 rounded-3xl border border-slate-300/80 dark:border-zinc-800/80 bg-white/90 dark:bg-[#0c0c12] text-center space-y-6 shadow-2xl">

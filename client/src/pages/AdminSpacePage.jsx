@@ -31,6 +31,7 @@ import { openPdfInNewTab } from '../utils/pdfHelpers';
 import Toast from '../components/common/Toast';
 import useUploadProgress from '../hooks/useUploadProgress';
 import UploadProgressCard from '../components/common/UploadProgressCard';
+import { validateExternalVideoUrl } from '../utils/videoUrlHelpers';
 
 // ─── Reusable input styling ─────────────────────────────────────────────
 const inp = "w-full px-3 py-2 rounded-xl bg-[#09090b] border border-[#2d2d3a] text-[#fafafa] text-xs focus:outline-none focus:ring-1 focus:ring-[#ef4444] placeholder:text-[#52525b]";
@@ -112,7 +113,7 @@ const AdminSpacePage = () => {
 
   // Workspace state
   const [workspaceItems, setWorkspaceItems] = useState([]);
-  const [workspaceForm, setWorkspaceForm] = useState({ category: 'work', name: '', description: '', externalUrl: '', isVisible: true, displayOrder: 0 });
+  const [workspaceForm, setWorkspaceForm] = useState({ category: 'work', name: '', description: '', externalUrl: '', externalVideoUrl: '', isVisible: true, displayOrder: 0 });
   const [wsEditForm, setWsEditForm] = useState({});
   const [wsEditingId, setWsEditingId] = useState(null);
   const [wsShowAdd, setWsShowAdd] = useState(false);
@@ -122,7 +123,7 @@ const AdminSpacePage = () => {
   const [wsCoverFile, setWsCoverFile] = useState(null);
   const [wsCoverPreview, setWsCoverPreview] = useState(null);
   const [wsResourceFile, setWsResourceFile] = useState(null);
-  const [wsResourceMode, setWsResourceMode] = useState('file'); // 'file' | 'link'
+  const [wsResourceMode, setWsResourceMode] = useState('file'); // 'file' | 'external_video' | 'link'
   const [wsDragCover, setWsDragCover] = useState(false);
   const [wsDragResource, setWsDragResource] = useState(false);
   
@@ -130,7 +131,7 @@ const AdminSpacePage = () => {
   const [wsEditCoverFile, setWsEditCoverFile] = useState(null);
   const [wsEditCoverPreview, setWsEditCoverPreview] = useState(null);
   const [wsEditResourceFile, setWsEditResourceFile] = useState(null);
-  const [wsEditResourceMode, setWsEditResourceMode] = useState('file');
+  const [wsEditResourceMode, setWsEditResourceMode] = useState('file'); // 'file' | 'external_video' | 'link'
   const [wsEditDragCover, setWsEditDragCover] = useState(false);
   const [wsEditDragResource, setWsEditDragResource] = useState(false);
   
@@ -558,13 +559,26 @@ const AdminSpacePage = () => {
       public_id: coverRes?.public_id || ''
     };
 
-    // Step 2: Upload Resource File (if any) independently with its own hook & progress card
+    // Step 2: Handle Resource File or External Video / Link
     let resource = undefined;
     let resourceType = undefined;
     let resourceFormat = undefined;
     let resourceMimeType = undefined;
+    let videoProvider = undefined;
+    let externalUrl = undefined;
+    let embedUrl = undefined;
 
-    if (resFile) {
+    if (wsResourceMode === 'external_video') {
+      const urlToValidate = (workspaceForm.externalVideoUrl || '').trim();
+      const validation = validateExternalVideoUrl(urlToValidate);
+      if (!validation.isValid) {
+        throw new Error(validation.error || 'Please enter a valid YouTube or Google Drive video URL');
+      }
+      resourceType = 'external_video';
+      videoProvider = validation.provider;
+      externalUrl = validation.cleanUrl;
+      embedUrl = validation.embedUrl;
+    } else if (wsResourceMode === 'file' && resFile) {
       resourceMimeType = resFile.type || 'application/octet-stream';
       const isVideo = resourceMimeType.startsWith('video/') || /\.(mp4|webm|mov|avi)$/i.test(resFile.name);
       resourceType = isVideo ? 'video' : (resourceMimeType === 'application/pdf' || resFile.name.endsWith('.pdf') ? 'pdf' : (resourceMimeType.startsWith('image/') ? 'image' : 'document'));
@@ -581,6 +595,7 @@ const AdminSpacePage = () => {
       resourceFormat = resUpload?.format || resFile.name.split('.').pop();
     } else if (wsCategory === 'personal' && wsResourceMode === 'link' && workspaceForm.externalUrl) {
       resourceType = 'link';
+      externalUrl = workspaceForm.externalUrl;
     }
 
     // Step 3: Save metadata via lightweight JSON POST — 0 MB of media data touches Render!
@@ -595,7 +610,9 @@ const AdminSpacePage = () => {
       resourceType,
       resourceMimeType,
       resourceFormat,
-      externalUrl: (wsCategory === 'personal' && wsResourceMode === 'link') ? workspaceForm.externalUrl : undefined
+      videoProvider,
+      externalUrl,
+      embedUrl
     };
 
     await createWorkspaceItem(payload, pwd);
@@ -606,7 +623,8 @@ const AdminSpacePage = () => {
     setWsCoverFile(null);
     setWsCoverPreview(null);
     setWsResourceFile(null);
-    setWorkspaceForm({ category: wsCategory, name: '', description: '', externalUrl: '', isVisible: true, displayOrder: 0 });
+    setWsResourceMode('file');
+    setWorkspaceForm({ category: wsCategory, name: '', description: '', externalUrl: '', externalVideoUrl: '', isVisible: true, displayOrder: 0 });
     fetchWorkspaceItems();
   };
 
@@ -630,8 +648,22 @@ const AdminSpacePage = () => {
     let resourceType = undefined;
     let resourceFormat = undefined;
     let resourceMimeType = undefined;
+    let videoProvider = undefined;
+    let externalUrl = undefined;
+    let embedUrl = undefined;
 
-    if (resFile) {
+    if (wsEditResourceMode === 'external_video') {
+      const urlToValidate = (wsEditForm.externalVideoUrl || '').trim();
+      const validation = validateExternalVideoUrl(urlToValidate);
+      if (!validation.isValid) {
+        throw new Error(validation.error || 'Please enter a valid YouTube or Google Drive video URL');
+      }
+      resourceType = 'external_video';
+      videoProvider = validation.provider;
+      externalUrl = validation.cleanUrl;
+      embedUrl = validation.embedUrl;
+      resource = null; // Clear out old Cloudinary resource reference
+    } else if (wsEditResourceMode === 'file' && resFile) {
       resourceMimeType = resFile.type || 'application/octet-stream';
       const isVideo = resourceMimeType.startsWith('video/') || /\.(mp4|webm|mov|avi)$/i.test(resFile.name);
       resourceType = isVideo ? 'video' : (resourceMimeType === 'application/pdf' || resFile.name.endsWith('.pdf') ? 'pdf' : (resourceMimeType.startsWith('image/') ? 'image' : 'document'));
@@ -647,6 +679,8 @@ const AdminSpacePage = () => {
       resourceFormat = resUpload?.format || resFile.name.split('.').pop();
     } else if (wsCategory === 'personal' && wsEditResourceMode === 'link') {
       resourceType = 'link';
+      externalUrl = wsEditForm.externalUrl || '';
+      resource = null;
     }
 
     const payload = {
@@ -655,8 +689,13 @@ const AdminSpacePage = () => {
       ...(wsEditForm.displayOrder !== undefined ? { displayOrder: wsEditForm.displayOrder } : {}),
       ...(wsEditForm.isVisible !== undefined ? { isVisible: wsEditForm.isVisible } : {}),
       ...(coverImage ? { coverImage } : {}),
-      ...(resource ? { resource, resourceType, resourceFormat, resourceMimeType } : {}),
-      ...(wsCategory === 'personal' && wsEditResourceMode === 'link' ? { externalUrl: wsEditForm.externalUrl || '', resourceType: 'link' } : {})
+      ...(resource !== undefined ? { resource } : {}),
+      ...(resourceType !== undefined ? { resourceType } : {}),
+      ...(resourceFormat !== undefined ? { resourceFormat } : {}),
+      ...(resourceMimeType !== undefined ? { resourceMimeType } : {}),
+      ...(videoProvider !== undefined ? { videoProvider } : {}),
+      ...(externalUrl !== undefined ? { externalUrl } : {}),
+      ...(embedUrl !== undefined ? { embedUrl } : {})
     };
 
     await updateWorkspaceItem(id, payload, pwd);
@@ -668,6 +707,7 @@ const AdminSpacePage = () => {
     setWsEditCoverFile(null);
     setWsEditCoverPreview(null);
     setWsEditResourceFile(null);
+    setWsEditResourceMode('file');
     fetchWorkspaceItems();
   };
 
@@ -1779,35 +1819,106 @@ const AdminSpacePage = () => {
 
               {/* 3. Primary Resource (Optional) */}
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="text-[10px] font-mono uppercase text-[#a1a1aa] font-bold tracking-wider block">
                     3. PRIMARY RESOURCE (OPTIONAL)
                   </span>
-                  {wsCategory === 'personal' && (
-                    <div className="flex items-center gap-1 p-1 rounded-xl bg-[#09090b] border border-[#2d2d3a]">
-                      <button
-                        type="button"
-                        onClick={() => setWsResourceMode('file')}
-                        className={`px-3 py-1 rounded-lg text-[10px] font-mono font-bold transition-all ${
-                          wsResourceMode === 'file' ? 'bg-[#fb7185] text-white' : 'text-[#a1a1aa]'
-                        }`}
-                      >
-                        Upload File
-                      </button>
+                  <div className="flex items-center gap-1 p-1 rounded-xl bg-[#09090b] border border-[#2d2d3a]">
+                    <button
+                      type="button"
+                      onClick={() => setWsResourceMode('file')}
+                      className={`px-3 py-1 rounded-lg text-[10px] font-mono font-bold transition-all ${
+                        wsResourceMode === 'file' ? 'bg-[#fb7185] text-white' : 'text-[#a1a1aa] hover:text-white'
+                      }`}
+                    >
+                      Upload File
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setWsResourceMode('external_video')}
+                      className={`px-3 py-1 rounded-lg text-[10px] font-mono font-bold transition-all ${
+                        wsResourceMode === 'external_video' ? 'bg-[#fb7185] text-white' : 'text-[#a1a1aa] hover:text-white'
+                      }`}
+                    >
+                      External Video URL
+                    </button>
+                    {wsCategory === 'personal' && (
                       <button
                         type="button"
                         onClick={() => setWsResourceMode('link')}
                         className={`px-3 py-1 rounded-lg text-[10px] font-mono font-bold transition-all ${
-                          wsResourceMode === 'link' ? 'bg-[#fb7185] text-white' : 'text-[#a1a1aa]'
+                          wsResourceMode === 'link' ? 'bg-[#fb7185] text-white' : 'text-[#a1a1aa] hover:text-white'
                         }`}
                       >
                         External Link
                       </button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
 
-                {wsCategory === 'personal' && wsResourceMode === 'link' ? (
+                {wsResourceMode === 'external_video' ? (
+                  <div className="space-y-3 p-4 rounded-2xl bg-[#09090b] border border-[#2d2d3a]">
+                    <div>
+                      <label className={lbl}>External Video URL (YouTube or Google Drive)</label>
+                      <div className="relative">
+                        <Play className="w-4 h-4 text-[#ef4444] absolute left-3 top-3" />
+                        <input
+                          type="url"
+                          placeholder="https://www.youtube.com/watch?v=... or https://drive.google.com/file/d/.../view"
+                          className={inp + ' pl-9'}
+                          value={workspaceForm.externalVideoUrl || ''}
+                          onChange={e => setWorkspaceForm(p => ({ ...p, externalVideoUrl: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Real-time Validation Feedback */}
+                    {(() => {
+                      const rawUrl = (workspaceForm.externalVideoUrl || '').trim();
+                      if (!rawUrl) {
+                        return (
+                          <p className="text-[11px] font-mono text-[#71717a]">
+                            Enter a YouTube URL (watch, embed, short) or Google Drive video URL. Video streams directly in the portfolio without eating Cloudinary or Render limits.
+                          </p>
+                        );
+                      }
+                      const result = validateExternalVideoUrl(rawUrl);
+                      if (result.isValid) {
+                        return (
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 rounded-xl">
+                              <CheckCircle2 className="w-4 h-4 shrink-0" />
+                              <span className="font-bold">
+                                {result.provider === 'youtube' ? '✓ YouTube video detected' : '✓ Google Drive video detected'}
+                              </span>
+                              <span className="ml-auto text-[10px] text-emerald-300/80 bg-emerald-500/20 px-2 py-0.5 rounded-full font-bold">
+                                ✓ External video ready
+                              </span>
+                            </div>
+                            {result.provider === 'google_drive' && (
+                              <p className="text-[11px] font-mono text-amber-400/90 bg-amber-500/10 border border-amber-500/20 px-3 py-2 rounded-xl">
+                                ℹ️ Important: Ensure Google Drive file sharing is set to "Anyone with the link can view".
+                              </p>
+                            )}
+                            <div className="text-[10px] font-mono text-[#a1a1aa] bg-[#18181b] p-2 rounded-lg truncate">
+                              Embed target: <span className="text-zinc-300">{result.embedUrl}</span>
+                            </div>
+                          </div>
+                        );
+                      } else {
+                        return (
+                          <div className="flex items-center gap-2 text-xs font-mono text-rose-400 bg-rose-500/10 border border-rose-500/20 px-3 py-2 rounded-xl">
+                            <X className="w-4 h-4 shrink-0" />
+                            <span>✗ Invalid or unsupported video URL</span>
+                            <span className="text-[10px] text-rose-300/70 ml-auto font-normal">
+                              {result.error}
+                            </span>
+                          </div>
+                        );
+                      }
+                    })()}
+                  </div>
+                ) : wsCategory === 'personal' && wsResourceMode === 'link' ? (
                   <div>
                     <label className={lbl}>External Destination URL (Opens safely in new tab)</label>
                     <div className="relative">
@@ -1880,17 +1991,19 @@ const AdminSpacePage = () => {
                     </div>
                   </div>
                 )}
-                <input
-                  ref={wsResourceRef}
-                  type="file"
-                  accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) setWsResourceFile(file);
-                  }}
-                />
-                {wsResourceFile && wsResourceFile.size > 100 * 1024 * 1024 && (
+                {wsResourceMode === 'file' && (
+                  <input
+                    ref={wsResourceRef}
+                    type="file"
+                    accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) setWsResourceFile(file);
+                    }}
+                  />
+                )}
+                {wsResourceMode === 'file' && wsResourceFile && wsResourceFile.size > 100 * 1024 * 1024 && (
                   <p className="text-[11px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 p-2.5 rounded-xl mt-2">
                     ⚠️ Note: Selected file is {formatBytes(wsResourceFile.size)}. Cloudinary Free tier limits video uploads to 100 MB. Direct upload will proceed, but if your Cloudinary plan enforces a 100 MB cap, consider using an external link (YouTube, Vimeo, Google Drive, S3) instead.
                   </p>
@@ -2063,31 +2176,104 @@ const AdminSpacePage = () => {
 
               {/* Primary Resource Replacement */}
               <div className="space-y-2">
-                <label className={lbl}>Primary Attached Resource</label>
-                {wsCategory === 'personal' && (
-                  <div className="flex items-center gap-2 mb-2">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                  <label className={lbl}>Primary Attached Resource</label>
+                  <div className="flex items-center gap-1 p-1 rounded-xl bg-[#09090b] border border-[#2d2d3a]">
                     <button
                       type="button"
                       onClick={() => setWsEditResourceMode('file')}
-                      className={`px-3 py-1 rounded-lg text-[10px] font-mono font-bold ${
-                        wsEditResourceMode === 'file' ? 'bg-[#fb7185] text-white' : 'bg-[#09090b] text-[#a1a1aa] border border-[#2d2d3a]'
+                      className={`px-3 py-1 rounded-lg text-[10px] font-mono font-bold transition-all ${
+                        wsEditResourceMode === 'file' ? 'bg-[#fb7185] text-white' : 'text-[#a1a1aa] hover:text-white'
                       }`}
                     >
                       File Resource
                     </button>
                     <button
                       type="button"
-                      onClick={() => setWsEditResourceMode('link')}
-                      className={`px-3 py-1 rounded-lg text-[10px] font-mono font-bold ${
-                        wsEditResourceMode === 'link' ? 'bg-[#fb7185] text-white' : 'bg-[#09090b] text-[#a1a1aa] border border-[#2d2d3a]'
+                      onClick={() => setWsEditResourceMode('external_video')}
+                      className={`px-3 py-1 rounded-lg text-[10px] font-mono font-bold transition-all ${
+                        wsEditResourceMode === 'external_video' ? 'bg-[#fb7185] text-white' : 'text-[#a1a1aa] hover:text-white'
                       }`}
                     >
-                      External Link
+                      External Video URL
                     </button>
+                    {wsCategory === 'personal' && (
+                      <button
+                        type="button"
+                        onClick={() => setWsEditResourceMode('link')}
+                        className={`px-3 py-1 rounded-lg text-[10px] font-mono font-bold transition-all ${
+                          wsEditResourceMode === 'link' ? 'bg-[#fb7185] text-white' : 'text-[#a1a1aa] hover:text-white'
+                        }`}
+                      >
+                        External Link
+                      </button>
+                    )}
                   </div>
-                )}
+                </div>
 
-                {wsCategory === 'personal' && wsEditResourceMode === 'link' ? (
+                {wsEditResourceMode === 'external_video' ? (
+                  <div className="space-y-3 p-4 rounded-2xl bg-[#09090b] border border-[#2d2d3a]">
+                    <div>
+                      <label className={lbl}>External Video URL (YouTube or Google Drive)</label>
+                      <div className="relative">
+                        <Play className="w-4 h-4 text-[#ef4444] absolute left-3 top-3" />
+                        <input
+                          type="url"
+                          placeholder="https://www.youtube.com/watch?v=... or https://drive.google.com/file/d/.../view"
+                          className={inp + ' pl-9'}
+                          value={wsEditForm.externalVideoUrl || ''}
+                          onChange={e => setWsEditForm(p => ({ ...p, externalVideoUrl: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Real-time Validation Feedback */}
+                    {(() => {
+                      const rawUrl = (wsEditForm.externalVideoUrl || '').trim();
+                      if (!rawUrl) {
+                        return (
+                          <p className="text-[11px] font-mono text-[#71717a]">
+                            Enter a YouTube URL (watch, embed, short) or Google Drive video URL. Video streams directly without consuming Cloudinary or Render limits.
+                          </p>
+                        );
+                      }
+                      const result = validateExternalVideoUrl(rawUrl);
+                      if (result.isValid) {
+                        return (
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 rounded-xl">
+                              <CheckCircle2 className="w-4 h-4 shrink-0" />
+                              <span className="font-bold">
+                                {result.provider === 'youtube' ? '✓ YouTube video detected' : '✓ Google Drive video detected'}
+                              </span>
+                              <span className="ml-auto text-[10px] text-emerald-300/80 bg-emerald-500/20 px-2 py-0.5 rounded-full font-bold">
+                                ✓ External video ready
+                              </span>
+                            </div>
+                            {result.provider === 'google_drive' && (
+                              <p className="text-[11px] font-mono text-amber-400/90 bg-amber-500/10 border border-amber-500/20 px-3 py-2 rounded-xl">
+                                ℹ️ Important: Ensure Google Drive file sharing is set to "Anyone with the link can view".
+                              </p>
+                            )}
+                            <div className="text-[10px] font-mono text-[#a1a1aa] bg-[#18181b] p-2 rounded-lg truncate">
+                              Embed target: <span className="text-zinc-300">{result.embedUrl}</span>
+                            </div>
+                          </div>
+                        );
+                      } else {
+                        return (
+                          <div className="flex items-center gap-2 text-xs font-mono text-rose-400 bg-rose-500/10 border border-rose-500/20 px-3 py-2 rounded-xl">
+                            <X className="w-4 h-4 shrink-0" />
+                            <span>✗ Invalid or unsupported video URL</span>
+                            <span className="text-[10px] text-rose-300/70 ml-auto font-normal">
+                              {result.error}
+                            </span>
+                          </div>
+                        );
+                      }
+                    })()}
+                  </div>
+                ) : wsCategory === 'personal' && wsEditResourceMode === 'link' ? (
                   <div className="relative">
                     <LinkIcon className="w-4 h-4 text-[#fb7185] absolute left-3 top-3" />
                     <input
@@ -2120,17 +2306,19 @@ const AdminSpacePage = () => {
                     </button>
                   </div>
                 )}
-                <input
-                  ref={wsEditResourceRef}
-                  type="file"
-                  accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) setWsEditResourceFile(file);
-                  }}
-                />
-                {wsEditResourceFile && wsEditResourceFile.size > 100 * 1024 * 1024 && (
+                {wsEditResourceMode === 'file' && (
+                  <input
+                    ref={wsEditResourceRef}
+                    type="file"
+                    accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) setWsEditResourceFile(file);
+                    }}
+                  />
+                )}
+                {wsEditResourceMode === 'file' && wsEditResourceFile && wsEditResourceFile.size > 100 * 1024 * 1024 && (
                   <p className="text-[11px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 p-2.5 rounded-xl mt-2">
                     ⚠️ Note: Selected file is {formatBytes(wsEditResourceFile.size)}. Cloudinary Free tier limits video uploads to 100 MB. Direct upload will proceed, but if your Cloudinary plan enforces a 100 MB cap, consider using an external link (YouTube, Vimeo, Google Drive, S3) instead.
                   </p>
@@ -2288,6 +2476,16 @@ const AdminSpacePage = () => {
                           >
                             <ExternalLink className="w-3.5 h-3.5" /> Visit Link
                           </a>
+                        ) : item.resourceType === 'external_video' ? (
+                          <a
+                            href={item.externalUrl || item.embedUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-[11px] font-mono font-bold text-red-400 hover:underline"
+                          >
+                            <Play className="w-3.5 h-3.5" />
+                            <span>{item.videoProvider === 'youtube' ? 'YouTube Video' : 'Google Drive Video'}</span>
+                          </a>
                         ) : item.resource?.url ? (
                           <a
                             href={item.resource.url}
@@ -2306,8 +2504,15 @@ const AdminSpacePage = () => {
                             type="button"
                             onClick={() => {
                               setWsEditingId(item._id);
-                              setWsEditForm({ ...item, isVisible: item.isVisible !== false });
-                              setWsEditResourceMode(item.resourceType === 'link' ? 'link' : 'file');
+                              setWsEditForm({
+                                ...item,
+                                isVisible: item.isVisible !== false,
+                                externalVideoUrl: item.resourceType === 'external_video' ? (item.externalUrl || item.embedUrl || '') : ''
+                              });
+                              setWsEditResourceMode(
+                                item.resourceType === 'external_video' ? 'external_video' : 
+                                item.resourceType === 'link' ? 'link' : 'file'
+                              );
                               setWsEditCoverFile(null);
                               setWsEditCoverPreview(null);
                               setWsEditResourceFile(null);

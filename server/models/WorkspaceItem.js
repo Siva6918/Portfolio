@@ -25,13 +25,19 @@ const workspaceItemSchema = new mongoose.Schema({
   // Derived metadata
   resourceType: { 
     type: String, 
-    enum: ['video', 'pdf', 'document', 'excel', 'image', 'link', null],
+    enum: ['video', 'pdf', 'document', 'excel', 'image', 'link', 'external_video', null],
     default: null
   },
   resourceMimeType: { type: String },
   resourceFormat: { type: String },
 
-  // For Personal Space only
+  // For External Video & External Links
+  videoProvider: {
+    type: String,
+    enum: ['youtube', 'google_drive', null],
+    default: null
+  },
+  embedUrl: { type: String },
   externalUrl: { type: String },
 
   displayOrder: { type: Number, default: 0 },

@@ -12,12 +12,13 @@ import { useAnalytics } from '../../context/AnalyticsContext';
 const easeCurve = [0.16, 1, 0.3, 1];
 
 const RESOURCE_META = {
-  video:    { label: 'Watch Demo',    icon: Play,         color: '#f43f5e' },
-  pdf:      { label: 'View PDF',      icon: FileText,     color: '#6366f1' },
-  document: { label: 'Open Document', icon: FileType,     color: '#3b82f6' },
-  excel:    { label: 'Open Excel',    icon: Sheet,        color: '#10b981' },
-  image:    { label: 'View Image',    icon: ImageIcon,    color: '#f59e0b' },
-  link:     { label: 'Visit Link',    icon: LinkIcon,     color: '#8b5cf6' },
+  video:          { label: 'Watch Demo',    icon: Play,         color: '#f43f5e' },
+  external_video: { label: 'Watch Video',   icon: Play,         color: '#ef4444' },
+  pdf:            { label: 'View PDF',      icon: FileText,     color: '#6366f1' },
+  document:       { label: 'Open Document', icon: FileType,     color: '#3b82f6' },
+  excel:          { label: 'Open Excel',    icon: Sheet,        color: '#10b981' },
+  image:          { label: 'View Image',    icon: ImageIcon,    color: '#f59e0b' },
+  link:           { label: 'Visit Link',    icon: LinkIcon,     color: '#8b5cf6' },
 };
 
 const slugify = (text) => {

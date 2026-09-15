@@ -2,6 +2,7 @@ const WorkspaceItem = require('../models/WorkspaceItem');
 const cloudinary = require('../config/cloudinary');
 const { Readable } = require('stream');
 const path = require('path');
+const { validateExternalVideoUrl } = require('../utils/videoUrlHelpers');
 
 const uploadStreamToCloudinary = (buffer, options = {}) => {
   return new Promise((resolve, reject) => {
@@ -83,36 +84,52 @@ const workspaceController = {
       let resourceType = req.body.resourceType || null;
       let resourceMimeType = req.body.resourceMimeType || null;
       let resourceFormat = req.body.resourceFormat || null;
+      let videoProvider = null;
+      let embedUrl = null;
+      let finalExternalUrl = externalUrl;
 
-      let resInput = req.body.resource;
-      if (typeof resInput === 'string' && resInput.startsWith('{')) {
-        try { resInput = JSON.parse(resInput); } catch (e) {}
-      }
+      // Handle External Video (YouTube or Google Drive)
+      const externalVideoUrl = req.body.externalVideoUrl || (req.body.resourceType === 'external_video' ? (req.body.externalUrl || req.body.embedUrl) : null);
+      if (externalVideoUrl) {
+        const vidValidation = validateExternalVideoUrl(externalVideoUrl);
+        if (!vidValidation.valid) {
+          return res.status(400).json({ success: false, message: vidValidation.error });
+        }
+        resourceType = 'external_video';
+        videoProvider = vidValidation.provider;
+        embedUrl = vidValidation.embedUrl;
+        finalExternalUrl = vidValidation.normalizedUrl;
+      } else {
+        let resInput = req.body.resource;
+        if (typeof resInput === 'string' && resInput.startsWith('{')) {
+          try { resInput = JSON.parse(resInput); } catch (e) {}
+        }
 
-      if (resInput && (resInput.url || typeof resInput === 'string')) {
-        const url = typeof resInput === 'string' ? resInput : resInput.url;
-        const public_id = typeof resInput === 'object' ? resInput.public_id : (req.body.resourcePublicId || '');
-        resourceObj = { url, public_id };
-        if (!resourceType) {
-          resourceType = getResourceType(resourceMimeType || '', req.body.resourceName || url);
+        if (resInput && (resInput.url || typeof resInput === 'string')) {
+          const url = typeof resInput === 'string' ? resInput : resInput.url;
+          const public_id = typeof resInput === 'object' ? resInput.public_id : (req.body.resourcePublicId || '');
+          resourceObj = { url, public_id };
+          if (!resourceType) {
+            resourceType = getResourceType(resourceMimeType || '', req.body.resourceName || url);
+          }
+          if (!resourceFormat && typeof resInput === 'object' && resInput.format) {
+            resourceFormat = resInput.format;
+          }
+        } else if (files.resource && files.resource[0]) {
+          const resFile = files.resource[0];
+          resourceMimeType = resFile.mimetype;
+          resourceType = getResourceType(resourceMimeType, resFile.originalname);
+          const resUploadType = resourceType === 'video' ? 'video' : 'auto';
+          
+          const resUpload = await uploadStreamToCloudinary(resFile.buffer, {
+            folder: `portfolio/workspace/${category}/resource`,
+            resource_type: resUploadType
+          });
+          resourceObj = { url: resUpload.secure_url, public_id: resUpload.public_id };
+          resourceFormat = resUpload.format || path.extname(resFile.originalname).replace('.', '');
+        } else if (externalUrl) {
+          resourceType = 'link';
         }
-        if (!resourceFormat && typeof resInput === 'object' && resInput.format) {
-          resourceFormat = resInput.format;
-        }
-      } else if (files.resource && files.resource[0]) {
-        const resFile = files.resource[0];
-        resourceMimeType = resFile.mimetype;
-        resourceType = getResourceType(resourceMimeType, resFile.originalname);
-        const resUploadType = resourceType === 'video' ? 'video' : 'auto';
-        
-        const resUpload = await uploadStreamToCloudinary(resFile.buffer, {
-          folder: `portfolio/workspace/${category}/resource`,
-          resource_type: resUploadType
-        });
-        resourceObj = { url: resUpload.secure_url, public_id: resUpload.public_id };
-        resourceFormat = resUpload.format || path.extname(resFile.originalname).replace('.', '');
-      } else if (externalUrl) {
-        resourceType = 'link';
       }
 
       let baseSlug = slugify(name) || 'workspace-item';
@@ -132,7 +149,9 @@ const workspaceController = {
         resourceType,
         resourceMimeType,
         resourceFormat,
-        externalUrl,
+        videoProvider,
+        embedUrl,
+        externalUrl: finalExternalUrl,
         isVisible: isVisible !== undefined ? (isVisible === 'true' || isVisible === true) : true,
         displayOrder: displayOrder || 0
       });
@@ -181,57 +200,85 @@ const workspaceController = {
       let resourceType = req.body.resourceType !== undefined ? req.body.resourceType : item.resourceType;
       let resourceMimeType = req.body.resourceMimeType !== undefined ? req.body.resourceMimeType : item.resourceMimeType;
       let resourceFormat = req.body.resourceFormat !== undefined ? req.body.resourceFormat : item.resourceFormat;
+      let videoProvider = item.videoProvider || null;
+      let embedUrl = item.embedUrl || null;
+      let finalExternalUrl = externalUrl !== undefined ? externalUrl : item.externalUrl;
 
-      let resInput = req.body.resource;
-      if (typeof resInput === 'string' && resInput.startsWith('{')) {
-        try { resInput = JSON.parse(resInput); } catch (e) {}
-      }
-
-      if (resInput && (resInput.url || typeof resInput === 'string')) {
-        const newUrl = typeof resInput === 'string' ? resInput : resInput.url;
-        const newPublicId = typeof resInput === 'object' ? resInput.public_id : (req.body.resourcePublicId || '');
-        if (resourceObj?.public_id && resourceObj.public_id !== newPublicId) {
-          const resTypeToDestroy = item.resourceType === 'video' ? 'video' : (['document', 'excel', 'pdf'].includes(item.resourceType) ? 'raw' : 'image');
-          await cloudinary.uploader.destroy(resourceObj.public_id, { resource_type: resTypeToDestroy }).catch(() => {});
+      // Handle External Video (YouTube or Google Drive)
+      const externalVideoUrl = req.body.externalVideoUrl || (req.body.resourceType === 'external_video' ? (req.body.externalUrl || req.body.embedUrl) : null);
+      if (externalVideoUrl) {
+        const vidValidation = validateExternalVideoUrl(externalVideoUrl);
+        if (!vidValidation.valid) {
+          return res.status(400).json({ success: false, message: vidValidation.error });
         }
-        resourceObj = { url: newUrl, public_id: newPublicId };
-        if (!resourceType) {
-          resourceType = getResourceType(resourceMimeType || '', req.body.resourceName || newUrl);
-        }
-        if (!resourceFormat && typeof resInput === 'object' && resInput.format) {
-          resourceFormat = resInput.format;
-        }
-      } else if (files.resource && files.resource[0]) {
-        if (resourceObj.public_id) {
-          const oldResType = item.resourceType === 'video' ? 'video' : 'raw';
-          // auto/image destruction usually works with 'image' type which is default if not raw/video
-          const resTypeToDestroy = item.resourceType === 'video' ? 'video' : (['document', 'excel', 'pdf'].includes(item.resourceType) ? 'raw' : 'image');
-          await cloudinary.uploader.destroy(resourceObj.public_id, { resource_type: resTypeToDestroy }).catch(() => {});
-        }
-        
-        const resFile = files.resource[0];
-        resourceMimeType = resFile.mimetype;
-        resourceType = getResourceType(resourceMimeType, resFile.originalname);
-        const resUploadType = resourceType === 'video' ? 'video' : 'auto';
-        
-        const resUpload = await uploadStreamToCloudinary(resFile.buffer, {
-          folder: `portfolio/workspace/${item.category}/resource`,
-          resource_type: resUploadType
-        });
-        resourceObj = { url: resUpload.secure_url, public_id: resUpload.public_id };
-        resourceFormat = resUpload.format || path.extname(resFile.originalname).replace('.', '');
-      } else if (externalUrl !== undefined && externalUrl !== item.externalUrl) {
+        // Destroy old Cloudinary resource if replacing with external video
         if (resourceObj.public_id) {
           const resTypeToDestroy = item.resourceType === 'video' ? 'video' : (['document', 'excel', 'pdf'].includes(item.resourceType) ? 'raw' : 'image');
           await cloudinary.uploader.destroy(resourceObj.public_id, { resource_type: resTypeToDestroy }).catch(() => {});
-          resourceObj = {};
-          resourceMimeType = null;
-          resourceFormat = null;
         }
-        if (externalUrl) {
-          resourceType = 'link';
-        } else {
-          resourceType = null;
+        resourceObj = {};
+        resourceMimeType = null;
+        resourceFormat = null;
+        resourceType = 'external_video';
+        videoProvider = vidValidation.provider;
+        embedUrl = vidValidation.embedUrl;
+        finalExternalUrl = vidValidation.normalizedUrl;
+      } else {
+        let resInput = req.body.resource;
+        if (typeof resInput === 'string' && resInput.startsWith('{')) {
+          try { resInput = JSON.parse(resInput); } catch (e) {}
+        }
+
+        if (resInput && (resInput.url || typeof resInput === 'string')) {
+          const newUrl = typeof resInput === 'string' ? resInput : resInput.url;
+          const newPublicId = typeof resInput === 'object' ? resInput.public_id : (req.body.resourcePublicId || '');
+          if (resourceObj?.public_id && resourceObj.public_id !== newPublicId) {
+            const resTypeToDestroy = item.resourceType === 'video' ? 'video' : (['document', 'excel', 'pdf'].includes(item.resourceType) ? 'raw' : 'image');
+            await cloudinary.uploader.destroy(resourceObj.public_id, { resource_type: resTypeToDestroy }).catch(() => {});
+          }
+          resourceObj = { url: newUrl, public_id: newPublicId };
+          videoProvider = null;
+          embedUrl = null;
+          if (!resourceType || resourceType === 'external_video') {
+            resourceType = getResourceType(resourceMimeType || '', req.body.resourceName || newUrl);
+          }
+          if (!resourceFormat && typeof resInput === 'object' && resInput.format) {
+            resourceFormat = resInput.format;
+          }
+        } else if (files.resource && files.resource[0]) {
+          if (resourceObj.public_id) {
+            const oldResType = item.resourceType === 'video' ? 'video' : 'raw';
+            // auto/image destruction usually works with 'image' type which is default if not raw/video
+            const resTypeToDestroy = item.resourceType === 'video' ? 'video' : (['document', 'excel', 'pdf'].includes(item.resourceType) ? 'raw' : 'image');
+            await cloudinary.uploader.destroy(resourceObj.public_id, { resource_type: resTypeToDestroy }).catch(() => {});
+          }
+          
+          const resFile = files.resource[0];
+          resourceMimeType = resFile.mimetype;
+          resourceType = getResourceType(resourceMimeType, resFile.originalname);
+          videoProvider = null;
+          embedUrl = null;
+          const resUploadType = resourceType === 'video' ? 'video' : 'auto';
+          
+          const resUpload = await uploadStreamToCloudinary(resFile.buffer, {
+            folder: `portfolio/workspace/${item.category}/resource`,
+            resource_type: resUploadType
+          });
+          resourceObj = { url: resUpload.secure_url, public_id: resUpload.public_id };
+          resourceFormat = resUpload.format || path.extname(resFile.originalname).replace('.', '');
+        } else if (externalUrl !== undefined && externalUrl !== item.externalUrl) {
+          if (resourceObj.public_id) {
+            const resTypeToDestroy = item.resourceType === 'video' ? 'video' : (['document', 'excel', 'pdf'].includes(item.resourceType) ? 'raw' : 'image');
+            await cloudinary.uploader.destroy(resourceObj.public_id, { resource_type: resTypeToDestroy }).catch(() => {});
+            resourceObj = {};
+            resourceMimeType = null;
+            resourceFormat = null;
+          }
+          if (externalUrl) {
+            resourceType = 'link';
+          } else {
+            resourceType = null;
+          }
         }
       }
 
@@ -256,8 +303,10 @@ const workspaceController = {
         resourceType,
         resourceMimeType,
         resourceFormat,
-        externalUrl,
-        isVisible: isVisible !== undefined ? isVisible === 'true' : item.isVisible,
+        videoProvider,
+        embedUrl,
+        externalUrl: finalExternalUrl,
+        isVisible: isVisible !== undefined ? (isVisible === 'true' || isVisible === true) : item.isVisible,
         displayOrder: displayOrder !== undefined ? displayOrder : item.displayOrder
       }, { new: true });
 
