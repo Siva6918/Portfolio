@@ -11,6 +11,7 @@ import AchievementsSection from '../components/sections/AchievementsSection';
 import LearningJournalSection from '../components/sections/LearningJournalSection';
 import ContactSection from '../components/sections/ContactSection';
 import WorkspaceSection from '../components/sections/WorkspaceSection';
+import AdUnit from '../components/common/AdUnit';
 import { useAnalytics } from '../context/AnalyticsContext';
 import useScrollObserver from '../hooks/useScrollObserver';
 
@@ -107,6 +108,17 @@ const HomePage = () => {
         <SkillsSection skills={skills} />
       </section>
 
+      {/* AD PLACEMENT 1 — between Skills (4) and Career Road (5) */}
+      {/* Sits in a natural breathing gap; no key content above or below */}
+      <div className="w-full bg-[#edf0f5] dark:bg-[#0f0f1a] border-y border-slate-200/50 dark:border-zinc-800/50 py-3 flex items-center justify-center">
+        <AdUnit
+          slot="7325490812"
+          format="auto"
+          fullWidth={true}
+          className="max-w-4xl mx-auto px-4"
+        />
+      </div>
+
       {/* 5. CAREER ROAD TIMELINE (Odd) */}
       <section ref={(el) => registerSectionRef(el, 'Career Road')} id="career" className={bgOdd}>
         <CareerRoadSection careerNodes={careerNodes} />
@@ -125,6 +137,17 @@ const HomePage = () => {
       <section ref={(el) => registerSectionRef(el, 'Certifications')} id="certifications" className={bgOdd}>
         <CertificationsSection certifications={certifications} />
       </section>
+
+      {/* AD PLACEMENT 2 — between Certifications (7) and Achievements (8) */}
+      {/* Lower in the page, well past all primary portfolio sections */}
+      <div className="w-full bg-[#edf0f5] dark:bg-[#0f0f1a] border-y border-slate-200/50 dark:border-zinc-800/50 py-3 flex items-center justify-center">
+        <AdUnit
+          slot="7325490812"
+          format="auto"
+          fullWidth={true}
+          className="max-w-4xl mx-auto px-4"
+        />
+      </div>
 
       {/* 8. ACHIEVEMENTS & HONORS (Even) */}
       <section ref={(el) => registerSectionRef(el, 'Achievements')} id="achievements" className={bgEven}>
