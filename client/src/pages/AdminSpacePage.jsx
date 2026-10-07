@@ -805,9 +805,9 @@ const AdminSpacePage = () => {
           </div>
           <div>
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#ef4444]/10 text-[#ef4444] text-[10px] font-mono font-bold border border-[#ef4444]/20 mb-1">
-              <Shield className="w-3 h-3" /> SIVA SPACE — CONTROL ROOM
+              <Shield className="w-3 h-3" /> {profile.name ? profile.name.split(' ')[0].toUpperCase() : 'ADMIN'} SPACE — CONTROL ROOM
             </div>
-            <h1 className="text-xl font-extrabold text-[#fafafa]">Welcome, Venkata Siva Reddy</h1>
+            <h1 className="text-xl font-extrabold text-[#fafafa]">Welcome, {profile.name || 'Admin'}</h1>
             <p className="text-xs text-[#a1a1aa] font-mono mt-0.5">All mutations are password-protected and sync to MongoDB instantly.</p>
           </div>
         </div>
@@ -905,6 +905,24 @@ const AdminSpacePage = () => {
                   <div className="sm:col-span-2"><label className={lbl}>College Website URL</label><input type="text" className={inp} value={profileForm.collegeUrl || ''} onChange={e => setProfileForm(p => ({ ...p, collegeUrl: e.target.value }))} placeholder="https://www.rgmcet.edu.in/" /></div>
                   <div><label className={lbl}>Graduation Year</label><input type="number" className={inp} value={profileForm.graduationYear || 2027} onChange={e => setProfileForm(p => ({ ...p, graduationYear: +e.target.value }))} /></div>
                   <div><label className={lbl}>CGPA</label><input type="number" step="0.1" className={inp} value={profileForm.cgpa || 8.1} onChange={e => setProfileForm(p => ({ ...p, cgpa: +e.target.value }))} /></div>
+                </div>
+              </div>
+
+              {/* New Arrival Feature */}
+              <div className="pt-4 border-t border-[#2d2d3a]">
+                <h4 className="text-xs font-bold font-mono uppercase text-[#eab308] mb-3 flex items-center gap-2"><Sparkles className="w-3.5 h-3.5" /> Homepage "New Arrival" Feature</h4>
+                <div className="space-y-3">
+                  <label className="flex items-center gap-2 text-white text-xs font-mono font-bold cursor-pointer">
+                    <input type="checkbox" className="w-4 h-4 bg-[#09090b] border-[#2d2d3a]" checked={profileForm.newArrival?.enabled || false} onChange={e => setProfileForm(p => ({ ...p, newArrival: { ...(p.newArrival || {}), enabled: e.target.checked } }))} />
+                    Enable New Arrival Banner on Homepage
+                  </label>
+                  {profileForm.newArrival?.enabled && (
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-xl bg-[#09090b] border border-[#2d2d3a]">
+                      <div><label className={lbl}>Mini Title</label><input type="text" className={inp} value={profileForm.newArrival?.title || ''} onChange={e => setProfileForm(p => ({ ...p, newArrival: { ...(p.newArrival || {}), title: e.target.value } }))} placeholder="LATEST" /></div>
+                      <div><label className={lbl}>Content Name</label><input type="text" className={inp} value={profileForm.newArrival?.contentName || ''} onChange={e => setProfileForm(p => ({ ...p, newArrival: { ...(p.newArrival || {}), contentName: e.target.value } }))} placeholder="Google Agentic Coding" /></div>
+                      <div><label className={lbl}>Link / URL</label><input type="text" className={inp} value={profileForm.newArrival?.url || ''} onChange={e => setProfileForm(p => ({ ...p, newArrival: { ...(p.newArrival || {}), url: e.target.value } }))} placeholder="/work/google" /></div>
+                    </div>
+                  )}
                 </div>
               </div>
 

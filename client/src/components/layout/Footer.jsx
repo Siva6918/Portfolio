@@ -1,10 +1,20 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Github, Linkedin, Mail, ArrowUp } from 'lucide-react';
 import { useAnalytics } from '../../context/AnalyticsContext';
+import { getProfile } from '../../services/api';
 
 const Footer = () => {
   const { trackInteraction } = useAnalytics();
+  const [profile, setProfile] = useState(null);
+
+  useEffect(() => {
+    getProfile().then(res => {
+      if (res?.data?.data) {
+        setProfile(res.data.data);
+      }
+    }).catch(console.error);
+  }, []);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -23,10 +33,10 @@ const Footer = () => {
         
         <div className="flex flex-col items-center md:items-start">
           <h3 className="font-grotesk font-bold text-white tracking-widest uppercase mb-2 text-xl">
-            Venkata Siva Reddy
+            {profile?.name || 'Venkata Siva Reddy'}
           </h3>
           <p className="text-xs font-mono text-editorial-textMuted uppercase tracking-widest mb-6">
-            Software Engineer
+            {profile?.role || 'Software Engineer'}
           </p>
           <div className="flex flex-wrap gap-4 text-xs font-mono text-editorial-textMuted uppercase">
             {internalLinks.map(link => (
@@ -40,7 +50,7 @@ const Footer = () => {
         <div className="flex flex-col items-center md:items-end gap-6">
           <div className="flex items-center gap-6 text-editorial-textMuted">
             <a
-              href="https://github.com/vasanreddy"
+              href={profile?.socials?.github || "https://github.com/vasanreddy"}
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => trackInteraction('github_click', 'Footer GitHub', 'Footer')}
@@ -49,7 +59,7 @@ const Footer = () => {
               <Github className="w-5 h-5" />
             </a>
             <a
-              href="https://www.linkedin.com/in/venkatasiva-reddy/"
+              href={profile?.socials?.linkedin || "https://www.linkedin.com/in/venkatasiva-reddy/"}
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => trackInteraction('linkedin_click', 'Footer LinkedIn', 'Footer')}
@@ -58,7 +68,7 @@ const Footer = () => {
               <Linkedin className="w-5 h-5" />
             </a>
             <a
-              href="mailto:vasanreddy1331@gmail.com"
+              href={`mailto:${profile?.email || "vasanreddy1331@gmail.com"}`}
               onClick={() => trackInteraction('email_click', 'Footer Email', 'Footer')}
               className="hover:text-white transition-colors"
             >
@@ -73,7 +83,7 @@ const Footer = () => {
           </div>
           
           <div className="flex items-center gap-4 text-[10px] font-mono text-editorial-textMuted uppercase tracking-widest">
-            <span>© {new Date().getFullYear()} Venkata Siva Reddy</span>
+            <span>© {new Date().getFullYear()} {profile?.name || 'Venkata Siva Reddy'}</span>
             <span className="w-1 h-1 rounded-full bg-editorial-border"></span>
             <span>Built with React & Node</span>
           </div>

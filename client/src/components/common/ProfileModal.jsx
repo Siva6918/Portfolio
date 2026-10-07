@@ -69,7 +69,7 @@ const ProfileModal = () => {
             />
             <div>
               <h3 className="text-sm sm:text-base font-extrabold text-white tracking-tight flex items-center gap-2">
-                <span>VENKATA SIVA REDDY</span>
+                <span>{(profileData?.name || 'Venkata Siva Reddy').toUpperCase()}</span>
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 text-emerald-400">
                   PROFILE
                 </span>

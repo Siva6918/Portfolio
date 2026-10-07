@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, ChevronDown, Sun, Moon, Gamepad2 } from 'lucide-react';
+import { Menu, X, ChevronDown, Sun, Moon, Gamepad2, GraduationCap } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
+import { useScrollDirection } from '../../hooks/useScrollDirection';
 
 const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -51,13 +52,20 @@ const Navbar = () => {
     return location.pathname.startsWith(path);
   };
 
+  const { scrollDirection, isScrolled } = useScrollDirection();
+  
+  // Navbar hides on scroll down (if past top), shows on scroll up
+  const navTransform = scrollDirection === 'down' && isScrolled ? '-translate-y-full' : 'translate-y-0';
+  const navBackground = isScrolled ? 'bg-[#0d0d0d]/95 shadow-lg backdrop-blur-xl' : 'bg-transparent';
+
   return (
-    <nav className="nav-bar">
+    <nav className={`fixed top-0 w-full z-50 border-b border-editorial-border transition-all duration-300 ease-editorial flex items-center ${isScrolled ? 'h-14' : 'h-20'} ${navTransform} ${navBackground}`}>
       <div className="w-full max-w-[1600px] mx-auto px-6 sm:px-8 flex items-center justify-between">
         
         {/* Logo */}
-        <Link to="/" className="text-xl font-bold font-grotesk tracking-widest text-white hover:text-editorial-accent transition-colors">
-          SIVA
+        <Link to="/" className="text-xl font-bold font-grotesk tracking-widest text-white hover:text-editorial-accent transition-colors flex items-center gap-3">
+          <GraduationCap className="w-6 h-6 text-editorial-accent" />
+          SIVA REDDY
         </Link>
 
         {/* Desktop Nav */}

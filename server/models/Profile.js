@@ -29,7 +29,17 @@ const profileSchema = new mongoose.Schema({
   nowCurrentlyBuilding: { type: String, default: 'A personal web application redesign' },
   nowLearning: { type: String, default: 'Go, microservices architecture, and cloud deployment' },
   nowExploring: { type: String, default: 'Building autonomous AI agents' },
-  nowNext: { type: String, default: 'Landing a high-impact internship' }
+  nowNext: { type: String, default: 'Landing a high-impact internship' },
+  // New Arrival
+  newArrival: {
+    enabled: { type: Boolean, default: true },
+    type: { type: String, default: 'Project' }, // Project, Note, Milestone, Status
+    title: { type: String, default: 'NEW ARRIVAL' },
+    label: { type: String, default: 'A new project just landed.' },
+    contentName: { type: String, default: 'Portfolio Redesign' },
+    url: { type: String, default: '/work/portfolio' },
+    animationStyle: { type: String, default: 'slide' }
+  }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Profile', profileSchema);

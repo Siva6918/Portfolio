@@ -1,20 +1,30 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Terminal } from 'lucide-react';
+import { ArrowRight, Terminal } from 'lucide-react';
+import TextReveal from '../components/common/TextReveal';
 
 const NotFoundPage = () => {
   return (
-    <div className="min-h-[70vh] flex flex-col items-center justify-center text-center px-4 space-y-4">
-      <div className="w-16 h-16 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400">
+    <div className="min-h-screen flex flex-col items-center justify-center text-center px-4 relative overflow-hidden">
+      
+      {/* Background glitch effect element */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] max-w-2xl max-h-2xl rounded-full opacity-5 blur-[120px] bg-editorial-accent pointer-events-none"></div>
+
+      <div className="w-16 h-16 rounded-xl border border-editorial-border bg-editorial-surface flex items-center justify-center text-editorial-accent mb-8 interactive-lift">
         <Terminal className="w-8 h-8" />
       </div>
-      <h1 className="text-4xl font-extrabold text-slate-900 dark:text-white font-mono">404 - Page Not Found</h1>
-      <p className="text-slate-400 text-sm max-w-md">
-        The route you are looking for does not exist or has been moved in Venkata Siva Reddy's Portfolio Space.
+      
+      <TextReveal text="404 — NOT FOUND" className="text-4xl md:text-5xl font-bold font-grotesk tracking-widest text-white mb-6" as="h1" />
+      
+      <p className="text-editorial-textMuted font-mono text-sm max-w-md uppercase tracking-wider animate-fade-up delay-300 mb-10">
+        The requested sector is offline. The content you are looking for has been moved or destroyed.
       </p>
-      <Link to="/" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sky-500 text-white font-semibold text-xs shadow-electric-sky">
-        <ArrowLeft className="w-4 h-4" /> Back to Portfolio Home
-      </Link>
+      
+      <div className="animate-fade-up delay-500">
+        <Link to="/" className="btn-primary inline-flex items-center gap-3">
+          Return to Base <ArrowRight className="w-4 h-4" />
+        </Link>
+      </div>
     </div>
   );
 };
