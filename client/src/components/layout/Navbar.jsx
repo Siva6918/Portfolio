@@ -22,30 +22,20 @@ const Navbar = () => {
     fetchProfileImage();
   }, []);
 
-  // Active section observer on scroll
+  // Active link observer based on path
   useEffect(() => {
-    if (isAdmin || location.pathname !== '/') return;
-
-    const sections = ['about', 'projects', 'experiments', 'skills', 'experience', 'workspace', 'contact'];
-
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY + 120;
-      for (const sectionId of sections) {
-        const el = document.getElementById(sectionId);
-        if (el) {
-          const top = el.offsetTop;
-          const height = el.offsetHeight;
-          if (scrollPosition >= top && scrollPosition < top + height) {
-            setActiveSection(sectionId);
-            break;
-          }
-        }
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
+    if (isAdmin) return;
+    const path = location.pathname;
+    if (path === '/') setActiveSection('home');
+    else if (path.startsWith('/about')) setActiveSection('about');
+    else if (path.startsWith('/projects')) setActiveSection('projects');
+    else if (path.startsWith('/experience')) setActiveSection('experience');
+    else if (path.startsWith('/skills')) setActiveSection('skills');
+    else if (path.startsWith('/certifications')) setActiveSection('certifications');
+    else if (path.startsWith('/achievements')) setActiveSection('achievements');
+    else if (path.startsWith('/blog')) setActiveSection('blog');
+    else if (path.startsWith('/contact')) setActiveSection('contact');
+    else if (path.startsWith('/resume')) setActiveSection('resume');
   }, [location.pathname, isAdmin]);
 
   const fetchProfileImage = async () => {
@@ -60,22 +50,19 @@ const Navbar = () => {
   };
 
   const navLinks = [
-    { name: 'About',      id: 'about',       href: '/#about' },
-    { name: 'Projects',   id: 'projects',    href: '/#projects' },
-    { name: 'Lab',        id: 'experiments', href: '/#experiments' },
-    { name: 'Skills',     id: 'skills',      href: '/#skills' },
-    { name: 'Experience', id: 'experience',  href: '/#experience' },
-    { name: 'Workspace',  id: 'workspace',   href: '/#workspace' },
-    { name: 'Contact',    id: 'contact',     href: '/#contact' },
+    { name: 'About',      id: 'about',       href: '/about' },
+    { name: 'Projects',   id: 'projects',    href: '/projects' },
+    { name: 'Experience', id: 'experience',  href: '/experience' },
+    { name: 'Skills',     id: 'skills',      href: '/skills' },
+    { name: 'Certifications', id: 'certifications', href: '/certifications' },
+    { name: 'Achievements', id: 'achievements', href: '/achievements' },
+    { name: 'Blog',       id: 'blog',        href: '/blog' },
+    { name: 'Contact',    id: 'contact',     href: '/contact' },
+    { name: 'Resume',     id: 'resume',      href: '/resume' },
   ];
 
   const handleNavClick = (e, href) => {
-    const targetId = href.replace('/#', '').replace('#', '');
-    const element = document.getElementById(targetId);
-    if (element && location.pathname === '/') {
-      e.preventDefault();
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
+    // Rely on Link component below or programmatic navigation
     setMobileMenuOpen(false);
   };
 
@@ -214,9 +201,9 @@ const Navbar = () => {
                 {navLinks.map((link) => {
                   const isActive = activeSection === link.id;
                   return (
-                    <a
+                    <Link
                       key={link.name}
-                      href={link.href}
+                      to={link.href}
                       onClick={(e) => handleNavClick(e, link.href)}
                       className={`px-3 py-1.5 text-xs font-mono rounded-xl transition-all duration-200 border ${
                         isActive
@@ -231,7 +218,7 @@ const Navbar = () => {
                       } : {}}
                     >
                       {link.name}
-                    </a>
+                    </Link>
                   );
                 })}
 
@@ -339,9 +326,9 @@ const Navbar = () => {
             {navLinks.map((link) => {
               const isActive = activeSection === link.id;
               return (
-                <a
+                <Link
                   key={link.name}
-                  href={link.href}
+                  to={link.href}
                   onClick={(e) => handleNavClick(e, link.href)}
                   className={`flex items-center px-4 py-2.5 text-sm font-mono rounded-xl transition-all duration-200 border ${
                     isActive
@@ -356,7 +343,7 @@ const Navbar = () => {
                   } : {}}
                 >
                   {link.name}
-                </a>
+                </Link>
               );
             })}
 

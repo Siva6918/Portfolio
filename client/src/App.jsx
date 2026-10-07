@@ -19,6 +19,17 @@ import WorkspaceResourcePage from './pages/WorkspaceResourcePage';
 import AdminSpacePage from './pages/AdminSpacePage';
 import NotFoundPage from './pages/NotFoundPage';
 
+import AboutPage from './pages/AboutPage';
+import ProjectsPage from './pages/ProjectsPage';
+import ExperiencePage from './pages/ExperiencePage';
+import SkillsPage from './pages/SkillsPage';
+import CertificationsPage from './pages/CertificationsPage';
+import AchievementsPage from './pages/AchievementsPage';
+import BlogPage from './pages/BlogPage';
+import BlogPostPage from './pages/BlogPostPage';
+import ContactPage from './pages/ContactPage';
+import ResumePage from './pages/ResumePage';
+
 // Scroll to top on every route change (fixes "footer showing first" issue)
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -61,7 +72,17 @@ function App() {
                   <main className="flex-grow z-10">
                     <Routes>
                       <Route path="/" element={<HomePage />} />
+                      <Route path="/about" element={<AboutPage />} />
+                      <Route path="/projects" element={<ProjectsPage />} />
                       <Route path="/projects/:slug" element={<ProjectDetailPage />} />
+                      <Route path="/experience" element={<ExperiencePage />} />
+                      <Route path="/skills" element={<SkillsPage />} />
+                      <Route path="/certifications" element={<CertificationsPage />} />
+                      <Route path="/achievements" element={<AchievementsPage />} />
+                      <Route path="/blog" element={<BlogPage />} />
+                      <Route path="/blog/:slug" element={<BlogPostPage />} />
+                      <Route path="/contact" element={<ContactPage />} />
+                      <Route path="/resume" element={<ResumePage />} />
                       <Route path="/workspace/:category/:slug" element={<WorkspaceResourcePage />} />
                       <Route path="/admin" element={<AdminSpacePage />} />
                       <Route path="*" element={<NotFoundPage />} />

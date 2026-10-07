@@ -1,24 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import HeroSection from '../components/sections/HeroSection';
-import DigitalCampusSection from '../components/sections/DigitalCampusSection';
 import ProjectsSection from '../components/sections/ProjectsSection';
-import PlaygroundSection from '../components/sections/PlaygroundSection';
 import SkillsSection from '../components/sections/SkillsSection';
-import CareerRoadSection from '../components/sections/CareerRoadSection';
-import ExperienceSection from '../components/sections/ExperienceSection';
-import CertificationsSection from '../components/sections/CertificationsSection';
-import AchievementsSection from '../components/sections/AchievementsSection';
-import LearningJournalSection from '../components/sections/LearningJournalSection';
 import ContactSection from '../components/sections/ContactSection';
-import WorkspaceSection from '../components/sections/WorkspaceSection';
 import AdUnit from '../components/common/AdUnit';
 import { useAnalytics } from '../context/AnalyticsContext';
 import useScrollObserver from '../hooks/useScrollObserver';
+import { Link } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 
 import { 
-  getProfile, getProjects, getSkills, getEducation, 
-  getExperience, getCertifications, getAchievements, 
-  getCodingProfiles, getCareerNodes, getResume 
+  getProfile, getProjects, getSkills, getResume 
 } from '../services/api';
 
 const HomePage = () => {
@@ -26,90 +18,62 @@ const HomePage = () => {
   const [profile, setProfile] = useState({});
   const [projects, setProjects] = useState([]);
   const [skills, setSkills] = useState([]);
-  const [education, setEducation] = useState([]);
-  const [experience, setExperience] = useState([]);
-  const [certifications, setCertifications] = useState([]);
-  const [achievements, setAchievements] = useState([]);
-  const [codingProfiles, setCodingProfiles] = useState([]);
-  const [careerNodes, setCareerNodes] = useState([]);
   const [resumeUrl, setResumeUrl] = useState('');
 
   const { registerSectionRef } = useAnalytics();
 
   useEffect(() => {
+    document.title = "Venkata Siva Reddy | Full Stack Engineer";
     fetchPortfolioData();
   }, []);
 
   const fetchPortfolioData = async () => {
     try {
       const [
-        profRes, projRes, skillRes, eduRes, 
-        expRes, certRes, achRes, codRes, carRes, resRes
+        profRes, projRes, skillRes, resRes
       ] = await Promise.allSettled([
         getProfile(),
         getProjects(),
         getSkills(),
-        getEducation(),
-        getExperience(),
-        getCertifications(),
-        getAchievements(),
-        getCodingProfiles(),
-        getCareerNodes(),
         getResume()
       ]);
 
       if (profRes.status === 'fulfilled' && profRes.value.data?.data) setProfile(profRes.value.data.data);
-      if (projRes.status === 'fulfilled' && projRes.value.data?.data) setProjects(projRes.value.data.data);
-      if (skillRes.status === 'fulfilled' && skillRes.value.data?.data) setSkills(skillRes.value.data.data);
-      if (eduRes.status === 'fulfilled' && eduRes.value.data?.data) setEducation(eduRes.value.data.data);
-      if (expRes.status === 'fulfilled' && expRes.value.data?.data) setExperience(expRes.value.data.data);
-      if (certRes.status === 'fulfilled' && certRes.value.data?.data) setCertifications(certRes.value.data.data);
-      if (achRes.status === 'fulfilled' && achRes.value.data?.data) setAchievements(achRes.value.data.data);
-      if (codRes.status === 'fulfilled' && codRes.value.data?.data) setCodingProfiles(codRes.value.data.data);
-      if (carRes.status === 'fulfilled' && carRes.value.data?.data) setCareerNodes(carRes.value.data.data);
+      if (projRes.status === 'fulfilled' && projRes.value.data?.data) setProjects(projRes.value.data.data.slice(0, 3)); // Only 3 featured
+      if (skillRes.status === 'fulfilled' && skillRes.value.data?.data) setSkills(skillRes.value.data.data.slice(0, 4)); // Only top categories
       if (resRes.status === 'fulfilled' && resRes.value.data?.data) setResumeUrl(resRes.value.data.data.url);
     } catch (err) {
       console.error('Error fetching home portfolio data:', err);
     }
   };
 
-  // ─── Three-Tier Background System ───────────────────────────────────────
-  // Tier 1 (Nav/Footer): #cfd5de light / #03030a dark  → handled in CSS
-  // Tier 2 (Even 0,2,4,6,8,10): page base
   const bgEven = "w-full bg-[#f4f6f9] dark:bg-[#0b0b14] transition-colors duration-300";
-  // Tier 3 (Odd  1,3,5,7,9,11): subtle ~20% step from Tier 2
   const bgOdd  = "w-full bg-[#e8ebf0] dark:bg-[#13131e] transition-colors duration-300";
-  // ────────────────────────────────────────────────────────────────────────
 
   return (
     <div className="w-full space-y-0">
-      {/* 0. HERO (Even) */}
       <section ref={(el) => registerSectionRef(el, 'Hero')} id="hero" className={bgEven}>
         <HeroSection profile={profile} resumeUrl={resumeUrl} />
       </section>
 
-      {/* 1. ABOUT & PHILOSOPHY (Odd) */}
-      <section ref={(el) => registerSectionRef(el, 'Digital Campus')} id="campus" className={bgOdd}>
-        <DigitalCampusSection profile={profile} education={education} />
-      </section>
-
-      {/* 2. CASE STUDIES & FEATURED PROJECTS (Even) */}
-      <section ref={(el) => registerSectionRef(el, 'Projects')} id="projects" className={bgEven}>
+      <section ref={(el) => registerSectionRef(el, 'Projects')} id="projects" className={bgOdd}>
         <ProjectsSection projects={projects} />
+        <div className="flex justify-center pb-24">
+          <Link to="/projects" className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-all hover:scale-105 shadow-lg shadow-indigo-500/20">
+            View All Projects <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
       </section>
 
-      {/* 3. LAB & EXPERIMENTS (Odd) */}
-      <section ref={(el) => registerSectionRef(el, 'Playground')} id="playground" className={bgOdd}>
-        <PlaygroundSection />
-      </section>
-
-      {/* 4. SKILLS & COMPETENCIES (Even) */}
       <section ref={(el) => registerSectionRef(el, 'Skills')} id="skills" className={bgEven}>
         <SkillsSection skills={skills} />
+        <div className="flex justify-center pb-24">
+          <Link to="/skills" className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl transition-all hover:scale-105 shadow-lg shadow-emerald-500/20">
+            Explore All Skills <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
       </section>
 
-      {/* AD PLACEMENT 1 — between Skills (4) and Career Road (5) */}
-      {/* Sits in a natural breathing gap; no key content above or below */}
       <div className="w-full bg-[#edf0f5] dark:bg-[#0f0f1a] border-y border-slate-200/50 dark:border-zinc-800/50 py-3 flex items-center justify-center">
         <AdUnit
           slot="7325490812"
@@ -119,54 +83,8 @@ const HomePage = () => {
         />
       </div>
 
-      {/* 5. CAREER ROAD TIMELINE (Odd) */}
-      <section ref={(el) => registerSectionRef(el, 'Career Road')} id="career" className={bgOdd}>
-        <CareerRoadSection careerNodes={careerNodes} />
-      </section>
-
-      {/* 6. EXPERIENCE & CODING PROFILES (Even) */}
-      <section ref={(el) => registerSectionRef(el, 'Experience')} id="experience" className={bgEven}>
-        <ExperienceSection 
-          education={education} 
-          experience={experience}
-          codingProfiles={codingProfiles}
-        />
-      </section>
-
-      {/* 7. CERTIFICATIONS (Odd) */}
-      <section ref={(el) => registerSectionRef(el, 'Certifications')} id="certifications" className={bgOdd}>
-        <CertificationsSection certifications={certifications} />
-      </section>
-
-      {/* AD PLACEMENT 2 — between Certifications (7) and Achievements (8) */}
-      {/* Lower in the page, well past all primary portfolio sections */}
-      <div className="w-full bg-[#edf0f5] dark:bg-[#0f0f1a] border-y border-slate-200/50 dark:border-zinc-800/50 py-3 flex items-center justify-center">
-        <AdUnit
-          slot="7325490812"
-          format="auto"
-          fullWidth={true}
-          className="max-w-4xl mx-auto px-4"
-        />
-      </div>
-
-      {/* 8. ACHIEVEMENTS & HONORS (Even) */}
-      <section ref={(el) => registerSectionRef(el, 'Achievements')} id="achievements" className={bgEven}>
-        <AchievementsSection achievements={achievements} />
-      </section>
-
-      {/* 9. CURRENTLY LEARNING JOURNAL (Odd) */}
-      <section ref={(el) => registerSectionRef(el, 'Learning Journal')} id="journal" className={bgOdd}>
-        <LearningJournalSection />
-      </section>
-
-      {/* 10. CONTACT / GET IN TOUCH (Even) */}
-      <section ref={(el) => registerSectionRef(el, 'Contact')} id="contact" className={bgEven}>
+      <section ref={(el) => registerSectionRef(el, 'Contact')} id="contact" className={bgOdd}>
         <ContactSection email={profile.email} profile={profile} />
-      </section>
-
-      {/* 11. WORKSPACE (Odd) */}
-      <section ref={(el) => registerSectionRef(el, 'Workspace')} id="workspace" className={bgOdd}>
-        <WorkspaceSection />
       </section>
     </div>
   );

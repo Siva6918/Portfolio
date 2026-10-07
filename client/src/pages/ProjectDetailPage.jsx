@@ -43,19 +43,19 @@ const ProjectDetailPage = () => {
       <div className="max-w-4xl mx-auto px-4 py-20 text-center space-y-4">
         <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Project Not Found</h2>
         <p className="text-slate-400 text-sm">{error || 'The requested project could not be found.'}</p>
-        <Link to="/" className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-sky-500 text-white text-xs font-semibold">
-          <ArrowLeft className="w-4 h-4" /> Back to Home
+        <Link to="/projects" className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-sky-500 text-white text-xs font-semibold">
+          <ArrowLeft className="w-4 h-4" /> Back to Projects
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto space-y-10">
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto space-y-10 pt-24">
       
       {/* Back Button */}
       <Link
-        to="/"
+        to="/projects"
         className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-sky-400 text-xs font-mono transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
