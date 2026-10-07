@@ -1,59 +1,99 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Calendar, Clock, Tag } from 'lucide-react';
+import { getNoteBySlug, resolveMediaUrl } from '../services/api';
+import SkeletonLoader from '../components/common/SkeletonLoader';
 
 const BlogPostPage = () => {
   const { slug } = useParams();
+  const [note, setNote] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    document.title = `${slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')} | Venkata Siva Reddy`;
     window.scrollTo(0, 0);
+    setLoading(true);
+    getNoteBySlug(slug).then(res => {
+      if (res.data && res.data.data) {
+        setNote(res.data.data);
+        document.title = `${res.data.data.title} | Notes`;
+      } else {
+        setError('Note not found');
+      }
+      setLoading(false);
+    }).catch(err => {
+      setError('Failed to load note');
+      setLoading(false);
+    });
   }, [slug]);
 
-  return (
-    <div className="w-full min-h-screen pt-24 pb-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
-      <Link to="/blog" className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 mb-8 transition-colors">
-        <ArrowLeft className="w-4 h-4" /> Back to Articles
-      </Link>
-      
-      <article className="prose prose-slate dark:prose-invert prose-lg max-w-none">
-        <div className="mb-8">
-          <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-zinc-400 mb-4 font-mono">
-            <span className="flex items-center gap-1"><Calendar className="w-4 h-4" /> Oct 15, 2023</span>
-            <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> 8 min read</span>
-            <span className="flex items-center gap-1"><Tag className="w-4 h-4" /> Engineering</span>
-          </div>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white leading-tight mb-6">
-            {slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-          </h1>
-        </div>
-        
-        <div className="p-6 sm:p-8 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800">
-          <p className="lead text-xl text-slate-600 dark:text-slate-300">
-            This is a placeholder for the technical article. In the future, this content will be dynamically fetched from the database or markdown files.
-          </p>
-          <h2>Introduction</h2>
-          <p>
-            When building scalable applications, one of the most important decisions is how to manage state.
-            In this article, we'll explore the pros and cons of different state management solutions.
-          </p>
-          <h3>Why State Management Matters</h3>
-          <p>
-            State is the heart of any interactive application. Without it, your app is just a static website.
-            However, as your app grows, managing state can become complex and error-prone.
-          </p>
-          <pre><code>{`// Example of state management
-const [state, setState] = useState(initialState);
+  if (loading) return <div className="section-container"><SkeletonLoader count={1} /></div>;
+  if (error || !note) return <div className="section-container text-editorial-textMain">{error}</div>;
 
-useEffect(() => {
-  // Sync with external store
-}, [state]);`}</code></pre>
-          <h3>Conclusion</h3>
-          <p>
-            Choosing the right state management tool depends on your app's specific needs, complexity, and team experience.
-          </p>
-        </div>
+  return (
+    <div className="section-container animate-fade-in pt-32 max-w-3xl">
+      <Link to="/notes" className="text-editorial-textMuted font-mono text-xs uppercase hover:text-editorial-accent tracking-widest mb-12 inline-block">
+        ← Back to Notes
+      </Link>
+
+      <article>
+        <header className="mb-12 border-b border-editorial-border pb-12">
+          <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-editorial-textMuted uppercase tracking-widest mb-6">
+            <span>{new Date(note.createdAt).toLocaleDateString()}</span>
+            <span className="w-1 h-1 bg-editorial-border rounded-full"></span>
+            <span className="text-editorial-accent">{note.category}</span>
+            <span className="w-1 h-1 bg-editorial-border rounded-full"></span>
+            <span>{note.readTime}</span>
+          </div>
+          <h1 className="text-4xl sm:text-5xl font-bold font-grotesk text-white leading-tight mb-6">
+            {note.title}
+          </h1>
+          {note.tags && note.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {note.tags.map(tag => (
+                <span key={tag} className="px-2 py-1 text-xs font-mono text-editorial-textMuted bg-editorial-surface border border-editorial-border uppercase">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+        </header>
+
+        {note.coverImage && (
+          <div className="mb-12">
+            <img 
+              src={resolveMediaUrl(note.coverImage)} 
+              alt={note.title} 
+              className="w-full h-auto object-cover border border-editorial-border grayscale hover:grayscale-0 transition-all duration-700" 
+            />
+          </div>
+        )}
+
+        <div 
+          className="prose prose-invert prose-editorial max-w-none prose-p:text-editorial-textMain prose-p:text-lg prose-p:leading-relaxed prose-headings:font-grotesk prose-headings:text-white prose-a:text-editorial-accent prose-a:no-underline hover:prose-a:underline prose-pre:bg-editorial-surface prose-pre:border prose-pre:border-editorial-border"
+          dangerouslySetInnerHTML={{ __html: note.content }} // In a real app, use a markdown parser here if the content is MD
+        />
+
       </article>
+
+      {((note.relatedProjects && note.relatedProjects.length > 0) || (note.relatedNotes && note.relatedNotes.length > 0)) && (
+        <div className="mt-24 border-t border-editorial-border pt-12">
+          <h3 className="text-sm font-mono text-editorial-accent tracking-widest uppercase mb-8">Related Material</h3>
+          <div className="space-y-6">
+            {note.relatedProjects?.map(project => (
+              <Link key={project._id} to={`/work/${project.slug}`} className="block group">
+                <span className="text-editorial-textMuted font-mono text-xs uppercase mr-4">Project</span>
+                <span className="text-white group-hover:text-editorial-accent transition-colors font-grotesk text-lg">{project.title}</span>
+              </Link>
+            ))}
+            {note.relatedNotes?.map(relatedNote => (
+              <Link key={relatedNote._id} to={`/notes/${relatedNote.slug}`} className="block group">
+                <span className="text-editorial-textMuted font-mono text-xs uppercase mr-4">Note</span>
+                <span className="text-white group-hover:text-editorial-accent transition-colors font-grotesk text-lg">{relatedNote.title}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

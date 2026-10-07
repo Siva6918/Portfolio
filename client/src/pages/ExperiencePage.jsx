@@ -1,57 +1,72 @@
 import React, { useEffect, useState } from 'react';
-import { useAnalytics } from '../context/AnalyticsContext';
-import useScrollObserver from '../hooks/useScrollObserver';
-import ExperienceSection from '../components/sections/ExperienceSection';
-import CareerRoadSection from '../components/sections/CareerRoadSection';
-import { getExperience, getEducation, getCodingProfiles, getCareerNodes } from '../services/api';
+import { getExperience } from '../services/api';
+import SkeletonLoader from '../components/common/SkeletonLoader';
 
 const ExperiencePage = () => {
-  useScrollObserver();
-  const { registerSectionRef } = useAnalytics();
   const [experience, setExperience] = useState([]);
-  const [education, setEducation] = useState([]);
-  const [codingProfiles, setCodingProfiles] = useState([]);
-  const [careerNodes, setCareerNodes] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     document.title = "Experience | Venkata Siva Reddy";
-    fetchData();
+    window.scrollTo(0, 0);
+
+    const cached = localStorage.getItem('siva_experience');
+    if (cached) {
+      setExperience(JSON.parse(cached));
+      setLoading(false);
+    }
+    
+    getExperience().then(res => {
+      if (res.data && res.data.data) {
+        setExperience(res.data.data);
+        localStorage.setItem('siva_experience', JSON.stringify(res.data.data));
+      }
+      setLoading(false);
+    });
   }, []);
 
-  const fetchData = async () => {
-    try {
-      const [expRes, eduRes, codRes, carRes] = await Promise.allSettled([
-        getExperience(),
-        getEducation(),
-        getCodingProfiles(),
-        getCareerNodes()
-      ]);
-
-      if (expRes.status === 'fulfilled' && expRes.value.data?.data) setExperience(expRes.value.data.data);
-      if (eduRes.status === 'fulfilled' && eduRes.value.data?.data) setEducation(eduRes.value.data.data);
-      if (codRes.status === 'fulfilled' && codRes.value.data?.data) setCodingProfiles(codRes.value.data.data);
-      if (carRes.status === 'fulfilled' && carRes.value.data?.data) setCareerNodes(carRes.value.data.data);
-    } catch (err) {
-      console.error('Error fetching experience data:', err);
-    }
-  };
-
-  const bgEven = "w-full bg-[#f4f6f9] dark:bg-[#0b0b14] transition-colors duration-300 pt-16";
-  const bgOdd  = "w-full bg-[#e8ebf0] dark:bg-[#13131e] transition-colors duration-300";
+  if (loading && experience.length === 0) {
+    return <div className="section-container"><SkeletonLoader count={3} /></div>;
+  }
 
   return (
-    <div className="w-full space-y-0">
-      <section ref={(el) => registerSectionRef(el, 'Career Road')} className={bgEven}>
-        <CareerRoadSection careerNodes={careerNodes} />
-      </section>
+    <div className="section-container animate-fade-in pt-32">
+      <h1 className="text-4xl sm:text-5xl font-bold mb-16 font-grotesk text-white">Experience</h1>
+      
+      <div className="space-y-16 max-w-4xl border-l border-editorial-border pl-6 sm:pl-10">
+        {experience.map((exp, index) => (
+          <div key={exp._id || index} className="relative">
+            <div className="absolute -left-[29px] sm:-left-[45px] top-1.5 w-2 h-2 rounded-full bg-editorial-accent"></div>
+            
+            <div className="font-mono text-xs text-editorial-textMuted uppercase tracking-widest mb-2">
+              {exp.startDate} — {exp.endDate || 'Present'}
+            </div>
+            
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-1 font-grotesk">{exp.role}</h2>
+            <h3 className="text-lg text-editorial-accent font-mono mb-4">{exp.company}</h3>
+            
+            <div className="text-editorial-textMain text-base sm:text-lg leading-relaxed mb-6 whitespace-pre-wrap">
+              {exp.description}
+            </div>
+            
+            {exp.skills && exp.skills.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {exp.skills.map(skill => (
+                  <span key={skill._id || skill} className="px-2 py-1 text-xs font-mono text-editorial-textMuted bg-editorial-surface border border-editorial-border uppercase">
+                    {skill.name || skill}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
 
-      <section ref={(el) => registerSectionRef(el, 'Experience Details')} className={bgOdd}>
-        <ExperienceSection 
-          education={education} 
-          experience={experience}
-          codingProfiles={codingProfiles}
-        />
-      </section>
+        {experience.length === 0 && (
+          <div className="text-editorial-textMuted font-mono text-sm uppercase tracking-widest">
+            No experience data currently available.
+          </div>
+        )}
+      </div>
     </div>
   );
 };

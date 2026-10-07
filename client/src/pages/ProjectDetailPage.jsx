@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Github, ExternalLink, ShieldCheck, CheckCircle2, Terminal } from 'lucide-react';
 import { getProjectBySlug, resolveMediaUrl } from '../services/api';
 import SkeletonLoader from '../components/common/SkeletonLoader';
+import { ExternalLink, Github } from 'lucide-react';
 
 const ProjectDetailPage = () => {
   const { slug } = useParams();
@@ -11,169 +11,129 @@ const ProjectDetailPage = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetchProject();
-  }, [slug]);
-
-  const fetchProject = async () => {
+    window.scrollTo(0, 0);
     setLoading(true);
-    try {
-      const res = await getProjectBySlug(slug);
+    getProjectBySlug(slug).then(res => {
       if (res.data && res.data.data) {
         setProject(res.data.data);
+        document.title = `${res.data.data.title} | Work`;
       } else {
         setError('Project not found');
       }
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load project details');
-    } finally {
       setLoading(false);
-    }
+    }).catch(err => {
+      setError('Failed to load project details');
+      setLoading(false);
+    });
+  }, [slug]);
+
+  if (loading) return <div className="section-container"><SkeletonLoader count={1} /></div>;
+  if (error || !project) return <div className="section-container text-editorial-textMain">{error}</div>;
+
+  const EditorialSection = ({ title, content }) => {
+    if (!content) return null;
+    return (
+      <section className="mb-16">
+        <h3 className="text-sm font-mono text-editorial-accent tracking-widest uppercase mb-4 border-b border-editorial-border pb-2">{title}</h3>
+        <div className="text-editorial-textMain text-lg leading-relaxed whitespace-pre-wrap">{content}</div>
+      </section>
+    );
   };
 
-  if (loading) {
-    return (
-      <div className="max-w-5xl mx-auto px-4 py-20">
-        <SkeletonLoader count={1} />
-      </div>
-    );
-  }
-
-  if (error || !project) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-20 text-center space-y-4">
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Project Not Found</h2>
-        <p className="text-slate-400 text-sm">{error || 'The requested project could not be found.'}</p>
-        <Link to="/projects" className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-sky-500 text-white text-xs font-semibold">
-          <ArrowLeft className="w-4 h-4" /> Back to Projects
-        </Link>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto space-y-10 pt-24">
-      
-      {/* Back Button */}
-      <Link
-        to="/projects"
-        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-sky-400 text-xs font-mono transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        <span>Back to Projects</span>
+    <div className="section-container animate-fade-in pt-32">
+      <Link to="/work" className="text-editorial-textMuted font-mono text-xs uppercase hover:text-editorial-accent tracking-widest mb-12 inline-block">
+        ← Back to Work
       </Link>
 
-      {/* Hero Header */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <span className="px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-mono uppercase font-bold">
-            {project.category}
-          </span>
-          <span className="text-xs font-mono text-slate-400">Status: {project.status || 'Completed'}</span>
+      <div className="mb-16 space-y-6">
+        <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-editorial-textMuted uppercase tracking-widest">
+          <span>{project.category}</span>
+          {project.status && (
+            <>
+              <span className="w-1 h-1 bg-editorial-border rounded-full"></span>
+              <span>{project.status}</span>
+            </>
+          )}
         </div>
-
-        <h1 className="text-3xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+        <h1 className="text-4xl sm:text-6xl font-bold font-grotesk text-white leading-tight">
           {project.title}
         </h1>
-
-        <p className="text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-3xl">
+        <p className="text-xl sm:text-2xl text-editorial-textMuted max-w-3xl leading-relaxed">
           {project.shortDescription}
         </p>
 
-        {/* Links */}
-        <div className="flex items-center gap-4 pt-2">
-          {project.repositoryUrl && (
-            <a
-              href={project.repositoryUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 text-white font-semibold text-xs border border-slate-700 hover:border-sky-400 transition-all"
-            >
-              <Github className="w-4 h-4" />
-              <span>View Source Code</span>
-            </a>
-          )}
+        <div className="flex flex-wrap items-center gap-6 pt-4">
           {project.liveUrl && (
-            <a
-              href={project.liveUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sky-500 text-white font-semibold text-xs shadow-electric-sky hover:bg-sky-400 transition-all"
-            >
-              <ExternalLink className="w-4 h-4" />
-              <span>Live Application</span>
+            <a href={project.liveUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-editorial-accent hover:text-editorial-accentHover font-mono text-sm uppercase tracking-wider transition-colors">
+              <ExternalLink className="w-4 h-4" /> Live Demo
+            </a>
+          )}
+          {project.repositoryUrl && (
+            <a href={project.repositoryUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-editorial-textMain hover:text-white font-mono text-sm uppercase tracking-wider transition-colors">
+              <Github className="w-4 h-4" /> Source Code
             </a>
           )}
         </div>
       </div>
 
-      {/* Thumbnail Banner */}
-      <div className="w-full aspect-video rounded-3xl overflow-hidden glass-card border border-slate-700/80 shadow-2xl">
-        <img
-          src={resolveMediaUrl(project.thumbnail) || 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800'}
-          alt={project.title}
-          className="w-full h-full object-cover"
-        />
-      </div>
-
-      {/* Problem & Solution Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="glass-card p-6 rounded-3xl border border-slate-200 dark:border-slate-800/80 space-y-3">
-          <h3 className="text-base font-bold text-slate-900 dark:text-white font-mono uppercase text-sky-400">
-            The Problem Statement
-          </h3>
-          <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
-            {project.problem || project.description}
-          </p>
-        </div>
-
-        <div className="glass-card p-6 rounded-3xl border border-slate-200 dark:border-slate-800/80 space-y-3">
-          <h3 className="text-base font-bold text-slate-900 dark:text-white font-mono uppercase text-emerald-400">
-            Architectural Solution
-          </h3>
-          <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
-            {project.solution || project.description}
-          </p>
-        </div>
-      </div>
-
-      {/* Key Features List */}
-      {project.features && project.features.length > 0 && (
-        <div className="glass-card p-8 rounded-3xl border border-slate-200 dark:border-slate-800/80 space-y-4">
-          <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <CheckCircle2 className="w-5 h-5 text-sky-400" />
-            <span>Key Platform Capabilities & Features</span>
-          </h3>
-
-          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-            {project.features.map((feat) => (
-              <li key={feat} className="flex items-start gap-2.5 text-xs text-slate-700 dark:text-slate-300">
-                <span className="w-1.5 h-1.5 rounded-full bg-sky-400 mt-1.5 shrink-0"></span>
-                <span>{feat}</span>
-              </li>
-            ))}
-          </ul>
+      {project.thumbnail && (
+        <div className="mb-20">
+          <img 
+            src={resolveMediaUrl(project.thumbnail)} 
+            alt={project.title} 
+            className="w-full h-auto object-cover border border-editorial-border grayscale hover:grayscale-0 transition-all duration-700" 
+          />
         </div>
       )}
 
-      {/* Technologies */}
-      <div className="glass-card p-8 rounded-3xl border border-slate-200 dark:border-slate-800/80 space-y-4">
-        <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <Terminal className="w-5 h-5 text-purple-400" />
-          <span>Technology & Infrastructure Stack</span>
-        </h3>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        <div className="lg:col-span-8">
+          <EditorialSection title="Problem Statement" content={project.problem || project.description} />
+          <EditorialSection title="Architecture & Solution" content={project.solution} />
+          <EditorialSection title="Results & Impact" content={project.results} />
+          <EditorialSection title="Challenges & Learnings" content={project.learnings} />
 
-        <div className="flex flex-wrap gap-2 pt-2">
-          {project.technologies?.map((tech) => (
-            <span
-              key={tech}
-              className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 font-mono text-xs text-slate-800 dark:text-slate-200 font-semibold"
-            >
-              {tech}
-            </span>
-          ))}
+          {project.features && project.features.length > 0 && (
+            <section className="mb-16">
+              <h3 className="text-sm font-mono text-editorial-accent tracking-widest uppercase mb-4 border-b border-editorial-border pb-2">Key Features</h3>
+              <ul className="list-decimal pl-5 space-y-3 text-editorial-textMain text-lg">
+                {project.features.map(f => <li key={f} className="pl-2">{f}</li>)}
+              </ul>
+            </section>
+          )}
+        </div>
+
+        <div className="lg:col-span-4">
+          <div className="sticky top-32 space-y-12">
+            {project.technologies && project.technologies.length > 0 && (
+              <div>
+                <h4 className="text-xs font-mono text-editorial-textMuted tracking-widest uppercase mb-4">Technology Stack</h4>
+                <div className="flex flex-wrap gap-2">
+                  {project.technologies.map(tech => (
+                    <span key={tech} className="px-2 py-1 text-xs font-mono text-editorial-textMain bg-editorial-surface border border-editorial-border">
+                      {tech}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {project.skills && project.skills.length > 0 && (
+              <div>
+                <h4 className="text-xs font-mono text-editorial-textMuted tracking-widest uppercase mb-4">Applied Skills</h4>
+                <div className="flex flex-wrap gap-2">
+                  {project.skills.map(s => (
+                    <span key={s._id} className="px-2 py-1 text-xs font-mono text-editorial-textMain bg-editorial-surface border border-editorial-border">
+                      {s.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-
     </div>
   );
 };

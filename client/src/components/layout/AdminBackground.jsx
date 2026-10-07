@@ -1,14 +1,7 @@
 import React from 'react';
-import AmbientBackground from '../background/AmbientBackground';
-import PerspectiveGrid from '../background/PerspectiveGrid';
 
 const AdminBackground = () => {
-  return (
-    <>
-      <AmbientBackground />
-      <PerspectiveGrid />
-    </>
-  );
+  return null; // Handled by global CSS in Dark Editorial design
 };
 
 export default AdminBackground;

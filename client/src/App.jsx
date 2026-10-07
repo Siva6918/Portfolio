@@ -29,6 +29,8 @@ import BlogPage from './pages/BlogPage';
 import BlogPostPage from './pages/BlogPostPage';
 import ContactPage from './pages/ContactPage';
 import ResumePage from './pages/ResumePage';
+import NowPage from './pages/NowPage';
+import { checkHealth } from './services/api';
 
 // Scroll to top on every route change (fixes "footer showing first" issue)
 const ScrollToTop = () => {
@@ -36,6 +38,17 @@ const ScrollToTop = () => {
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, [pathname]);
+  return null;
+};
+
+// Wakeup backend server ping
+const ServerWakeup = () => {
+  useEffect(() => {
+    // Non-blocking background call
+    checkHealth().catch(() => {
+      console.log('Backend is waking up...');
+    });
+  }, []);
   return null;
 };
 
@@ -61,6 +74,8 @@ function App() {
 
                   {/* Scroll restoration on navigation */}
                   <ScrollToTop />
+                  
+                  <ServerWakeup />
 
                   {/* Dynamic Background: Portfolio vs My Space */}
                   <DynamicBackground />
@@ -72,18 +87,17 @@ function App() {
                   <main className="flex-grow z-10">
                     <Routes>
                       <Route path="/" element={<HomePage />} />
+                      <Route path="/work" element={<ProjectsPage />} />
+                      <Route path="/work/:slug" element={<ProjectDetailPage />} />
                       <Route path="/about" element={<AboutPage />} />
-                      <Route path="/projects" element={<ProjectsPage />} />
-                      <Route path="/projects/:slug" element={<ProjectDetailPage />} />
+                      <Route path="/notes" element={<BlogPage />} />
+                      <Route path="/notes/:slug" element={<BlogPostPage />} />
+                      <Route path="/now" element={<NowPage />} />
                       <Route path="/experience" element={<ExperiencePage />} />
                       <Route path="/skills" element={<SkillsPage />} />
                       <Route path="/certifications" element={<CertificationsPage />} />
-                      <Route path="/achievements" element={<AchievementsPage />} />
-                      <Route path="/blog" element={<BlogPage />} />
-                      <Route path="/blog/:slug" element={<BlogPostPage />} />
                       <Route path="/contact" element={<ContactPage />} />
                       <Route path="/resume" element={<ResumePage />} />
-                      <Route path="/workspace/:category/:slug" element={<WorkspaceResourcePage />} />
                       <Route path="/admin" element={<AdminSpacePage />} />
                       <Route path="*" element={<NotFoundPage />} />
                     </Routes>

@@ -10,6 +10,7 @@ import {
   Copy, Check, Send
 } from 'lucide-react';
 import {
+  getNotes, createNote, updateNote, deleteNote,
   getProfile, updateProfile,
   getProjects, createProject, updateProject, deleteProject,
   getSkills, createSkill, updateSkill, deleteSkill,
@@ -101,6 +102,8 @@ const AdminSpacePage = () => {
   };
 
   const [profile, setProfile] = useState({});
+  const [notes, setNotes] = useState([]);
+  const [noteForm, setNoteForm] = useState({ title: '', slug: '', category: '', excerpt: '', content: '', readTime: '', isPublished: false, tags: '' });
   const [projects, setProjects] = useState([]);
   const [skills, setSkills] = useState([]);
   const [education, setEducation] = useState([]);
@@ -314,9 +317,10 @@ const AdminSpacePage = () => {
         getProfile(), getProjects(), getSkills(), getEducation(),
         getCertifications(), getAchievements(), getExperience(), getResume(),
         getCodingProfiles(), getCareerNodes(), getWorkspaceItems(),
+        getNotes(),
         getAdminMessages(pwd), getAdminFreelance(pwd)
       ]);
-      const [profRes, projRes, skillRes, eduRes, certRes, achRes, expRes, resRes, codRes, carRes, wsRes, msgRes, flRes] = results;
+      const [profRes, projRes, skillRes, eduRes, certRes, achRes, expRes, resRes, codRes, carRes, wsRes, notesRes, msgRes, flRes] = results;
       if (profRes.status === 'fulfilled' && profRes.value?.data?.data) {
         setProfile(profRes.value.data.data);
         setProfileForm(profRes.value.data.data);
@@ -331,6 +335,7 @@ const AdminSpacePage = () => {
       if (codRes.status === 'fulfilled' && codRes.value?.data?.data) setCodingProfiles(codRes.value.data.data);
       if (carRes.status === 'fulfilled' && carRes.value?.data?.data) setCareerNodes(carRes.value.data.data);
       if (wsRes.status === 'fulfilled' && wsRes.value?.data?.data) setWorkspaceItems(wsRes.value.data.data);
+      if (notesRes && notesRes.status === 'fulfilled' && notesRes.value?.data?.data) setNotes(notesRes.value.data.data);
       if (msgRes.status === 'fulfilled' && msgRes.value?.data?.data) setAdminMessages(msgRes.value.data.data);
       if (flRes.status === 'fulfilled' && flRes.value?.data?.data) setAdminFreelance(flRes.value.data.data);
     } catch (err) { console.error('Fetch error:', err); }
@@ -412,6 +417,23 @@ const AdminSpacePage = () => {
     });
   };
 
+  
+  // ── NOTES ────────────────────────────────────────────────────────────
+  const handleCreateNote = (e) => {
+    e.preventDefault();
+    triggerMutation('Add Note', async (pwd) => { 
+      const payload = { ...noteForm, tags: csvToArr(noteForm.tags) };
+      await createNote(payload, pwd); 
+    });
+  };
+  const handleUpdateNote = (id) => { 
+    triggerMutation('Update Note', async (pwd) => { 
+      const payload = { ...editForm, tags: csvToArr(editForm.tags) };
+      await updateNote(id, payload, pwd); 
+    }); 
+  };
+  const handleDeleteNote = (id, title) => { triggerMutation('Delete: ' + title, async (pwd) => { await deleteNote(id, pwd); }); };
+  
   // ── EXPERIENCE ────────────────────────────────────────────────────────────
   const handleCreateExperience = (e) => {
     e.preventDefault();
@@ -752,6 +774,7 @@ const AdminSpacePage = () => {
     { id: 'analytics', name: 'Analytics', icon: BarChart3, count: analyticsOverview.totalVisitors || 0, color: '#f43f5e' },
     { id: 'experience', name: 'Experience', icon: Briefcase, count: experience.length, color: '#e11d48' },
     { id: 'projects', name: 'Projects', icon: FolderGit2, count: projects.length, color: '#f87171' },
+    { id: 'notes', name: 'Notes', icon: FileText, count: notes.length, color: '#f59e0b' },
     { id: 'skills', name: 'Skills', icon: Cpu, count: skills.length, color: '#fb7185' },
     { id: 'education', name: 'Education', icon: GraduationCap, count: education.length, color: '#fda4af' },
     { id: 'certifications', name: 'Certs', icon: Award, count: certifications.length, color: '#ea580c' },
@@ -1002,6 +1025,61 @@ const AdminSpacePage = () => {
         )}
 
         {/* ─── PROJECTS ───────────────────────────────────────────── */}
+        
+        {activeTab === 'notes' && (
+          <div className="space-y-6">
+            <SectionHeader icon={FileText} title="Notes & Articles" count={notes.length} color="#f59e0b" onAdd={() => { setShowAddForm(!showAddForm); setNoteForm({ title: '', slug: '', category: '', excerpt: '', content: '', readTime: '', isPublished: false, tags: '' }); }} addOpen={showAddForm} />
+            
+            {showAddForm && (
+              <FormCard onSubmit={handleCreateNote} color="#f59e0b" title="Create New Note">
+                <input required value={noteForm.title} onChange={e => setNoteForm({...noteForm, title: e.target.value})} placeholder="Title" className={inp} />
+                <input required value={noteForm.slug} onChange={e => setNoteForm({...noteForm, slug: e.target.value})} placeholder="Slug (e.g. my-first-post)" className={inp} />
+                <input required value={noteForm.category} onChange={e => setNoteForm({...noteForm, category: e.target.value})} placeholder="Category" className={inp} />
+                <input required value={noteForm.excerpt} onChange={e => setNoteForm({...noteForm, excerpt: e.target.value})} placeholder="Excerpt" className={inp} />
+                <input required value={noteForm.readTime} onChange={e => setNoteForm({...noteForm, readTime: e.target.value})} placeholder="Read Time (e.g. 5 min)" className={inp} />
+                <input value={noteForm.tags} onChange={e => setNoteForm({...noteForm, tags: e.target.value})} placeholder="Tags (comma separated)" className={inp} />
+                <textarea required value={noteForm.content} onChange={e => setNoteForm({...noteForm, content: e.target.value})} placeholder="Markdown Content" rows="8" className={inp}></textarea>
+                <label className="flex items-center gap-2 text-white text-xs">
+                  <input type="checkbox" checked={noteForm.isPublished} onChange={e => setNoteForm({...noteForm, isPublished: e.target.checked})} />
+                  Published
+                </label>
+              </FormCard>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {notes.map(note => (
+                <div key={note._id} className="glass-card p-5 rounded-2xl border border-[#2d2d3a] flex flex-col h-full">
+                  {editingId === note._id ? (
+                    <div className="space-y-3">
+                      <input required value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})} className={inp} />
+                      <input required value={editForm.slug} onChange={e => setEditForm({...editForm, slug: e.target.value})} className={inp} />
+                      <textarea required value={editForm.content} onChange={e => setEditForm({...editForm, content: e.target.value})} rows="4" className={inp}></textarea>
+                      <label className="flex items-center gap-2 text-white text-xs"><input type="checkbox" checked={editForm.isPublished} onChange={e => setEditForm({...editForm, isPublished: e.target.checked})} /> Published</label>
+                      <EditActions onSave={() => handleUpdateNote(note._id)} onCancel={cancelEdit} />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-amber-500" />
+                          <span className="text-[10px] font-mono text-amber-500 uppercase">{note.category}</span>
+                        </div>
+                        <ActionBtns onEdit={() => startEdit(note)} onDelete={() => handleDeleteNote(note._id, note.title)} />
+                      </div>
+                      <h4 className="text-sm font-bold text-white mb-2">{note.title}</h4>
+                      <p className="text-xs text-zinc-400 mb-4 flex-grow line-clamp-3">{note.excerpt}</p>
+                      <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 border-t border-zinc-800 pt-3">
+                        <span>{note.isPublished ? 'Published' : 'Draft'}</span>
+                        <span>{new Date(note.createdAt).toLocaleDateString()}</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+  
         {activeTab === 'projects' && (
           <div className="space-y-6">
             <SectionHeader icon={FolderGit2} title="Projects" count={projects.length} color="#e11d48" onAdd={() => setShowAddForm(f => !f)} addOpen={showAddForm} />

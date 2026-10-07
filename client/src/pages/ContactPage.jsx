@@ -1,37 +1,101 @@
-import React, { useEffect, useState } from 'react';
-import { useAnalytics } from '../context/AnalyticsContext';
-import useScrollObserver from '../hooks/useScrollObserver';
-import ContactSection from '../components/sections/ContactSection';
-import { getProfile } from '../services/api';
+import React, { useState, useEffect } from 'react';
+import { buildApiUrl } from '../services/api';
 
 const ContactPage = () => {
-  useScrollObserver();
-  const { registerSectionRef } = useAnalytics();
-  const [profile, setProfile] = useState({});
+  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [status, setStatus] = useState('idle'); // idle, loading, success, error
+  const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
     document.title = "Contact | Venkata Siva Reddy";
-    fetchData();
+    window.scrollTo(0, 0);
   }, []);
 
-  const fetchData = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (status === 'loading') return;
+    setStatus('loading');
+    setErrorMsg('');
+
     try {
-      const res = await getProfile();
-      if (res.data?.data) {
-        setProfile(res.data.data);
+      const response = await fetch(buildApiUrl('/contact/send'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        setStatus('success');
+        setFormData({ name: '', email: '', message: '' });
+      } else {
+        setStatus('error');
+        setErrorMsg(data.message || 'Failed to send message.');
       }
     } catch (err) {
-      console.error('Error fetching profile for contact:', err);
+      setStatus('error');
+      setErrorMsg('Network error. Unable to send message.');
     }
   };
 
-  const bgEven = "w-full bg-[#f4f6f9] dark:bg-[#0b0b14] transition-colors duration-300 min-h-screen pt-16";
-
   return (
-    <div className="w-full space-y-0">
-      <section ref={(el) => registerSectionRef(el, 'Contact')} className={bgEven}>
-        <ContactSection email={profile?.email} profile={profile} />
-      </section>
+    <div className="section-container animate-fade-in pt-32 max-w-3xl">
+      <h1 className="text-4xl sm:text-5xl font-bold font-grotesk text-white mb-12">Contact</h1>
+      
+      <p className="text-editorial-textMain text-lg mb-16 leading-relaxed">
+        Whether you have a question, an opportunity, or just want to say hi, my inbox is always open. I'll try my best to get back to you!
+      </p>
+
+      <form onSubmit={handleSubmit} className="space-y-8 border-t border-editorial-border pt-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div>
+            <label className="block text-xs font-mono text-editorial-textMuted uppercase tracking-widest mb-3">Your Name</label>
+            <input 
+              type="text" 
+              required
+              value={formData.name}
+              onChange={e => setFormData({...formData, name: e.target.value})}
+              className="form-input"
+              placeholder="Alan Turing"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-mono text-editorial-textMuted uppercase tracking-widest mb-3">Your Email</label>
+            <input 
+              type="email" 
+              required
+              value={formData.email}
+              onChange={e => setFormData({...formData, email: e.target.value})}
+              className="form-input"
+              placeholder="alan@enigma.com"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-xs font-mono text-editorial-textMuted uppercase tracking-widest mb-3">Message</label>
+          <textarea 
+            required
+            rows={6}
+            value={formData.message}
+            onChange={e => setFormData({...formData, message: e.target.value})}
+            className="form-input resize-none"
+            placeholder="What's on your mind?"
+          />
+        </div>
+
+        {status === 'error' && (
+          <div className="text-editorial-accent font-mono text-sm uppercase tracking-wider">{errorMsg}</div>
+        )}
+
+        {status === 'success' && (
+          <div className="text-[#4ade80] font-mono text-sm uppercase tracking-wider">Message successfully delivered. Thank you!</div>
+        )}
+
+        <button type="submit" disabled={status === 'loading'} className="btn-primary w-full sm:w-auto">
+          {status === 'loading' ? 'Sending...' : 'Send Message'}
+        </button>
+      </form>
     </div>
   );
 };

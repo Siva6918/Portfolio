@@ -131,7 +131,15 @@ export const createCareerNode = (data, pwd) => api.post('/career-nodes', data, a
 export const updateCareerNode = (id, data, pwd) => api.put(`/career-nodes/${id}`, data, authHeader(pwd));
 export const deleteCareerNode = (id, pwd) => api.delete(`/career-nodes/${id}`, authHeader(pwd));
 
+export const getNotes = () => api.get('/notes');
+export const getNoteBySlug = (slug) => api.get(`/notes/${slug}`);
+export const createNote = (data, pwd) => api.post('/notes', data, authHeader(pwd));
+export const updateNote = (id, data, pwd) => api.put(`/notes/${id}`, data, authHeader(pwd));
+export const deleteNote = (id, pwd) => api.delete(`/notes/${id}`, authHeader(pwd));
+
 export const getResume = () => api.get('/resume');
+
+export const checkHealth = () => api.get('/health');
 
 export const getUploadSignature = (params = {}, pwd) => api.post('/upload/sign', params, authHeader(pwd));
 
