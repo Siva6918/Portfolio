@@ -12,8 +12,10 @@ const RevealOnScroll = ({ children, className = '', delay = 0 }) => {
               ref.current.classList.add('is-revealed');
             }
           }, delay);
-          // Optional: observer.unobserve(entry.target) to only animate once
-          observer.unobserve(entry.target);
+        } else {
+          if (ref.current) {
+            ref.current.classList.remove('is-revealed');
+          }
         }
       },
       {

@@ -108,26 +108,13 @@ const Navbar = () => {
             </Link>
           ))}
 
-          {/* Playground / Mode / Theme Controls */}
+          {/* Playground / Mode Controls */}
           <div className="flex items-center gap-4 ml-4 pl-4 border-l border-editorial-border">
-            <button 
-              onClick={toggleTheme}
-              className="text-editorial-textMuted hover:text-editorial-accent transition-colors"
-              title="Toggle Dark/Light Mode"
-            >
-              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </button>
           </div>
         </div>
 
         {/* Mobile Toggle */}
         <div className="flex md:hidden items-center gap-4">
-          <button 
-            onClick={toggleTheme}
-            className="text-editorial-textMuted hover:text-white"
-          >
-            {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-          </button>
           <button 
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="text-editorial-textMain hover:text-white"

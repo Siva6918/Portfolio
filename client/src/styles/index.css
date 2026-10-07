@@ -6,16 +6,6 @@
 
 @layer base {
   :root {
-    --color-bg: 250 250 250;
-    --color-surface: 240 240 240;
-    --color-border: 212 212 212;
-    --color-textMain: 23 23 23;
-    --color-textMuted: 115 115 115;
-    --color-accent: 217 78 52;
-    --color-accentHover: 191 65 42;
-  }
-  
-  .dark {
     --color-bg: 13 13 13;
     --color-surface: 20 20 20;
     --color-border: 38 38 38;
@@ -24,6 +14,7 @@
     --color-accent: 217 78 52;
     --color-accentHover: 191 65 42;
   }
+
 
   html {
     scroll-behavior: smooth;
