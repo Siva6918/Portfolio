@@ -20,7 +20,16 @@ const profileSchema = new mongoose.Schema({
   collegeUrl: { type: String, default: 'https://www.rgmcet.edu.in/' },
   resumeUrl: { type: String, default: '/Venkata_Siva_Reddy_Resume.pdf' },
   graduationYear: { type: Number, default: 2027 },
-  cgpa: { type: Number, default: 8.1 }
+  cgpa: { type: Number, default: 8.1 },
+  // Home Status lines
+  homeStatusCurrentlyBuilding: { type: String, default: 'Agentic AI systems & Scalable web apps' },
+  homeStatusRecentlyExplored: { type: String, default: 'AWS Serverless & Advanced React Patterns' },
+  homeStatusOpenTo: { type: String, default: 'Software Engineering Internships' },
+  // Now page
+  nowCurrentlyBuilding: { type: String, default: 'A personal web application redesign' },
+  nowLearning: { type: String, default: 'Go, microservices architecture, and cloud deployment' },
+  nowExploring: { type: String, default: 'Building autonomous AI agents' },
+  nowNext: { type: String, default: 'Landing a high-impact internship' }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Profile', profileSchema);

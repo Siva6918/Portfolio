@@ -79,6 +79,12 @@ router.get('/projects/:slug', portfolioController.project.getBySlug);
 router.post('/projects', requireAdminAuth, portfolioController.project.create);
 router.put('/projects/:id', requireAdminAuth, portfolioController.project.update);
 router.delete('/projects/:id', requireAdminAuth, portfolioController.project.delete);
+// Notes
+router.get('/notes', portfolioController.note.getAll);
+router.get('/notes/:slug', portfolioController.note.getBySlug);
+router.post('/notes', requireAdminAuth, portfolioController.note.create);
+router.put('/notes/:id', requireAdminAuth, portfolioController.note.update);
+router.delete('/notes/:id', requireAdminAuth, portfolioController.note.delete);
 
 registerCrudRoutes('certifications', portfolioController.certification);
 registerCrudRoutes('achievements', portfolioController.achievement);

@@ -13,6 +13,7 @@ const Resume = require('../models/Resume');
 const Goal = require('../models/Goal');
 const FocusArea = require('../models/FocusArea');
 const CareerNode = require('../models/CareerNode');
+const Note = require('../models/Note');
 
 // --- Helper for creating generic REST handlers ---
 const createCrudHandlers = (Model, populateFields = []) => ({
@@ -317,6 +318,20 @@ module.exports = {
   goal: createCrudHandlers(Goal),
   focusArea: createCrudHandlers(FocusArea),
   careerNode: createCrudHandlers(CareerNode),
+  note: { 
+    ...createCrudHandlers(Note, ['relatedProjects', 'relatedNotes']),
+    getBySlug: async (req, res) => {
+      try {
+        const note = await Note.findOne({ slug: req.params.slug })
+          .populate('relatedProjects')
+          .populate('relatedNotes');
+        if (!note) return res.status(404).json({ success: false, message: 'Note not found' });
+        res.json({ success: true, data: note });
+      } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+      }
+    }
+  },
   uploadMedia: uploadMediaHandler,
   getUploadSignature
 };
