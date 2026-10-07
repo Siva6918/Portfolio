@@ -10,6 +10,7 @@ const ProjectDetailPage = () => {
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [currentImageIdx, setCurrentImageIdx] = useState(0);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -27,6 +28,18 @@ const ProjectDetailPage = () => {
       setLoading(false);
     });
   }, [slug]);
+
+  // Handle auto-advancing carousel
+  useEffect(() => {
+    if (!project) return;
+    const allImages = [project.thumbnail, ...(project.screenshots || [])].filter(Boolean);
+    if (allImages.length <= 1) return;
+    
+    const interval = setInterval(() => {
+      setCurrentImageIdx(prev => (prev + 1) % allImages.length);
+    }, 8000);
+    return () => clearInterval(interval);
+  }, [project]);
 
   if (loading) return <div className="section-container"><SkeletonLoader count={1} /></div>;
   if (error || !project) return <div className="section-container text-editorial-textMain">{error}</div>;
@@ -78,15 +91,39 @@ const ProjectDetailPage = () => {
         </div>
       </div>
 
-      {project.thumbnail && (
-        <RevealOnScroll delay={100} className="mb-20 w-full max-w-5xl mx-auto">
-          <img 
-            src={resolveMediaUrl(project.thumbnail)} 
-            alt={project.title} 
-            className="w-full aspect-video object-cover img-editorial transition-all duration-700" 
-          />
-        </RevealOnScroll>
-      )}
+      {(() => {
+        const allImages = project.thumbnail ? [project.thumbnail, ...(project.screenshots || [])].filter(Boolean) : [];
+        if (allImages.length === 0) return null;
+        
+        return (
+          <RevealOnScroll delay={100} className="mb-20 w-full max-w-5xl mx-auto relative group overflow-hidden rounded-xl border border-editorial-border">
+            <div className="flex transition-transform duration-1000 ease-in-out h-full" style={{ transform: `translateX(-${currentImageIdx * 100}%)` }}>
+              {allImages.map((img, idx) => (
+                <div key={idx} className="w-full shrink-0 aspect-video bg-[#121212]">
+                  <img 
+                    src={resolveMediaUrl(img)} 
+                    alt={`${project.title} - ${idx + 1}`} 
+                    className="w-full h-full object-cover transition-all duration-700 group-hover:scale-[1.02]" 
+                  />
+                </div>
+              ))}
+            </div>
+            
+            {allImages.length > 1 && (
+              <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10">
+                {allImages.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentImageIdx(idx)}
+                    className={`h-1.5 rounded-full transition-all duration-500 ${currentImageIdx === idx ? 'w-6 bg-editorial-accent' : 'w-2 bg-white/30 hover:bg-white/50'}`}
+                    aria-label={`Go to image ${idx + 1}`}
+                  />
+                ))}
+              </div>
+            )}
+          </RevealOnScroll>
+        );
+      })()}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         <div className="lg:col-span-8">
