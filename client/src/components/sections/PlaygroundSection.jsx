@@ -4,11 +4,15 @@ import SectionHeader from '../common/SectionHeader';
 import NlpEngineVisualizer from '../playground/NlpEngineVisualizer';
 import AlgoStepVisualizer from '../playground/AlgoStepVisualizer';
 import ApiBenchmarkVisualizer from '../playground/ApiBenchmarkVisualizer';
+import GlassmorphismGenerator from '../playground/GlassmorphismGenerator';
+import SortingVisualizer from '../playground/SortingVisualizer';
 
 const tabs = [
   { id: 'ai-sim', label: '01 // NLP Engine', icon: Cpu },
-  { id: 'algo', label: '02 // Algo Visualizer', icon: Code2 },
+  { id: 'algo', label: '02 // Algo visual', icon: Code2 },
   { id: 'api', label: '03 // API Speed', icon: Zap },
+  { id: 'glass', label: '04 // Glass UI', icon: Cpu },
+  { id: 'sort', label: '05 // Sort Visual', icon: Code2 },
 ];
 
 const PlaygroundSection = () => {
@@ -100,6 +104,12 @@ const PlaygroundSection = () => {
             </div>
             <div className="w-full shrink-0 flex flex-col">
               <ApiBenchmarkVisualizer className="h-full" />
+            </div>
+            <div className="w-full shrink-0 flex flex-col">
+              <GlassmorphismGenerator className="h-full" />
+            </div>
+            <div className="w-full shrink-0 flex flex-col">
+              <SortingVisualizer className="h-full" />
             </div>
           </div>
         </div>

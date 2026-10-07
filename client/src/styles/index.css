@@ -5,22 +5,42 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --color-bg: 250 250 250;
+    --color-surface: 240 240 240;
+    --color-border: 212 212 212;
+    --color-textMain: 23 23 23;
+    --color-textMuted: 115 115 115;
+    --color-accent: 217 78 52;
+    --color-accentHover: 191 65 42;
+  }
+  
+  .dark {
+    --color-bg: 13 13 13;
+    --color-surface: 20 20 20;
+    --color-border: 38 38 38;
+    --color-textMain: 242 242 242;
+    --color-textMuted: 140 140 140;
+    --color-accent: 217 78 52;
+    --color-accentHover: 191 65 42;
+  }
+
   html {
     scroll-behavior: smooth;
-    background-color: #0d0d0d;
+    background-color: rgb(var(--color-bg));
   }
   
   body {
-    @apply bg-editorial-bg text-editorial-textMain font-grotesk min-h-screen w-full overflow-x-hidden selection:bg-editorial-accent/30 selection:text-white transition-colors duration-200;
+    @apply bg-editorial-bg text-editorial-textMain font-grotesk min-h-screen w-full overflow-x-hidden selection:bg-editorial-accent/30 selection:text-editorial-textMain transition-colors duration-200;
     
     /* Very faint fine grid background */
-    background-image: linear-gradient(to right, #ffffff05 1px, transparent 1px),
-                      linear-gradient(to bottom, #ffffff05 1px, transparent 1px);
+    background-image: linear-gradient(to right, rgb(var(--color-border) / 0.1) 1px, transparent 1px),
+                      linear-gradient(to bottom, rgb(var(--color-border) / 0.1) 1px, transparent 1px);
     background-size: 40px 40px;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-grotesk tracking-tight text-white;
+    @apply font-grotesk tracking-tight text-editorial-textMain;
   }
 }
 
@@ -31,10 +51,17 @@
   }
 
   .nav-link {
-    @apply text-sm font-mono text-editorial-textMuted hover:text-white transition-colors duration-200 uppercase tracking-widest px-4 py-2;
+    @apply relative text-sm font-mono text-editorial-textMuted hover:text-white transition-colors duration-200 uppercase tracking-widest px-4 py-2;
+  }
+  .nav-link::after {
+    content: '';
+    @apply absolute bottom-0 left-4 right-4 h-px bg-editorial-accent scale-x-0 origin-left transition-transform duration-300 ease-out;
+  }
+  .nav-link:hover::after, .nav-link.active::after {
+    @apply scale-x-100;
   }
   .nav-link.active {
-    @apply text-editorial-accent;
+    @apply text-white;
   }
 
   /* Editorial Rules */
@@ -44,7 +71,7 @@
 
   /* Buttons */
   .btn-primary {
-    @apply bg-editorial-accent text-white font-mono text-sm uppercase tracking-wider px-6 py-3 rounded-sm border border-editorial-accent hover:bg-editorial-accentHover transition-colors duration-200;
+    @apply relative overflow-hidden bg-editorial-accent text-white font-mono text-sm uppercase tracking-wider px-6 py-3 rounded-sm border border-editorial-accent hover:bg-editorial-accentHover transition-colors duration-200;
   }
   .btn-secondary {
     @apply bg-transparent text-editorial-textMain font-mono text-sm uppercase tracking-wider px-6 py-3 rounded-sm border border-editorial-border hover:border-editorial-textMuted transition-colors duration-200;
@@ -57,16 +84,76 @@
 
   /* Structural Containers */
   .section-container {
-    @apply w-full max-w-5xl mx-auto px-6 sm:px-8 md:px-12 pt-32 pb-20;
+    @apply w-full max-w-[1400px] mx-auto px-6 sm:px-8 md:px-12 pt-32 pb-20;
   }
+
+  /* Image System */
+  .img-editorial {
+    @apply rounded-xl border border-editorial-border object-cover transition-transform duration-500 hover:scale-[1.02];
+  }
+}
+
+/* ─── Keyframes & Animations ─── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes lineReveal {
+  from { height: 0; opacity: 0; }
+  to { height: 100%; opacity: 1; }
+}
+
+.animate-fade-up {
+  animation: fadeUp 600ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+}
+
+.animate-fade-in {
+  animation: fadeIn 600ms ease-out forwards;
+  opacity: 0;
+}
+
+.animate-slide-in {
+  animation: slideInRight 600ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+}
+
+/* Staggered Delays */
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+
+/* Scroll Animation Observer Class (applied via JS) */
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 600ms cubic-bezier(0.16, 1, 0.3, 1), transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-on-scroll.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* ─── Micro Interactions ─── */
 .interactive-lift {
-  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1), border-color 200ms ease;
 }
 .interactive-lift:hover {
-  transform: translateY(-2px);
+  transform: translateY(-4px);
+  @apply border-editorial-textMuted;
 }
 
 /* ─── Custom Scrollbar ─── */
@@ -89,5 +176,10 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+  .reveal-on-scroll {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
   }
 }

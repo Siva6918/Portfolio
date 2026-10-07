@@ -8,14 +8,16 @@ export default {
   theme: {
     extend: {
       colors: {
+        white: 'rgb(var(--color-textMain) / <alpha-value>)',
+        black: 'rgb(var(--color-bg) / <alpha-value>)',
         editorial: {
-          bg: '#0d0d0d',
-          surface: '#141414',
-          border: '#262626',
-          textMain: '#f2f2f2',
-          textMuted: '#8c8c8c',
-          accent: '#d94e34',
-          accentHover: '#bf412a',
+          bg: 'rgb(var(--color-bg) / <alpha-value>)',
+          surface: 'rgb(var(--color-surface) / <alpha-value>)',
+          border: 'rgb(var(--color-border) / <alpha-value>)',
+          textMain: 'rgb(var(--color-textMain) / <alpha-value>)',
+          textMuted: 'rgb(var(--color-textMuted) / <alpha-value>)',
+          accent: 'rgb(var(--color-accent) / <alpha-value>)',
+          accentHover: 'rgb(var(--color-accentHover) / <alpha-value>)',
         }
       },
       fontFamily: {

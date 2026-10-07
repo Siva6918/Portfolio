@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getProjectBySlug, resolveMediaUrl } from '../services/api';
 import SkeletonLoader from '../components/common/SkeletonLoader';
+import RevealOnScroll from '../components/common/RevealOnScroll';
 import { ExternalLink, Github } from 'lucide-react';
 
 const ProjectDetailPage = () => {
@@ -33,20 +34,20 @@ const ProjectDetailPage = () => {
   const EditorialSection = ({ title, content }) => {
     if (!content) return null;
     return (
-      <section className="mb-16">
+      <RevealOnScroll className="mb-16">
         <h3 className="text-sm font-mono text-editorial-accent tracking-widest uppercase mb-4 border-b border-editorial-border pb-2">{title}</h3>
         <div className="text-editorial-textMain text-lg leading-relaxed whitespace-pre-wrap">{content}</div>
-      </section>
+      </RevealOnScroll>
     );
   };
 
   return (
     <div className="section-container animate-fade-in pt-32">
-      <Link to="/work" className="text-editorial-textMuted font-mono text-xs uppercase hover:text-editorial-accent tracking-widest mb-12 inline-block">
+      <Link to="/work" className="text-editorial-textMuted font-mono text-xs uppercase hover:text-editorial-accent tracking-widest mb-12 inline-block transition-colors">
         ← Back to Work
       </Link>
 
-      <div className="mb-16 space-y-6">
+      <div className="mb-16 space-y-6 animate-fade-up">
         <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-editorial-textMuted uppercase tracking-widest">
           <span>{project.category}</span>
           {project.status && (
@@ -78,13 +79,13 @@ const ProjectDetailPage = () => {
       </div>
 
       {project.thumbnail && (
-        <div className="mb-20">
+        <RevealOnScroll delay={100} className="mb-20 w-full max-w-5xl mx-auto">
           <img 
             src={resolveMediaUrl(project.thumbnail)} 
             alt={project.title} 
-            className="w-full h-auto object-cover border border-editorial-border grayscale hover:grayscale-0 transition-all duration-700" 
+            className="w-full aspect-video object-cover img-editorial transition-all duration-700" 
           />
-        </div>
+        </RevealOnScroll>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
@@ -95,41 +96,41 @@ const ProjectDetailPage = () => {
           <EditorialSection title="Challenges & Learnings" content={project.learnings} />
 
           {project.features && project.features.length > 0 && (
-            <section className="mb-16">
+            <RevealOnScroll className="mb-16">
               <h3 className="text-sm font-mono text-editorial-accent tracking-widest uppercase mb-4 border-b border-editorial-border pb-2">Key Features</h3>
               <ul className="list-decimal pl-5 space-y-3 text-editorial-textMain text-lg">
                 {project.features.map(f => <li key={f} className="pl-2">{f}</li>)}
               </ul>
-            </section>
+            </RevealOnScroll>
           )}
         </div>
 
         <div className="lg:col-span-4">
           <div className="sticky top-32 space-y-12">
             {project.technologies && project.technologies.length > 0 && (
-              <div>
+              <RevealOnScroll>
                 <h4 className="text-xs font-mono text-editorial-textMuted tracking-widest uppercase mb-4">Technology Stack</h4>
                 <div className="flex flex-wrap gap-2">
                   {project.technologies.map(tech => (
-                    <span key={tech} className="px-2 py-1 text-xs font-mono text-editorial-textMain bg-editorial-surface border border-editorial-border">
+                    <span key={tech} className="px-3 py-1.5 rounded-md text-xs font-mono text-editorial-textMain bg-[#121212] border border-editorial-border hover:border-editorial-textMuted transition-colors">
                       {tech}
                     </span>
                   ))}
                 </div>
-              </div>
+              </RevealOnScroll>
             )}
             
             {project.skills && project.skills.length > 0 && (
-              <div>
+              <RevealOnScroll delay={100}>
                 <h4 className="text-xs font-mono text-editorial-textMuted tracking-widest uppercase mb-4">Applied Skills</h4>
                 <div className="flex flex-wrap gap-2">
                   {project.skills.map(s => (
-                    <span key={s._id} className="px-2 py-1 text-xs font-mono text-editorial-textMain bg-editorial-surface border border-editorial-border">
+                    <span key={s._id} className="px-3 py-1.5 rounded-md text-xs font-mono text-editorial-textMain bg-[#121212] border border-editorial-border hover:border-editorial-textMuted transition-colors">
                       {s.name}
                     </span>
                   ))}
                 </div>
-              </div>
+              </RevealOnScroll>
             )}
           </div>
         </div>

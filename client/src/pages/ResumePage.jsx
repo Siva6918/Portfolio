@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { getResume, resolveMediaUrl } from '../services/api';
 import SkeletonLoader from '../components/common/SkeletonLoader';
-import { Download } from 'lucide-react';
+import RevealOnScroll from '../components/common/RevealOnScroll';
+import { Download, FileText } from 'lucide-react';
 
 const ResumePage = () => {
   const [resume, setResume] = useState(null);
@@ -31,33 +32,39 @@ const ResumePage = () => {
   const resumeUrl = resolveMediaUrl(resume.url);
 
   return (
-    <div className="section-container animate-fade-in pt-32">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12 gap-6">
-        <div>
-          <h1 className="text-4xl sm:text-5xl font-bold font-grotesk text-white mb-4">Resume</h1>
-          <p className="text-editorial-textMuted font-mono text-xs uppercase tracking-widest">
-            Last updated: {resume.uploadedAt ? new Date(resume.uploadedAt).toLocaleDateString() : 'Recently'}
-          </p>
+    <div className="section-container pt-32">
+      <RevealOnScroll className="animate-fade-up">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12 gap-6">
+          <div>
+            <h1 className="text-4xl sm:text-5xl font-bold font-grotesk text-white mb-4 flex items-center gap-4">
+              <FileText className="w-8 h-8 text-editorial-accent" /> Resume
+            </h1>
+            <p className="text-editorial-textMuted font-mono text-xs uppercase tracking-widest">
+              Last updated: {resume.uploadedAt ? new Date(resume.uploadedAt).toLocaleDateString() : 'Recently'}
+            </p>
+          </div>
+          
+          <a 
+            href={resumeUrl} 
+            download="Venkata_Siva_Reddy_Resume.pdf"
+            target="_blank"
+            rel="noreferrer"
+            className="btn-primary flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" /> Download PDF
+          </a>
         </div>
-        
-        <a 
-          href={resumeUrl} 
-          download="Venkata_Siva_Reddy_Resume.pdf"
-          target="_blank"
-          rel="noreferrer"
-          className="btn-primary flex items-center gap-2"
-        >
-          <Download className="w-4 h-4" /> Download PDF
-        </a>
-      </div>
+      </RevealOnScroll>
 
-      <div className="w-full h-[80vh] border border-editorial-border bg-editorial-surface p-2">
-        <iframe 
-          src={`${resumeUrl}#view=FitH`}
-          className="w-full h-full border-none"
-          title="Resume PDF Viewer"
-        />
-      </div>
+      <RevealOnScroll delay={100}>
+        <div className="w-full h-[80vh] border border-editorial-border bg-[#121212] p-2 rounded-xl overflow-hidden interactive-lift">
+          <iframe 
+            src={`${resumeUrl}#view=FitH`}
+            className="w-full h-full border-none rounded-lg bg-white"
+            title="Resume PDF Viewer"
+          />
+        </div>
+      </RevealOnScroll>
     </div>
   );
 };

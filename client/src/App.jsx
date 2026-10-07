@@ -30,6 +30,7 @@ import BlogPostPage from './pages/BlogPostPage';
 import ContactPage from './pages/ContactPage';
 import ResumePage from './pages/ResumePage';
 import NowPage from './pages/NowPage';
+import PlaygroundPage from './pages/PlaygroundPage';
 import { checkHealth } from './services/api';
 
 // Scroll to top on every route change (fixes "footer showing first" issue)
@@ -96,6 +97,8 @@ function App() {
                       <Route path="/experience" element={<ExperiencePage />} />
                       <Route path="/skills" element={<SkillsPage />} />
                       <Route path="/certifications" element={<CertificationsPage />} />
+                      <Route path="/achievements" element={<AchievementsPage />} />
+                      <Route path="/playground" element={<PlaygroundPage />} />
                       <Route path="/contact" element={<ContactPage />} />
                       <Route path="/resume" element={<ResumePage />} />
                       <Route path="/admin" element={<AdminSpacePage />} />

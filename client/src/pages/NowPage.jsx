@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { getProfile } from '../services/api';
 import SkeletonLoader from '../components/common/SkeletonLoader';
+import RevealOnScroll from '../components/common/RevealOnScroll';
+import { Terminal } from 'lucide-react';
 
 const NowPage = () => {
   const [profile, setProfile] = useState(null);
@@ -35,34 +37,46 @@ const NowPage = () => {
   }
 
   return (
-    <div className="section-container animate-fade-in">
-      <h1 className="text-4xl sm:text-5xl font-bold mb-12">What I'm doing now</h1>
+    <div className="section-container pt-32">
+      <RevealOnScroll className="animate-fade-up">
+        <h1 className="text-4xl sm:text-5xl font-bold mb-16 font-grotesk text-white flex items-center gap-4">
+          <Terminal className="w-8 h-8 text-editorial-accent" /> What I'm doing /now
+        </h1>
+      </RevealOnScroll>
       
-      <div className="space-y-12 max-w-2xl text-editorial-textMain text-lg leading-relaxed">
-        <section>
-          <h2 className="text-sm font-mono text-editorial-accent tracking-widest uppercase mb-4 border-b border-editorial-border pb-2">Currently Building</h2>
-          <p>{profile?.nowCurrentlyBuilding || 'A personal web application redesign'}</p>
-        </section>
+      <div className="space-y-16 max-w-2xl text-editorial-textMain text-lg leading-relaxed">
+        <RevealOnScroll delay={100}>
+          <section className="bg-[#121212] p-8 rounded-xl border border-editorial-border hover:border-editorial-textMuted transition-colors interactive-lift">
+            <h2 className="text-sm font-mono text-editorial-accent tracking-widest uppercase mb-4 border-b border-editorial-border pb-2">Currently Building</h2>
+            <p className="font-grotesk text-xl text-white">{profile?.nowCurrentlyBuilding || 'A personal web application redesign'}</p>
+          </section>
+        </RevealOnScroll>
 
-        <section>
-          <h2 className="text-sm font-mono text-editorial-accent tracking-widest uppercase mb-4 border-b border-editorial-border pb-2">Learning</h2>
-          <p>{profile?.nowLearning || 'Go, microservices architecture, and cloud deployment'}</p>
-        </section>
+        <RevealOnScroll delay={200}>
+          <section className="bg-[#121212] p-8 rounded-xl border border-editorial-border hover:border-editorial-textMuted transition-colors interactive-lift">
+            <h2 className="text-sm font-mono text-editorial-accent tracking-widest uppercase mb-4 border-b border-editorial-border pb-2">Learning</h2>
+            <p className="font-grotesk text-xl text-white">{profile?.nowLearning || 'Go, microservices architecture, and cloud deployment'}</p>
+          </section>
+        </RevealOnScroll>
 
-        <section>
-          <h2 className="text-sm font-mono text-editorial-accent tracking-widest uppercase mb-4 border-b border-editorial-border pb-2">Exploring</h2>
-          <p>{profile?.nowExploring || 'Building autonomous AI agents'}</p>
-        </section>
+        <RevealOnScroll delay={300}>
+          <section className="bg-[#121212] p-8 rounded-xl border border-editorial-border hover:border-editorial-textMuted transition-colors interactive-lift">
+            <h2 className="text-sm font-mono text-editorial-accent tracking-widest uppercase mb-4 border-b border-editorial-border pb-2">Exploring</h2>
+            <p className="font-grotesk text-xl text-white">{profile?.nowExploring || 'Building autonomous AI agents'}</p>
+          </section>
+        </RevealOnScroll>
 
-        <section>
-          <h2 className="text-sm font-mono text-editorial-accent tracking-widest uppercase mb-4 border-b border-editorial-border pb-2">Up Next</h2>
-          <p>{profile?.nowNext || 'Landing a high-impact internship'}</p>
-        </section>
+        <RevealOnScroll delay={400}>
+          <section className="bg-[#121212] p-8 rounded-xl border border-editorial-border hover:border-editorial-textMuted transition-colors interactive-lift">
+            <h2 className="text-sm font-mono text-editorial-accent tracking-widest uppercase mb-4 border-b border-editorial-border pb-2">Up Next</h2>
+            <p className="font-grotesk text-xl text-white">{profile?.nowNext || 'Landing a high-impact internship'}</p>
+          </section>
+        </RevealOnScroll>
       </div>
 
-      <div className="mt-20 pt-8 border-t border-editorial-border">
-        <p className="text-sm text-editorial-textMuted font-mono">Inspired by Derek Sivers' /now page movement.</p>
-      </div>
+      <RevealOnScroll delay={500} className="mt-20 pt-8 border-t border-editorial-border">
+        <p className="text-sm text-editorial-textMuted font-mono">Inspired by Derek Sivers' <a href="https://nownownow.com/about" target="_blank" rel="noreferrer" className="text-editorial-accent hover:underline">/now page movement</a>.</p>
+      </RevealOnScroll>
     </div>
   );
 };
