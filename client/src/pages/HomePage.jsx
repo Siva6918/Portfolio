@@ -173,9 +173,13 @@ const HomePage = () => {
             <h2 className="text-xs font-mono text-editorial-accent uppercase tracking-widest mb-6 flex items-center gap-2">
               <Terminal className="w-4 h-4" /> What I'm doing /now
             </h2>
-            <ul className="space-y-4 font-mono text-sm text-editorial-textMain">
-              <li><span className="text-editorial-textMuted">Building:</span> {profile?.nowCurrentlyBuilding || 'Web Applications'}</li>
-              <li><span className="text-editorial-textMuted">Learning:</span> {profile?.nowLearning || 'Cloud Architecture'}</li>
+            <ul className="space-y-3 font-mono text-sm text-editorial-textMain">
+              <li className="flex gap-2"><span className="text-editorial-accent">▹</span> Developing my portfolio</li>
+              <li className="flex gap-2"><span className="text-editorial-accent">▹</span> Performing coding daily for Hackclub</li>
+              <li className="flex gap-2"><span className="text-editorial-accent">▹</span> Doing major project as Career GPT</li>
+              <li className="flex gap-2"><span className="text-editorial-accent">▹</span> Participating in many hackathons</li>
+              <li className="flex gap-2"><span className="text-editorial-accent">▹</span> Applying for internships</li>
+              <li className="flex gap-2"><span className="text-editorial-accent">▹</span> Learning software related technologies</li>
             </ul>
             <div className="mt-8">
               <Link to="/now" className="text-xs font-mono text-white hover:text-editorial-accent uppercase tracking-widest inline-flex items-center gap-2 transition-colors">
