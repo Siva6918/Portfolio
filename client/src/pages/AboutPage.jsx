@@ -152,11 +152,13 @@ const AboutPage = () => {
         <div className="lg:col-span-4">
           <RevealOnScroll delay={200} className="sticky top-32">
             <div className="border border-editorial-border p-6 bg-editorial-surface rounded-xl overflow-hidden interactive-lift">
-              <img 
-                src={resolveMediaUrl(profile?.profileImage) || '/Avatar.png'} 
-                alt="Venkata Siva Reddy" 
-                className="w-full h-auto mb-6 object-cover rounded-lg img-editorial border-none transition-all duration-700"
-              />
+              <div className="flex justify-center mb-6">
+                <img 
+                  src={resolveMediaUrl(profile?.profileImage) || '/Avatar.png'} 
+                  alt="Venkata Siva Reddy" 
+                  className="w-40 h-40 sm:w-56 sm:h-56 object-cover rounded-full img-editorial border-none transition-all duration-700"
+                />
+              </div>
               <div className="space-y-4 font-mono text-xs text-editorial-textMuted uppercase tracking-wider">
                 <div className="flex justify-between border-b border-editorial-border pb-2">
                   <span>Location</span>

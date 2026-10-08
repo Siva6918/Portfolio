@@ -21,6 +21,12 @@
     background-color: rgb(var(--color-bg));
   }
   
+  @media (max-width: 640px) {
+    html {
+      font-size: 14px;
+    }
+  }
+  
   body {
     @apply bg-editorial-bg text-editorial-textMain font-grotesk min-h-screen w-full overflow-x-hidden selection:bg-editorial-accent/30 selection:text-editorial-textMain transition-colors duration-200;
     

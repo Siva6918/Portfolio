@@ -67,17 +67,7 @@ const HomePage = () => {
 
       {/* ─── HERO SECTION — always visible immediately ─── */}
       <div>
-        {profile?.newArrival?.enabled && (
-          <div className="mb-12 inline-flex flex-col gap-2 animate-fade-in">
-            <span className="text-[10px] font-mono text-editorial-accent uppercase tracking-widest flex items-center gap-2">
-              <Sparkles className="w-3 h-3" /> {profile.newArrival.title}
-            </span>
-            <Link to={profile.newArrival.url} className="group inline-flex items-center gap-4 bg-[#121212] border border-editorial-border hover:border-editorial-textMuted transition-colors py-3 px-5 rounded-full interactive-lift">
-              <span className="text-sm font-mono text-white group-hover:text-editorial-accent transition-colors">{profile.newArrival.contentName}</span>
-              <ArrowRight className="w-3 h-3 text-editorial-textMuted group-hover:text-editorial-accent transition-colors group-hover:translate-x-1" />
-            </Link>
-          </div>
-        )}
+        {/* Removed newArrival block as per user request */}
 
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold max-w-4xl leading-tight mb-8 text-white animate-fade-in">
           I am a software engineer building scalable web applications and intelligent AI systems.
