@@ -8,14 +8,12 @@ import CertificationsDetailModal from "../common/CertificationsDetailModal";
 const easeCurve = [0.16, 1, 0.3, 1];
 
 const palette = [
-  { hex: "#4ade80", glow: "rgba(74,222,128,0.35)",  shadow: "rgba(74,222,128,0.15)"  },
-  { hex: "#facc15", glow: "rgba(250,204,21,0.35)",  shadow: "rgba(250,204,21,0.15)"  },
-  { hex: "#fb923c", glow: "rgba(251,146,60,0.35)",  shadow: "rgba(251,146,60,0.15)"  },
-  { hex: "#38bdf8", glow: "rgba(56,189,248,0.35)",  shadow: "rgba(56,189,248,0.15)"  },
-  { hex: "#f472b6", glow: "rgba(244,114,182,0.35)", shadow: "rgba(244,114,182,0.15)" },
-  { hex: "#c084fc", glow: "rgba(192,132,252,0.35)", shadow: "rgba(192,132,252,0.15)" },
-  { hex: "#2dd4bf", glow: "rgba(45,212,191,0.35)",  shadow: "rgba(45,212,191,0.15)"  },
+  { hex: "#f59e0b", glow: "rgba(245,158,11,0.35)",  shadow: "rgba(245,158,11,0.15)"  },
+  { hex: "#f43f5e", glow: "rgba(244,63,94,0.35)",   shadow: "rgba(244,63,94,0.15)"   },
+  { hex: "#e2e8f0", glow: "rgba(226,232,240,0.35)", shadow: "rgba(226,232,240,0.15)" },
+  { hex: "#fbbf24", glow: "rgba(251,191,36,0.35)",  shadow: "rgba(251,191,36,0.15)"  },
   { hex: "#fb7185", glow: "rgba(251,113,133,0.35)", shadow: "rgba(251,113,133,0.15)" },
+  { hex: "#cbd5e1", glow: "rgba(203,213,225,0.35)", shadow: "rgba(203,213,225,0.15)" },
 ];
 
 const defaultCerts = [
@@ -52,15 +50,15 @@ const CertificationsSection = ({ certifications = [] }) => {
       id="certifications"
       className="py-24 relative w-full border-t border-slate-200 dark:border-zinc-800/60 overflow-hidden"
     >
-      <div className="absolute top-1/3 left-8 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{ background: "rgba(56,189,248,0.05)" }} />
-      <div className="absolute bottom-1/3 right-8 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{ background: "rgba(192,132,252,0.05)" }} />
+      <div className="absolute top-1/3 left-8 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{ background: "rgba(245,158,11,0.06)" }} />
+      <div className="absolute bottom-1/3 right-8 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{ background: "rgba(244,63,94,0.06)" }} />
 
       <div className="section-container relative z-10">
         {/* Header with Color-Sparked Card Pill & Space Grotesk */}
         <SectionHeader
           badgeText="06 // CREDENTIALS & CERTIFICATIONS"
           icon={Award}
-          color="#2dd4bf"
+          color="#f59e0b"
           title="Verified "
           gradientTitle="Certifications"
           description="Industry-recognised credentials validating engineering depth."

@@ -3,29 +3,29 @@ import React, { useEffect, useState, useRef } from 'react';
 /* ────────────────────────────────────────────
    Shared Shell
 ──────────────────────────────────────────── */
-const Shell = ({ accent = '#d94e34', progress, exiting, title, icon, children }) => (
+const Shell = ({ accent = '#f59e0b', progress, exiting, title, icon, children }) => (
   <div
     className={`fixed inset-0 z-[9998] flex items-center justify-center transition-opacity duration-350 ${
       exiting ? 'opacity-0 pointer-events-none' : 'opacity-100'
     }`}
-    style={{ background: '#0d0d0d' }}
+    style={{ background: '#08080a' }}
   >
     {/* Progress bar */}
     <div className="absolute top-0 left-0 right-0 h-[2px] bg-white/5">
-      <div className="h-full transition-all duration-200 ease-out" style={{ width: `${progress}%`, background: accent }} />
+      <div className="h-full transition-all duration-200 ease-out shadow-[0_0_8px_rgba(245,158,11,0.5)]" style={{ width: `${progress}%`, background: accent }} />
       <div className="absolute top-0 h-[2px] w-20 blur-sm transition-all duration-200" style={{
         left: `max(0px, ${progress}% - 80px)`, background: accent,
       }} />
     </div>
 
-    <div className="w-full max-w-sm mx-4 bg-[#111318] border border-white/[0.07] rounded-xl overflow-hidden shadow-2xl">
+    <div className="w-full max-w-sm mx-4 bg-[#101016] border border-[#242834] rounded-2xl overflow-hidden shadow-2xl">
       {/* Header */}
-      <div className="flex items-center gap-2.5 px-4 py-2.5 border-b border-white/[0.05] bg-[#0e1117]">
+      <div className="flex items-center gap-2.5 px-4 py-3 border-b border-[#242834] bg-[#0c0c12]">
         <span className="text-base">{icon}</span>
-        <span className="font-mono text-[10px] tracking-widest uppercase" style={{ color: `${accent}bb` }}>{title}</span>
+        <span className="font-mono text-[10px] tracking-widest uppercase font-bold" style={{ color: accent }}>{title}</span>
         <div className="ml-auto flex gap-1.5">
           {[0,1,2].map(i => (
-            <span key={i} className="w-1 h-1 rounded-full" style={{
+            <span key={i} className="w-1.5 h-1.5 rounded-full" style={{
               background: accent,
               animation: `softPulse 1s ease-in-out ${i * 0.2}s infinite`,
             }} />
@@ -34,14 +34,14 @@ const Shell = ({ accent = '#d94e34', progress, exiting, title, icon, children })
       </div>
 
       {/* Body */}
-      <div className="p-5 font-mono text-[12px] leading-7 min-h-[150px] flex flex-col justify-center">
+      <div className="p-5 font-mono text-[12px] leading-7 min-h-[150px] flex flex-col justify-center text-iceSilver">
         {children}
       </div>
 
       {/* Footer */}
-      <div className="px-4 py-2 border-t border-white/[0.05] bg-[#0e1117] flex justify-between">
-        <span className="font-mono text-[9px] text-white/25 uppercase tracking-widest">loading…</span>
-        <span className="font-mono text-[9px]" style={{ color: accent }}>{progress}%</span>
+      <div className="px-4 py-2.5 border-t border-[#242834] bg-[#0c0c12] flex justify-between">
+        <span className="font-mono text-[9px] text-zinc-500 uppercase tracking-widest font-bold">TELEMETRY SYNC…</span>
+        <span className="font-mono text-[9px] font-bold" style={{ color: accent }}>{progress}%</span>
       </div>
     </div>
   </div>
@@ -316,17 +316,17 @@ const DefaultLoader = ({ accent, progress, exiting }) => {
    Route → Loader map
 ──────────────────────────────────────────── */
 const ROUTE_MAP = {
-  '/about':            { Loader: AboutLoader,           accent: '#82aaff' },
-  '/work':             { Loader: WorkLoader,             accent: '#d94e34' },
-  '/experience':       { Loader: ExperienceLoader,       accent: '#f78c6c' },
-  '/skills':           { Loader: SkillsLoader,           accent: '#27c93f' },
-  '/certifications':   { Loader: CertificationsLoader,   accent: '#ffbd2e' },
-  '/achievements':     { Loader: AchievementsLoader,     accent: '#ffbd2e' },
-  '/notes':            { Loader: NotesLoader,             accent: '#c3e88d' },
-  '/contact':          { Loader: ContactLoader,           accent: '#d94e34' },
-  '/resume':           { Loader: ResumeLoader,            accent: '#82aaff' },
-  '/now':              { Loader: NowLoader,               accent: '#27c93f' },
-  '/playground':       { Loader: PlaygroundLoader,        accent: '#c792ea' },
+  '/about':            { Loader: AboutLoader,           accent: '#f59e0b' },
+  '/work':             { Loader: WorkLoader,             accent: '#f59e0b' },
+  '/experience':       { Loader: ExperienceLoader,       accent: '#f43f5e' },
+  '/skills':           { Loader: SkillsLoader,           accent: '#fbbf24' },
+  '/certifications':   { Loader: CertificationsLoader,   accent: '#e2e8f0' },
+  '/achievements':     { Loader: AchievementsLoader,     accent: '#f59e0b' },
+  '/notes':            { Loader: NotesLoader,             accent: '#fb7185' },
+  '/contact':          { Loader: ContactLoader,           accent: '#f43f5e' },
+  '/resume':           { Loader: ResumeLoader,            accent: '#e2e8f0' },
+  '/now':              { Loader: NowLoader,               accent: '#f59e0b' },
+  '/playground':       { Loader: PlaygroundLoader,        accent: '#f43f5e' },
 };
 
 /* ────────────────────────────────────────────
@@ -338,9 +338,9 @@ const PageLoader = ({ onDone, pathname = '/' }) => {
   if (pathname.startsWith('/work/')) route = '/work/:slug';
   if (pathname.startsWith('/notes/') && pathname !== '/notes') route = '/notes/:slug';
 
-  const { Loader = DefaultLoader, accent = '#d94e34' } =
-    route === '/work/:slug' ? { Loader: ProjectDetailLoader, accent: '#d94e34' } :
-    route === '/notes/:slug' ? { Loader: BlogPostLoader, accent: '#c3e88d' } :
+  const { Loader = DefaultLoader, accent = '#f59e0b' } =
+    route === '/work/:slug' ? { Loader: ProjectDetailLoader, accent: '#f59e0b' } :
+    route === '/notes/:slug' ? { Loader: BlogPostLoader, accent: '#fb7185' } :
     ROUTE_MAP[route] || {};
 
   const [progress, setProgress] = useState(0);

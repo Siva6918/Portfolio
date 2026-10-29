@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getProfile, getEducation, getCodingProfiles, getAchievements, resolveMediaUrl } from '../services/api';
 import SkeletonLoader from '../components/common/SkeletonLoader';
 import RevealOnScroll from '../components/common/RevealOnScroll';
-import { ExternalLink, Trophy, Code2 } from 'lucide-react';
+import { ExternalLink, Trophy, Code2, Flame } from 'lucide-react';
 
 const AboutPage = () => {
   const [profile, setProfile] = useState(null);
@@ -39,22 +39,28 @@ const AboutPage = () => {
   return (
     <div className="section-container pt-32">
       <RevealOnScroll className="animate-fade-up">
-        <h1 className="text-4xl sm:text-5xl font-bold mb-16 font-grotesk text-white">About</h1>
+        <div className="flex items-center gap-2 text-xs font-mono text-marigold uppercase tracking-widest mb-2 font-bold">
+          <Flame className="w-4 h-4 text-neonRose fill-neonRose" />
+          <span>OPERATOR DOSSIER // BACKGROUND</span>
+        </div>
+        <h1 className="text-4xl sm:text-5xl font-bold mb-16 font-grotesk text-iceSilver">
+          About & <span className="bg-gradient-to-r from-marigold to-neonRose bg-clip-text text-transparent">Identity</span>
+        </h1>
       </RevealOnScroll>
       
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
-        <div className="lg:col-span-8 space-y-24 text-editorial-textMain text-lg leading-relaxed">
+        <div className="lg:col-span-8 space-y-24 text-iceSilver text-lg leading-relaxed">
           
           <RevealOnScroll delay={100}>
             <section>
               <p className="mb-6 whitespace-pre-wrap">{profile?.longBio}</p>
-              <p className="mb-6">My core focus lies in {profile?.currentFocus}. {profile?.careerGoal}</p>
+              <p className="mb-6 text-iceSilver-dark font-mono text-base">My core focus lies in {profile?.currentFocus}. {profile?.careerGoal}</p>
             </section>
           </RevealOnScroll>
 
           <RevealOnScroll>
             <section>
-              <h2 className="text-sm font-mono text-editorial-accent tracking-widest uppercase mb-8 border-b border-editorial-border pb-2">Education</h2>
+              <h2 className="text-sm font-mono text-marigold tracking-widest uppercase mb-8 border-b border-[#242834] pb-2 font-bold">Education</h2>
               <div className="space-y-12">
                 {education.map((edu, idx) => (
                   <div key={edu._id || idx} className="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-4">
@@ -111,7 +117,7 @@ const AboutPage = () => {
                         {cp.rating && (
                           <div className="flex justify-between">
                             <span>Rating</span>
-                            <span className="text-editorial-accent">{cp.rating}</span>
+                            <span className="text-marigold font-bold">{cp.rating}</span>
                           </div>
                         )}
                       </div>
@@ -125,20 +131,20 @@ const AboutPage = () => {
           {achievements.length > 0 && (
             <RevealOnScroll>
               <section>
-                <h2 className="text-sm font-mono text-editorial-accent tracking-widest uppercase mb-8 border-b border-editorial-border pb-2 flex items-center gap-2">
-                  <Trophy className="w-4 h-4" /> Selected Achievements
+                <h2 className="text-sm font-mono text-marigold tracking-widest uppercase mb-8 border-b border-[#242834] pb-2 flex items-center gap-2 font-bold">
+                  <Trophy className="w-4 h-4 text-marigold" /> Selected Achievements
                 </h2>
                 <div className="space-y-6">
                   {achievements.map((ach, idx) => (
                     <div key={ach._id} className={`grid grid-cols-1 sm:grid-cols-[100px_1fr] gap-4 animate-fade-up delay-${(idx+1)*100}`}>
-                      <div className="font-mono text-xs text-editorial-textMuted pt-1">{ach.year}</div>
+                      <div className="font-mono text-xs text-iceSilver-dark pt-1">{ach.year}</div>
                       <div>
-                        <h4 className="text-white font-bold text-lg mb-1 flex items-center gap-2">
+                        <h4 className="text-iceSilver font-bold text-lg mb-1 flex items-center gap-2">
                           {ach.title}
-                          {ach.rank && <span className="px-2 py-0.5 rounded-sm bg-editorial-accent/10 text-editorial-accent font-mono text-[10px] border border-editorial-accent/20">{ach.rank}</span>}
+                          {ach.rank && <span className="px-2 py-0.5 rounded-sm bg-marigold/15 text-marigold font-mono text-[10px] border border-marigold/30 font-bold">{ach.rank}</span>}
                         </h4>
-                        <div className="text-sm font-mono text-editorial-textMuted mb-2">{ach.organization} {ach.event ? `• ${ach.event}` : ''}</div>
-                        <p className="text-sm text-editorial-textMain">{ach.description}</p>
+                        <div className="text-sm font-mono text-iceSilver-dark mb-2">{ach.organization} {ach.event ? `• ${ach.event}` : ''}</div>
+                        <p className="text-sm text-iceSilver-dark font-mono">{ach.description}</p>
                       </div>
                     </div>
                   ))}
@@ -151,39 +157,41 @@ const AboutPage = () => {
 
         <div className="lg:col-span-4">
           <RevealOnScroll delay={200} className="sticky top-32">
-            <div className="border border-editorial-border p-6 bg-editorial-surface rounded-xl overflow-hidden interactive-lift">
+            <div className="border border-[#242834] p-6 bg-[#0c0c12] rounded-2xl overflow-hidden interactive-lift shadow-2xl">
               <div className="flex justify-center mb-6">
-                <img 
-                  src={resolveMediaUrl(profile?.profileImage) || '/Avatar.png'} 
-                  alt="Venkata Siva Reddy" 
-                  className="w-40 h-40 sm:w-56 sm:h-56 object-cover rounded-full img-editorial border-none transition-all duration-700"
-                />
+                <div className="relative p-1 rounded-full border-2 border-marigold/60 shadow-[0_0_20px_rgba(245,158,11,0.25)]">
+                  <img 
+                    src={resolveMediaUrl(profile?.profileImage) || '/Avatar.png'} 
+                    alt="Venkata Siva Reddy" 
+                    className="w-40 h-40 sm:w-52 sm:h-52 object-cover rounded-full img-editorial border-none transition-all duration-700"
+                  />
+                </div>
               </div>
-              <div className="space-y-4 font-mono text-xs text-editorial-textMuted uppercase tracking-wider">
-                <div className="flex justify-between border-b border-editorial-border pb-2">
+              <div className="space-y-4 font-mono text-xs text-iceSilver-dark uppercase tracking-wider">
+                <div className="flex justify-between border-b border-[#242834] pb-2">
                   <span>Location</span>
-                  <span className="text-white text-right">{profile?.location}</span>
+                  <span className="text-iceSilver text-right">{profile?.location}</span>
                 </div>
-                <div className="flex justify-between border-b border-editorial-border pb-2">
+                <div className="flex justify-between border-b border-[#242834] pb-2">
                   <span>Email</span>
-                  <span className="text-white text-right">{profile?.email}</span>
+                  <span className="text-iceSilver text-right">{profile?.email}</span>
                 </div>
-                <div className="flex justify-between border-b border-editorial-border pb-2">
+                <div className="flex justify-between border-b border-[#242834] pb-2">
                   <span>Status</span>
-                  <span className="text-editorial-accent text-right">{profile?.availability}</span>
+                  <span className="text-marigold font-bold text-right">{profile?.availability}</span>
                 </div>
                 {profile?.github && (
-                  <div className="flex justify-between border-b border-editorial-border pb-2 pt-2">
+                  <div className="flex justify-between border-b border-[#242834] pb-2 pt-2">
                     <span>GitHub</span>
-                    <a href={profile.github} target="_blank" rel="noreferrer" className="text-white text-right hover:text-editorial-accent flex items-center gap-1">
+                    <a href={profile.github} target="_blank" rel="noreferrer" className="text-iceSilver text-right hover:text-marigold flex items-center gap-1">
                       vasanreddy <ExternalLink className="w-3 h-3" />
                     </a>
                   </div>
                 )}
                 {profile?.linkedin && (
-                  <div className="flex justify-between border-b border-editorial-border pb-2 pt-2">
+                  <div className="flex justify-between border-b border-[#242834] pb-2 pt-2">
                     <span>LinkedIn</span>
-                    <a href={profile.linkedin} target="_blank" rel="noreferrer" className="text-white text-right hover:text-editorial-accent flex items-center gap-1">
+                    <a href={profile.linkedin} target="_blank" rel="noreferrer" className="text-iceSilver text-right hover:text-neonRose flex items-center gap-1">
                       venkatasiva-reddy <ExternalLink className="w-3 h-3" />
                     </a>
                   </div>

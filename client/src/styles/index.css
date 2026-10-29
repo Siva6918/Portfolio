@@ -6,13 +6,23 @@
 
 @layer base {
   :root {
-    --color-bg: 13 13 13;
-    --color-surface: 20 20 20;
-    --color-border: 38 38 38;
-    --color-textMain: 242 242 242;
-    --color-textMuted: 140 140 140;
-    --color-accent: 217 78 52;
-    --color-accentHover: 191 65 42;
+    /* Pure Black Foundation */
+    --color-bg: 8 8 10;
+    --color-surface: 16 16 22;
+    --color-border: 36 40 50;
+    
+    /* Ice Silver Typography & Metallic Accents */
+    --color-textMain: 226 232 240;
+    --color-textMuted: 148 163 184;
+    --color-silver: 226 232 240;
+
+    /* Marigold Warm Gold Accent */
+    --color-accent: 245 158 11;
+    --color-accentHover: 251 191 36;
+    --color-marigold: 245 158 11;
+
+    /* Neon Rose Electric Radiant Accent */
+    --color-rose: 244 63 94;
   }
 
 
@@ -27,24 +37,31 @@
     }
   }
   
+  ::selection {
+    background-color: rgba(244, 63, 94, 0.4);
+    color: #ffffff;
+  }
+
   body {
-    @apply bg-editorial-bg text-editorial-textMain font-grotesk min-h-screen w-full overflow-x-hidden selection:bg-editorial-accent/30 selection:text-editorial-textMain transition-colors duration-200;
+    @apply bg-editorial-bg text-editorial-textMain font-grotesk min-h-screen w-full overflow-x-hidden transition-colors duration-200;
     
-    /* Very faint fine grid background */
-    background-image: linear-gradient(to right, rgb(var(--color-border) / 0.1) 1px, transparent 1px),
-                      linear-gradient(to bottom, rgb(var(--color-border) / 0.1) 1px, transparent 1px);
+    /* Ice Silver faint fine grid background */
+    background-image: linear-gradient(to right, rgba(226, 232, 240, 0.04) 1px, transparent 1px),
+                      linear-gradient(to bottom, rgba(226, 232, 240, 0.04) 1px, transparent 1px);
     background-size: 40px 40px;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-grotesk tracking-tight text-editorial-textMain;
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: -0.025em;
+    color: #e2e8f0;
   }
 }
 
 @layer components {
   /* Navigation Bar */
   .nav-bar {
-    @apply fixed top-0 w-full z-50 bg-[#0d0d0d]/90 backdrop-blur-md border-b border-editorial-border transition-all duration-200 h-16 flex items-center;
+    @apply fixed top-0 w-full z-50 bg-[#08080a]/90 backdrop-blur-md border-b border-editorial-border transition-all duration-200 h-16 flex items-center;
   }
 
   .nav-link {
@@ -52,7 +69,7 @@
   }
   .nav-link::after {
     content: '';
-    @apply absolute bottom-0 left-4 right-4 h-px bg-editorial-accent scale-x-0 origin-left transition-transform duration-300 ease-out;
+    @apply absolute bottom-0 left-4 right-4 h-px bg-[#f59e0b] scale-x-0 origin-left transition-transform duration-300 ease-out;
   }
   .nav-link:hover::after, .nav-link.active::after {
     @apply scale-x-100;
@@ -68,11 +85,11 @@
   
   /* Link animated underline */
   .link-animated {
-    @apply relative inline-flex items-center gap-1 hover:text-editorial-accent transition-colors duration-200;
+    @apply relative inline-flex items-center gap-1 text-[#e2e8f0] hover:text-[#f59e0b] transition-colors duration-200;
   }
   .link-animated::after {
     content: '';
-    @apply absolute -bottom-1 left-0 w-full h-px bg-editorial-accent scale-x-0 origin-left transition-transform duration-300 ease-out;
+    @apply absolute -bottom-1 left-0 w-full h-px bg-[#f59e0b] scale-x-0 origin-left transition-transform duration-300 ease-out;
   }
   .link-animated:hover::after {
     @apply scale-x-100;
@@ -86,10 +103,10 @@
 
   /* Buttons */
   .btn-primary {
-    @apply relative overflow-hidden bg-editorial-accent text-white font-mono text-sm uppercase tracking-wider px-6 py-3 rounded-sm border border-editorial-accent transition-all duration-300 ease-out hover:bg-editorial-accentHover hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:shadow-none;
+    @apply relative overflow-hidden bg-gradient-to-r from-[#f59e0b] to-[#f43f5e] text-black font-mono text-sm font-bold uppercase tracking-wider px-6 py-3 rounded-md transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(245,158,11,0.35)] active:translate-y-0 active:shadow-none;
   }
   .btn-secondary {
-    @apply bg-transparent text-editorial-textMain font-mono text-sm uppercase tracking-wider px-6 py-3 rounded-sm border border-editorial-border transition-all duration-300 ease-out hover:border-editorial-textMuted hover:-translate-y-0.5 hover:shadow-lg hover:bg-editorial-surface active:translate-y-0 active:shadow-none;
+    @apply bg-editorial-surface/80 text-[#e2e8f0] font-mono text-sm uppercase tracking-wider px-6 py-3 rounded-md border border-editorial-border transition-all duration-300 ease-out hover:border-[#f59e0b] hover:text-white hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(245,158,11,0.2)] active:translate-y-0 active:shadow-none;
   }
 
   /* Forms */

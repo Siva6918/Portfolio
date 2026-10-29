@@ -3,11 +3,13 @@ import { Link } from 'react-router-dom';
 import { getProjects, resolveMediaUrl } from '../services/api';
 import SkeletonLoader from '../components/common/SkeletonLoader';
 import RevealOnScroll from '../components/common/RevealOnScroll';
-import { ArrowRight } from 'lucide-react';
+import ProjectsConvoy from '../components/common/ProjectsConvoy';
+import { ArrowRight, Flame, Crosshair, Zap, Layers, ListFilter } from 'lucide-react';
 
 const ProjectsPage = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState('carousel');
 
   useEffect(() => {
     document.title = "Work | Venkata Siva Reddy";
@@ -35,10 +37,53 @@ const ProjectsPage = () => {
   return (
     <div className="section-container">
       <RevealOnScroll className="animate-fade-up">
-        <h1 className="text-4xl sm:text-5xl font-bold mb-16">Work</h1>
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-mono text-marigold uppercase tracking-widest mb-2 font-bold">
+              <Flame className="w-4 h-4 text-neonRose fill-neonRose" />
+              <span>TACTICAL ARSENAL // OPERATIONS</span>
+            </div>
+            <h1 className="text-4xl sm:text-5xl font-bold font-grotesk text-iceSilver">
+              Work & <span className="bg-gradient-to-r from-marigold to-neonRose bg-clip-text text-transparent">Operations</span>
+            </h1>
+          </div>
+          
+          {/* View Mode Switcher Matching Home Page */}
+          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#101016] border border-[#242834] shrink-0">
+            <button
+              onClick={() => setViewMode('carousel')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono transition-all ${
+                viewMode === 'carousel'
+                  ? 'bg-gradient-to-r from-marigold to-neonRose text-black font-bold shadow-md shadow-marigold/20'
+                  : 'text-iceSilver-dark hover:text-white'
+              }`}
+            >
+              <Zap className="w-3.5 h-3.5" />
+              <span>LIVE CAROUSEL</span>
+            </button>
+
+            <button
+              onClick={() => setViewMode('dossier')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono transition-all ${
+                viewMode === 'dossier'
+                  ? 'bg-gradient-to-r from-marigold to-neonRose text-black font-bold shadow-md shadow-marigold/20'
+                  : 'text-iceSilver-dark hover:text-white'
+              }`}
+            >
+              <ListFilter className="w-3.5 h-3.5" />
+              <span>FULL DOSSIER</span>
+            </button>
+          </div>
+        </div>
       </RevealOnScroll>
-      
-      <div className="space-y-32">
+
+      {/* ─── LIVE CAROUSEL SHOWCASE (SAME AS HOME PAGE) ─── */}
+      {viewMode === 'carousel' ? (
+        <RevealOnScroll delay={50} className="mb-20">
+          <ProjectsConvoy projects={projects} />
+        </RevealOnScroll>
+      ) : (
+        <div className="space-y-32">
         {projects.map((project, index) => (
           <RevealOnScroll key={project._id || index} delay={100}>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -82,7 +127,8 @@ const ProjectsPage = () => {
             </div>
           </RevealOnScroll>
         ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

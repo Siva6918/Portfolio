@@ -7,18 +7,19 @@ const CODE_LINES = [
   { indent: 0, tokens: [{ t: 'keyword', v: 'const' }, { t: 'fn', v: ' Developer' }, { t: 'plain', v: ' = () => {' }] },
   { indent: 1, tokens: [{ t: 'keyword', v: 'return' }, { t: 'plain', v: ' {' }] },
   { indent: 2, tokens: [{ t: 'prop', v: 'name' }, { t: 'plain', v: ': ' }, { t: 'string', v: 'localStorage.getItem("admin_name") || "Venkata Siva Reddy"' }, { t: 'plain', v: ',' }] },
-  { indent: 2, tokens: [{ t: 'prop', v: 'role' }, { t: 'plain', v: ': ' }, { t: 'string', v: '"Full Stack Developer"' }, { t: 'plain', v: ',' }] },
-  { indent: 2, tokens: [{ t: 'prop', v: 'status' }, { t: 'plain', v: ': ' }, { t: 'string', v: '"ready ✓"' }] },
+  { indent: 2, tokens: [{ t: 'prop', v: 'role' }, { t: 'plain', v: ': ' }, { t: 'string', v: '"Full Stack Developer & Free Fire Tactician"' }, { t: 'plain', v: ',' }] },
+  { indent: 2, tokens: [{ t: 'prop', v: 'rank' }, { t: 'plain', v: ': ' }, { t: 'string', v: '"Heroic // Grandmaster 👑"' }, { t: 'plain', v: ',' }] },
+  { indent: 2, tokens: [{ t: 'prop', v: 'status' }, { t: 'plain', v: ': ' }, { t: 'string', v: '"Booyah Ready ✓"' }] },
   { indent: 1, tokens: [{ t: 'plain', v: '}' }] },
   { indent: 0, tokens: [{ t: 'plain', v: '}' }] },
 ];
 
 const TOKEN_COLORS = {
-  keyword: '#c792ea',
-  fn:      '#82aaff',
-  string:  '#c3e88d',
-  prop:    '#f78c6c',
-  plain:   '#cdd3de',
+  keyword: '#f43f5e',
+  fn:      '#f59e0b',
+  string:  '#fbbf24',
+  prop:    '#fb7185',
+  plain:   '#e2e8f0',
 };
 
 const Preloader = ({ onDone }) => {
@@ -46,20 +47,26 @@ const Preloader = ({ onDone }) => {
 
   return (
     <div
-      className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#0d0d0d] transition-all duration-700 ${
+      className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#08080a] transition-all duration-700 ${
         exiting ? 'opacity-0 scale-[1.02]' : 'opacity-100 scale-100'
       }`}
       style={{ transitionTimingFunction: 'cubic-bezier(0.16,1,0.3,1)' }}
     >
       {/* Grid bg */}
       <div className="absolute inset-0 pointer-events-none" style={{
-        backgroundImage: 'linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px)',
+        backgroundImage: 'linear-gradient(rgba(226,232,240,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(226,232,240,0.03) 1px,transparent 1px)',
         backgroundSize: '48px 48px',
       }} />
 
-      {/* Top progress bar */}
+      {/* Top progress bar with Marigold to Neon Rose gradient */}
       <div className="absolute top-0 left-0 right-0 h-[2px] bg-white/5">
-        <div className="h-full bg-[#c792ea] transition-all duration-300 ease-out" style={{ width: `${progress}%` }} />
+        <div 
+          className="h-full transition-all duration-300 ease-out shadow-[0_0_10px_rgba(245,158,11,0.6)]" 
+          style={{ 
+            width: `${progress}%`,
+            background: 'linear-gradient(to right, #f59e0b, #f43f5e)'
+          }} 
+        />
       </div>
 
       <div className="relative z-10 w-full max-w-md px-6 flex flex-col gap-6">

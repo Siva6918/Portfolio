@@ -1,4 +1,13 @@
 import axios from 'axios';
+import { 
+  fallbackProfile, 
+  fallbackProjects, 
+  fallbackSkills, 
+  fallbackExperience, 
+  fallbackCertifications, 
+  fallbackAchievements, 
+  fallbackNotes 
+} from './mockData';
 
 const defaultDevUrl = 'http://localhost:5000/api';
 const defaultProdUrl = 'https://siva-space-api.onrender.com/api';
@@ -61,6 +70,16 @@ const api = axios.create({
   }
 });
 
+const FALLBACK_MAP = {
+  '/profile': fallbackProfile,
+  '/projects': fallbackProjects,
+  '/skills': fallbackSkills,
+  '/experience': fallbackExperience,
+  '/certifications': fallbackCertifications,
+  '/achievements': fallbackAchievements,
+  '/notes': fallbackNotes,
+};
+
 // Interceptor to inject Authorization header or x-admin-password header if stored
 api.interceptors.request.use((config) => {
   const token = sessionStorage.getItem('admin_token');
@@ -69,6 +88,42 @@ api.interceptors.request.use((config) => {
   }
   return config;
 }, (error) => Promise.reject(error));
+
+// Response interceptor: Cache successful GET requests and resolve cached/fallback data on network timeout
+api.interceptors.response.use(
+  (response) => {
+    if (response.config.method === 'get' && response.data) {
+      try {
+        const cacheKey = `siva_cache_${response.config.url}`;
+        localStorage.setItem(cacheKey, JSON.stringify(response.data));
+      } catch (e) {
+        // LocalStorage quota or disabled
+      }
+    }
+    return response;
+  },
+  (error) => {
+    const url = error.config?.url;
+    if (error.config?.method === 'get' && url) {
+      try {
+        const cached = localStorage.getItem(`siva_cache_${url}`);
+        if (cached) {
+          return Promise.resolve({ data: JSON.parse(cached), status: 200, statusText: 'OK (Cached)' });
+        }
+      } catch (e) {}
+
+      const matchedKey = Object.keys(FALLBACK_MAP).find(k => url.includes(k));
+      if (matchedKey) {
+        return Promise.resolve({
+          data: { success: true, data: FALLBACK_MAP[matchedKey] },
+          status: 200,
+          statusText: 'OK (Instant Fallback)'
+        });
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 const authHeader = (pwd) => (pwd ? { headers: { 'x-admin-password': pwd } } : {});
 

@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Sparkles, Terminal } from 'lucide-react';
 
 const ROLES = [
-  { text: 'Software Engineer', color: '#38bdf8', tag: 'CORE' },        // Electric Sky Blue
-  { text: 'Software Developer', color: '#a78bfa', tag: 'DEV' },        // Vibrant Violet
-  { text: 'Full Stack Developer', color: '#4ade80', tag: 'FULLSTACK' }, // Emerald Green
-  { text: 'MERN Developer', color: '#facc15', tag: 'MERN' },           // Vibrant Amber
-  { text: 'AI Developer', color: '#f43f5e', tag: 'AI / ML' },          // Vibrant Rose
+  { text: 'Full Stack Engineer', color: '#f59e0b', tag: 'MERN' },
+  { text: 'Free Fire Clutch Tactician', color: '#f43f5e', tag: 'SURVIVOR' },
+  { text: 'Software Developer', color: '#e2e8f0', tag: 'CORE' },
+  { text: 'AI & Systems Architect', color: '#fbbf24', tag: 'AI/ML' },
+  { text: 'Competitive Problem Solver', color: '#fb7185', tag: '300+ DSA' },
 ];
 
 // Typing speeds (ms)

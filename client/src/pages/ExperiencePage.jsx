@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getExperience, resolveMediaUrl } from '../services/api';
 import SkeletonLoader from '../components/common/SkeletonLoader';
 import RevealOnScroll from '../components/common/RevealOnScroll';
-import { ExternalLink, Award } from 'lucide-react';
+import { ExternalLink, Award, Flame } from 'lucide-react';
 
 const ExperiencePage = () => {
   const [experience, setExperience] = useState([]);
@@ -34,24 +34,30 @@ const ExperiencePage = () => {
   return (
     <div className="section-container pt-32">
       <RevealOnScroll className="animate-fade-up">
-        <h1 className="text-4xl sm:text-5xl font-bold mb-16 font-grotesk text-white">Experience</h1>
+        <div className="flex items-center gap-2 text-xs font-mono text-marigold uppercase tracking-widest mb-2 font-bold">
+          <Flame className="w-4 h-4 text-neonRose fill-neonRose" />
+          <span>MISSION HISTORY // PROFESSIONAL TRACK</span>
+        </div>
+        <h1 className="text-4xl sm:text-5xl font-bold mb-16 font-grotesk text-iceSilver">
+          Experience & <span className="bg-gradient-to-r from-marigold to-neonRose bg-clip-text text-transparent">Operations</span>
+        </h1>
       </RevealOnScroll>
       
-      <div className="space-y-24 max-w-4xl border-l border-editorial-border pl-6 sm:pl-10 relative before:absolute before:inset-y-0 before:left-[-1px] before:w-[2px] before:bg-gradient-to-b before:from-editorial-accent before:to-transparent before:animate-[lineReveal_1.5s_ease-out_forwards]">
+      <div className="space-y-24 max-w-4xl border-l border-[#242834] pl-6 sm:pl-10 relative before:absolute before:inset-y-0 before:left-[-1px] before:w-[2px] before:bg-gradient-to-b before:from-marigold before:via-neonRose before:to-transparent before:animate-[lineReveal_1.5s_ease-out_forwards]">
         {experience.map((exp, index) => (
           <RevealOnScroll key={exp._id || index} delay={100} className="relative group">
-            <div className="absolute -left-[29px] sm:-left-[45px] top-1.5 w-2 h-2 rounded-full bg-editorial-accent group-hover:scale-150 transition-transform duration-300 shadow-[0_0_10px_rgba(217,78,52,0.5)]"></div>
+            <div className="absolute -left-[29px] sm:-left-[45px] top-1.5 w-2.5 h-2.5 rounded-full bg-marigold group-hover:scale-150 transition-transform duration-300 shadow-[0_0_12px_#f59e0b]"></div>
             
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
-              <div className="font-mono text-xs text-editorial-textMuted uppercase tracking-widest">
+              <div className="font-mono text-xs text-iceSilver-dark uppercase tracking-widest">
                 {exp.startDate} — {exp.endDate || 'Present'}
               </div>
-              <div className="font-mono text-[10px] text-editorial-accent uppercase border border-editorial-accent/20 bg-editorial-accent/5 px-2 py-0.5 rounded-sm self-start sm:self-auto">
+              <div className="font-mono text-[10px] text-marigold uppercase border border-marigold/30 bg-marigold/10 px-2.5 py-0.5 rounded-sm self-start sm:self-auto font-bold">
                 {exp.mode} {exp.location ? `• ${exp.location}` : ''}
               </div>
             </div>
             
-            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-1 font-grotesk">{exp.role}</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-iceSilver mb-1 font-grotesk">{exp.role}</h2>
             
             <div className="flex items-center gap-3 mb-6">
               {exp.companyLogo && (

@@ -75,7 +75,7 @@ function AppInner() {
   }, [location.pathname]);
 
   return (
-    <div className="relative min-h-screen flex flex-col bg-[#f8fafc] text-slate-900 dark:bg-[#09090c] dark:text-zinc-100 font-sans transition-colors duration-300">
+    <div className="relative min-h-screen flex flex-col bg-[#08080a] text-iceSilver font-sans transition-colors duration-300">
       
       {/* Scroll progress bar */}
       <ScrollProgressBar />

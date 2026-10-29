@@ -8,16 +8,16 @@ import { useAnalytics } from "../../context/AnalyticsContext";
 const easeCurve = [0.16, 1, 0.3, 1];
 
 const expPalette = [
-  { hex:"#f472b6", glow:"rgba(244,114,182,0.4)", shadow:"rgba(244,114,182,0.18)" },
-  { hex:"#c084fc", glow:"rgba(192,132,252,0.4)", shadow:"rgba(192,132,252,0.18)" },
-  { hex:"#38bdf8", glow:"rgba(56,189,248,0.4)",  shadow:"rgba(56,189,248,0.18)"  },
-  { hex:"#fb923c", glow:"rgba(251,146,60,0.4)",  shadow:"rgba(251,146,60,0.18)"  },
+  { hex:"#f59e0b", glow:"rgba(245,158,11,0.4)", shadow:"rgba(245,158,11,0.18)" },
+  { hex:"#f43f5e", glow:"rgba(244,63,94,0.4)", shadow:"rgba(244,63,94,0.18)" },
+  { hex:"#e2e8f0", glow:"rgba(226,232,240,0.4)", shadow:"rgba(226,232,240,0.18)" },
+  { hex:"#fbbf24", glow:"rgba(251,191,36,0.4)", shadow:"rgba(251,191,36,0.18)" },
 ];
 
 const codePalette = [
-  { hex:"#4ade80", glow:"rgba(74,222,128,0.4)",  shadow:"rgba(74,222,128,0.18)"  },
-  { hex:"#facc15", glow:"rgba(250,204,21,0.4)",  shadow:"rgba(250,204,21,0.18)"  },
-  { hex:"#38bdf8", glow:"rgba(56,189,248,0.4)",  shadow:"rgba(56,189,248,0.18)"  },
+  { hex:"#f59e0b", glow:"rgba(245,158,11,0.4)", shadow:"rgba(245,158,11,0.18)" },
+  { hex:"#f43f5e", glow:"rgba(244,63,94,0.4)", shadow:"rgba(244,63,94,0.18)" },
+  { hex:"#e2e8f0", glow:"rgba(226,232,240,0.4)", shadow:"rgba(226,232,240,0.18)" },
 ];
 
 const defaultExp = [
@@ -47,15 +47,15 @@ const ExperienceSection = ({ experience=[], codingProfiles=[] }) => {
 
   return (
     <section id="experience" className="py-24 relative w-full border-t border-slate-200 dark:border-zinc-800/60 overflow-hidden">
-      <div className="absolute top-1/4 left-8 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{background:"rgba(244,114,182,0.06)"}} />
-      <div className="absolute bottom-1/4 right-8 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{background:"rgba(192,132,252,0.06)"}} />
+      <div className="absolute top-1/4 left-8 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{background:"rgba(245,158,11,0.06)"}} />
+      <div className="absolute bottom-1/4 right-8 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{background:"rgba(244,63,94,0.06)"}} />
 
       <div className="section-container relative z-10">
         {/* Header with Color-Sparked Card Pill & Space Grotesk */}
         <SectionHeader
           badgeText="05 // EXPERIENCE & PROFILES"
           icon={Briefcase}
-          color="#f472b6"
+          color="#f43f5e"
           title="Internships & "
           gradientTitle="Problem Solving"
           description="Practical engineering experience and competitive coding achievements."

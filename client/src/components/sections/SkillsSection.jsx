@@ -7,12 +7,12 @@ import { resolveMediaUrl } from "../../services/api";
 const easeCurve = [0.16, 1, 0.3, 1];
 
 const catPalette = {
-  "Programming Languages": { hex:"#fb923c", glow:"rgba(251,146,60,0.4)"  },
-  "Frontend":               { hex:"#38bdf8", glow:"rgba(56,189,248,0.4)"  },
-  "Backend":                { hex:"#4ade80", glow:"rgba(74,222,128,0.4)"  },
-  "Databases":              { hex:"#facc15", glow:"rgba(250,204,21,0.4)"  },
-  "Cloud & DevOps":         { hex:"#c084fc", glow:"rgba(192,132,252,0.4)" },
-  "Core CS":                { hex:"#f472b6", glow:"rgba(244,114,182,0.4)" },
+  "Programming Languages": { hex:"#f59e0b", glow:"rgba(245,158,11,0.4)" },
+  "Frontend":               { hex:"#f43f5e", glow:"rgba(244,63,94,0.4)" },
+  "Backend":                { hex:"#e2e8f0", glow:"rgba(226,232,240,0.4)" },
+  "Databases":              { hex:"#fbbf24", glow:"rgba(251,191,36,0.4)" },
+  "Cloud & DevOps":         { hex:"#fb7185", glow:"rgba(251,113,133,0.4)" },
+  "Core CS":                { hex:"#cbd5e1", glow:"rgba(203,213,225,0.4)" },
 };
 
 const defaultSkills = [
@@ -57,15 +57,15 @@ const SkillsSection = ({ skills=[] }) => {
 
   return (
     <section id="skills" className="py-24 relative w-full border-t border-slate-200 dark:border-zinc-800/60 overflow-hidden">
-      <div className="absolute top-1/3 left-8 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{background:"rgba(251,146,60,0.05)"}} />
-      <div className="absolute bottom-1/3 right-8 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{background:"rgba(56,189,248,0.05)"}} />
+      <div className="absolute top-1/3 left-8 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{background:"rgba(245,158,11,0.06)"}} />
+      <div className="absolute bottom-1/3 right-8 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{background:"rgba(244,63,94,0.06)"}} />
 
       <div className="section-container relative z-10">
         {/* Header with Color-Sparked Card Pill & Space Grotesk */}
         <SectionHeader
           badgeText="04 // STACK & COMPETENCIES"
           icon={Sparkles}
-          color="#fb923c"
+          color="#f59e0b"
           title="Skills & "
           gradientTitle="Tech Stack"
           className="mb-10"
@@ -76,7 +76,7 @@ const SkillsSection = ({ skills=[] }) => {
               {[["compact","Sleek",ListFilter],["grid","Cards",LayoutGrid]].map(([mode,label,Icon])=>(
                 <button key={mode} onClick={()=>setViewMode(mode)}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all"
-                  style={viewMode===mode?{background:"linear-gradient(135deg,#fb923c,#facc15)",color:"#000",fontWeight:"bold"}:{color:"rgba(161,161,170,0.7)"}}>
+                  style={viewMode===mode?{background:"linear-gradient(135deg,#f59e0b,#f43f5e)",color:"#000",fontWeight:"bold"}:{color:"rgba(161,161,170,0.7)"}}>
                   <Icon className="w-3.5 h-3.5" />{label}
                 </button>
               ))}

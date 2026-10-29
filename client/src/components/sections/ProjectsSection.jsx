@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, Github, ExternalLink, ChevronDown, ChevronUp, Code2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ImageWithFallback from '../common/ImageWithFallback';
 import SwipeableCarousel from '../common/SwipeableCarousel';
 import SectionHeader from '../common/SectionHeader';
+import ProjectsConvoy from '../common/ProjectsConvoy';
+import { ArrowUpRight, Github, ExternalLink, ChevronDown, ChevronUp, Code2, Zap, LayoutGrid } from 'lucide-react';
 import { useAnalytics } from '../../context/AnalyticsContext';
 
 const easeCurve = [0.16, 1, 0.3, 1];
@@ -55,16 +56,16 @@ const defaultProjectsFallback = [
 ];
 
 const projectPalette = [
-  { hex: "#38bdf8", glow: "rgba(56,189,248,0.4)", shadow: "rgba(56,189,248,0.2)" },
-  { hex: "#4ade80", glow: "rgba(74,222,128,0.4)", shadow: "rgba(74,222,128,0.2)" },
-  { hex: "#fb923c", glow: "rgba(251,146,60,0.4)", shadow: "rgba(251,146,60,0.2)" },
-  { hex: "#c084fc", glow: "rgba(192,132,252,0.4)", shadow: "rgba(192,132,252,0.2)" },
-  { hex: "#f472b6", glow: "rgba(244,114,182,0.4)", shadow: "rgba(244,114,182,0.2)" },
-  { hex: "#facc15", glow: "rgba(250,204,21,0.4)", shadow: "rgba(250,204,21,0.2)" },
+  { hex: "#f59e0b", glow: "rgba(245,158,11,0.4)", shadow: "rgba(245,158,11,0.2)" },
+  { hex: "#f43f5e", glow: "rgba(244,63,94,0.4)", shadow: "rgba(244,63,94,0.2)" },
+  { hex: "#e2e8f0", glow: "rgba(226,232,240,0.4)", shadow: "rgba(226,232,240,0.2)" },
+  { hex: "#fbbf24", glow: "rgba(251,191,36,0.4)", shadow: "rgba(251,191,36,0.2)" },
+  { hex: "#fb7185", glow: "rgba(251,113,133,0.4)", shadow: "rgba(251,113,133,0.2)" },
 ];
 
 const ProjectsSection = ({ projects = [] }) => {
   const [showAll, setShowAll] = useState(false);
+  const [viewMode, setViewMode] = useState('convoy');
   const { trackInteraction } = useAnalytics();
 
   const activeProjects = projects.length > 0 ? projects : defaultProjectsFallback;
@@ -76,16 +77,52 @@ const ProjectsSection = ({ projects = [] }) => {
         
         {/* Section Header with Color-Sparked Card Pill & Space Grotesk */}
         <SectionHeader
-          badgeText="02 // FEATURED CASE STUDIES"
+          badgeText="02 // FEATURED OPERATIONS & LOADOUT"
           icon={Code2}
-          color="#38bdf8"
+          color="#f59e0b"
           title="Featured Software "
           gradientTitle="Engineering Work"
-          description="Each project is built to solve a concrete problem, featuring scalable backend architecture and clean UI."
+          description="Each project is built to solve a concrete problem, displayed as a live scrolling convoy or detailed dossier."
         />
 
-        {/* Mobile View Swipe Carousel (sm:hidden) */}
-        <div className="block sm:hidden mb-8">
+        {/* View Mode Switcher */}
+        <div className="flex items-center justify-end mb-8">
+          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#101016] border border-[#242834] shrink-0">
+            <button
+              onClick={() => setViewMode('convoy')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono transition-all ${
+                viewMode === 'convoy'
+                  ? 'bg-gradient-to-r from-marigold to-neonRose text-black font-bold shadow-md shadow-marigold/20'
+                  : 'text-iceSilver-dark hover:text-white'
+              }`}
+            >
+              <Zap className="w-3.5 h-3.5" />
+              <span>LIVE CONVOY</span>
+            </button>
+
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono transition-all ${
+                viewMode === 'grid'
+                  ? 'bg-gradient-to-r from-marigold to-neonRose text-black font-bold shadow-md shadow-marigold/20'
+                  : 'text-iceSilver-dark hover:text-white'
+              }`}
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span>GRID VIEW</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Live Convoy Mode */}
+        {viewMode === 'convoy' ? (
+          <div className="mb-12">
+            <ProjectsConvoy projects={activeProjects} />
+          </div>
+        ) : (
+          <>
+            {/* Mobile View Swipe Carousel (sm:hidden) */}
+            <div className="block sm:hidden mb-8">
           <SwipeableCarousel showDots={true} showArrows={true}>
             {displayedProjects.map((project, idx) => {
               const c = projectPalette[idx % projectPalette.length];
@@ -353,6 +390,8 @@ const ProjectsSection = ({ projects = [] }) => {
               {showAll ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
           </div>
+        )}
+          </>
         )}
 
       </div>

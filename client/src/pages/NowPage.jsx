@@ -39,43 +39,67 @@ const NowPage = () => {
   return (
     <div className="section-container pt-32">
       <RevealOnScroll className="animate-fade-up">
-        <h1 className="text-4xl sm:text-5xl font-bold mb-16 font-grotesk text-white flex items-center gap-4">
-          <Terminal className="w-8 h-8 text-editorial-accent" /> What I'm doing /now
+        {/* Tactical Badge */}
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-marigold/10 border border-marigold/30 text-marigold text-xs font-mono mb-4">
+          <Terminal className="w-3.5 h-3.5 text-marigold" />
+          <span className="tracking-widest uppercase font-bold">LIVE TELEMETRY // CURRENT FOCUS</span>
+        </div>
+
+        <h1 className="text-4xl sm:text-5xl font-bold mb-4 font-grotesk text-white">
+          Active Focus &{' '}
+          <span className="bg-gradient-to-r from-marigold via-neonRose to-iceSilver bg-clip-text text-transparent">
+            Telemetry /now
+          </span>
         </h1>
+        <p className="text-iceSilver-dark text-base sm:text-lg mb-16 font-mono leading-relaxed max-w-2xl">
+          Real-time snapshot of current engineering projects, technological explorations, and competitive battle royale rankings.
+        </p>
       </RevealOnScroll>
       
-      <div className="space-y-16 max-w-2xl text-editorial-textMain text-lg leading-relaxed">
+      <div className="space-y-8 max-w-2xl text-iceSilver text-lg leading-relaxed">
         <RevealOnScroll delay={100}>
-          <section className="bg-[#121212] p-8 rounded-xl border border-editorial-border hover:border-editorial-textMuted transition-colors interactive-lift">
-            <h2 className="text-sm font-mono text-editorial-accent tracking-widest uppercase mb-4 border-b border-editorial-border pb-2">Currently Building</h2>
-            <p className="font-grotesk text-xl text-white">{profile?.nowCurrentlyBuilding || 'A personal web application redesign'}</p>
+          <section className="bg-[#101016] p-8 rounded-2xl border border-marigold/30 hover:border-marigold transition-all interactive-lift">
+            <h2 className="text-xs font-mono text-marigold tracking-widest uppercase mb-3 border-b border-[#242834] pb-2 font-bold flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-marigold animate-ping" />
+              01 // CURRENTLY BUILDING
+            </h2>
+            <p className="font-grotesk text-xl text-white">{profile?.nowCurrentlyBuilding || 'High-performance interactive developer portfolio & esports telemetry suite'}</p>
           </section>
         </RevealOnScroll>
 
         <RevealOnScroll delay={200}>
-          <section className="bg-[#121212] p-8 rounded-xl border border-editorial-border hover:border-editorial-textMuted transition-colors interactive-lift">
-            <h2 className="text-sm font-mono text-editorial-accent tracking-widest uppercase mb-4 border-b border-editorial-border pb-2">Learning</h2>
-            <p className="font-grotesk text-xl text-white">{profile?.nowLearning || 'Go, microservices architecture, and cloud deployment'}</p>
+          <section className="bg-[#101016] p-8 rounded-2xl border border-neonRose/30 hover:border-neonRose transition-all interactive-lift">
+            <h2 className="text-xs font-mono text-neonRose tracking-widest uppercase mb-3 border-b border-[#242834] pb-2 font-bold flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-neonRose animate-pulse" />
+              02 // LEARNING & OPTIMIZING
+            </h2>
+            <p className="font-grotesk text-xl text-white">{profile?.nowLearning || 'Go microservices, real-time WebSockets, and low-latency cloud deployments'}</p>
           </section>
         </RevealOnScroll>
 
         <RevealOnScroll delay={300}>
-          <section className="bg-[#121212] p-8 rounded-xl border border-editorial-border hover:border-editorial-textMuted transition-colors interactive-lift">
-            <h2 className="text-sm font-mono text-editorial-accent tracking-widest uppercase mb-4 border-b border-editorial-border pb-2">Exploring</h2>
-            <p className="font-grotesk text-xl text-white">{profile?.nowExploring || 'Building autonomous AI agents'}</p>
+          <section className="bg-[#101016] p-8 rounded-2xl border border-iceSilver/30 hover:border-iceSilver transition-all interactive-lift">
+            <h2 className="text-xs font-mono text-iceSilver tracking-widest uppercase mb-3 border-b border-[#242834] pb-2 font-bold flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-iceSilver" />
+              03 // EXPLORING & EXPERIMENTING
+            </h2>
+            <p className="font-grotesk text-xl text-white">{profile?.nowExploring || 'Autonomous multi-agent architectures, LLM orchestration, and high-APM gaming telemetry'}</p>
           </section>
         </RevealOnScroll>
 
         <RevealOnScroll delay={400}>
-          <section className="bg-[#121212] p-8 rounded-xl border border-editorial-border hover:border-editorial-textMuted transition-colors interactive-lift">
-            <h2 className="text-sm font-mono text-editorial-accent tracking-widest uppercase mb-4 border-b border-editorial-border pb-2">Up Next</h2>
-            <p className="font-grotesk text-xl text-white">{profile?.nowNext || 'Landing a high-impact internship'}</p>
+          <section className="bg-[#101016] p-8 rounded-2xl border border-solarAmber/30 hover:border-solarAmber transition-all interactive-lift">
+            <h2 className="text-xs font-mono text-solarAmber tracking-widest uppercase mb-3 border-b border-[#242834] pb-2 font-bold flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-solarAmber" />
+              04 // UP NEXT ON RADAR
+            </h2>
+            <p className="font-grotesk text-xl text-white">{profile?.nowNext || 'Full-time software engineering roles, hackathon championships, and Grandmaster Free Fire rank'}</p>
           </section>
         </RevealOnScroll>
       </div>
 
-      <RevealOnScroll delay={500} className="mt-20 pt-8 border-t border-editorial-border">
-        <p className="text-sm text-editorial-textMuted font-mono">Inspired by Derek Sivers' <a href="https://nownownow.com/about" target="_blank" rel="noreferrer" className="text-editorial-accent hover:underline">/now page movement</a>.</p>
+      <RevealOnScroll delay={500} className="mt-16 pt-8 border-t border-[#242834]">
+        <p className="text-xs text-zinc-500 font-mono">Inspired by Derek Sivers' <a href="https://nownownow.com/about" target="_blank" rel="noreferrer" className="text-marigold hover:underline">/now page movement</a>.</p>
       </RevealOnScroll>
     </div>
   );

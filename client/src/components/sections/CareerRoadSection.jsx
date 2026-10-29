@@ -13,14 +13,12 @@ const iconMap = {
 };
 
 export const stepColorPalette = [
-  { name: "Light Green", hex: "#4ade80", glow: "rgba(74,222,128,0.4)",  shadow: "rgba(74,222,128,0.18)"  },
-  { name: "Yellow",      hex: "#facc15", glow: "rgba(250,204,21,0.4)",  shadow: "rgba(250,204,21,0.18)"  },
-  { name: "Orange",      hex: "#fb923c", glow: "rgba(251,146,60,0.4)",  shadow: "rgba(251,146,60,0.18)"  },
-  { name: "Blue",        hex: "#38bdf8", glow: "rgba(56,189,248,0.4)",  shadow: "rgba(56,189,248,0.18)"  },
-  { name: "Pink",        hex: "#f472b6", glow: "rgba(244,114,182,0.4)", shadow: "rgba(244,114,182,0.18)" },
-  { name: "Purple",      hex: "#c084fc", glow: "rgba(192,132,252,0.4)", shadow: "rgba(192,132,252,0.18)" },
-  { name: "Teal",        hex: "#2dd4bf", glow: "rgba(45,212,191,0.4)",  shadow: "rgba(45,212,191,0.18)"  },
-  { name: "Rose",        hex: "#fb7185", glow: "rgba(251,113,133,0.4)", shadow: "rgba(251,113,133,0.18)" },
+  { name: "Marigold Flame", hex: "#f59e0b", glow: "rgba(245,158,11,0.4)",  shadow: "rgba(245,158,11,0.18)"  },
+  { name: "Neon Rose",      hex: "#f43f5e", glow: "rgba(244,63,94,0.4)",   shadow: "rgba(244,63,94,0.18)"   },
+  { name: "Ice Silver",     hex: "#e2e8f0", glow: "rgba(226,232,240,0.4)", shadow: "rgba(226,232,240,0.18)" },
+  { name: "Solar Amber",    hex: "#fbbf24", glow: "rgba(251,191,36,0.4)",  shadow: "rgba(251,191,36,0.18)"  },
+  { name: "Cyber Rose",     hex: "#fb7185", glow: "rgba(251,113,133,0.4)", shadow: "rgba(251,113,133,0.18)" },
+  { name: "Titanium Slate", hex: "#cbd5e1", glow: "rgba(203,213,225,0.4)", shadow: "rgba(203,213,225,0.18)" },
 ];
 
 const defaultNodes = [
@@ -35,9 +33,9 @@ const defaultNodes = [
 ];
 
 const getStatusMeta = (status) => {
-  if (status === "completed") return { label: "Completed", color: "#4ade80", Icon: CheckCircle2, pulse: false };
-  if (status === "active")    return { label: "Active",    color: "#facc15", Icon: Flame,        pulse: true  };
-  return                             { label: "Upcoming",  color: "#c084fc", Icon: Sparkles,     pulse: false };
+  if (status === "completed") return { label: "Completed", color: "#f59e0b", Icon: CheckCircle2, pulse: false };
+  if (status === "active")    return { label: "Active",    color: "#f43f5e", Icon: Flame,        pulse: true  };
+  return                             { label: "Upcoming",  color: "#e2e8f0", Icon: Sparkles,     pulse: false };
 };
 
 const STEP_INDENT = 48;

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Terminal, Laptop, BookOpen, Cpu, Sparkles, ExternalLink, Code2, User } from 'lucide-react';
+import { Terminal, Laptop, BookOpen, Cpu, Sparkles, ExternalLink, Code2, User, Flame } from 'lucide-react';
 import { useMode } from '../../context/ModeContext';
 import { useAnalytics } from '../../context/AnalyticsContext';
 import { useProfileModal } from '../../context/ProfileModalContext';
@@ -16,8 +16,8 @@ const HeroWorkspace = ({ profile }) => {
       id: 'laptop',
       title: 'Full Stack Engineering',
       icon: Laptop,
-      hex: '#38bdf8',
-      glow: 'rgba(56,189,248,0.3)',
+      hex: '#f59e0b',
+      glow: 'rgba(245,158,11,0.35)',
       tag: 'PROJECTS',
       summary: 'MERN stack applications with clean architecture and real-time features.',
       details: 'Built NutriCloud Monitor, DocSpot, Candidate Rank System, and Weather apps with Node.js, React, and MongoDB.',
@@ -28,8 +28,8 @@ const HeroWorkspace = ({ profile }) => {
       id: 'terminal',
       title: 'Developer Terminal & Stack',
       icon: Terminal,
-      hex: '#4ade80',
-      glow: 'rgba(74,222,128,0.3)',
+      hex: '#e2e8f0',
+      glow: 'rgba(226,232,240,0.35)',
       tag: 'GITHUB & TECH',
       summary: 'Java, JavaScript, Python, C++, React, Node.js, Express, MongoDB, Docker.',
       details: 'Active LeetCode solver (300+ problems), HackerRank 5-Star in Problem Solving.',
@@ -37,28 +37,28 @@ const HeroWorkspace = ({ profile }) => {
       actionUrl: profile?.github || 'https://github.com/vasanreddy'
     },
     {
-      id: 'notebook',
-      title: 'Learning Notebook',
-      icon: BookOpen,
-      hex: '#facc15',
-      glow: 'rgba(250,204,21,0.3)',
-      tag: '2026 FOCUS',
-      summary: 'Data Structures & Algorithms, System Design, Cloud Architecture & RAG Pipelines.',
-      details: 'Focusing on production performance, scalable API structures, and optimal algorithmic complexity.',
-      actionText: 'View Skills →',
-      actionTarget: '#skills'
+      id: 'gaming',
+      title: 'Free Fire Tactical APM',
+      icon: Flame,
+      hex: '#f43f5e',
+      glow: 'rgba(244,63,94,0.35)',
+      tag: 'CLUTCH GAMER',
+      summary: 'High APM, split-second combat reflexes, and clutch team shot-calling.',
+      details: 'Heroic/Grandmaster rank survivor. Channeling lightning-fast reflexes into low-latency backend systems and agile engineering.',
+      actionText: 'Try Arcade Playground →',
+      actionTarget: '#playground'
     },
     {
       id: 'ai-card',
       title: 'AI & ML Integrations',
       icon: Cpu,
-      hex: '#c084fc',
-      glow: 'rgba(192,132,252,0.3)',
-      tag: 'EXPERIMENTS',
+      hex: '#fbbf24',
+      glow: 'rgba(251,191,36,0.35)',
+      tag: 'AI ARSENAL',
       summary: 'FastAPI, spaCy NLP, RAG Pipelines, and anomaly scoring algorithms.',
       details: 'Built automated candidate rank parsing via spaCy NLP and real-time security threat scoring.',
       actionText: 'Try Interactive Lab →',
-      actionTarget: '#experiments'
+      actionTarget: '#playground'
     }
   ];
 

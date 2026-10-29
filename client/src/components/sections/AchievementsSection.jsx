@@ -7,18 +7,18 @@ import { resolveMediaUrl } from "../../services/api";
 const easeCurve = [0.16, 1, 0.3, 1];
 
 const palette = [
-  { hex: "#facc15", glow: "rgba(250,204,21,0.4)",  shadow: "rgba(250,204,21,0.18)"  },
-  { hex: "#fb923c", glow: "rgba(251,146,60,0.4)",  shadow: "rgba(251,146,60,0.18)"  },
-  { hex: "#4ade80", glow: "rgba(74,222,128,0.4)",  shadow: "rgba(74,222,128,0.18)"  },
-  { hex: "#f472b6", glow: "rgba(244,114,182,0.4)", shadow: "rgba(244,114,182,0.18)" },
-  { hex: "#38bdf8", glow: "rgba(56,189,248,0.4)",  shadow: "rgba(56,189,248,0.18)"  },
-  { hex: "#c084fc", glow: "rgba(192,132,252,0.4)", shadow: "rgba(192,132,252,0.18)" },
+  { hex: "#f59e0b", glow: "rgba(245,158,11,0.4)", shadow: "rgba(245,158,11,0.18)" },
+  { hex: "#f43f5e", glow: "rgba(244,63,94,0.4)", shadow: "rgba(244,63,94,0.18)" },
+  { hex: "#e2e8f0", glow: "rgba(226,232,240,0.4)", shadow: "rgba(226,232,240,0.18)" },
+  { hex: "#fbbf24", glow: "rgba(251,191,36,0.4)", shadow: "rgba(251,191,36,0.18)" },
+  { hex: "#fb7185", glow: "rgba(251,113,133,0.4)", shadow: "rgba(251,113,133,0.18)" },
 ];
 
 const defaultAchievements = [
   { _id:"1", title:"1st Rank — College Kaggle Competition",       rank:"1st Rank", event:"Annual Kaggle Data Science & ML Hackathon",        organization:"RGMCET", year:"2026", description:"Secured top place by engineering high-accuracy predictive models." },
   { _id:"2", title:"2nd Rank — College Web Development Event",    rank:"2nd Rank", event:"WebTech Hackathon & UI Engineering Challenge",      organization:"RGMCET", year:"2025", description:"Built an interactive high-performance web platform under strict time constraints." },
   { _id:"3", title:"2nd Rank — College Coding Contest",           rank:"2nd Rank", event:"Algorithmic Coding & Problem Solving Contest",      organization:"RGMCET", year:"2024", description:"Solved complex DS & Algo challenges within competitive speed benchmarks." },
+  { _id:"4", title:"Heroic Tier — Free Fire Battle Royale",       rank:"Heroic",   event:"Competitive Ranked Squad Operations",               organization:"Garena Free Fire", year:"2025", description:"High-APM clutch player and squad shot-caller with fast combat decision making." },
 ];
 
 const wrap = (i, n) => ((i % n) + n) % n;
@@ -40,18 +40,18 @@ const AchievementsSection = ({ achievements = [] }) => {
 
   return (
     <section id="achievements" className="py-24 relative w-full border-t border-slate-200 dark:border-zinc-800/60 overflow-hidden">
-      <div className="absolute top-1/4 left-8 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{ background:"rgba(250,204,21,0.06)" }} />
-      <div className="absolute bottom-1/4 right-8 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{ background:"rgba(251,146,60,0.06)" }} />
+      <div className="absolute top-1/4 left-8 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{ background:"rgba(245,158,11,0.06)" }} />
+      <div className="absolute bottom-1/4 right-8 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{ background:"rgba(244,63,94,0.06)" }} />
 
       <div className="section-container relative z-10">
         {/* Header with Color-Sparked Card Pill & Space Grotesk */}
         <SectionHeader
           badgeText="07 // RECOGNITION & HONORS"
           icon={Trophy}
-          color="#facc15"
+          color="#f59e0b"
           title="Achievements & "
           gradientTitle="Competition Ranks"
-          description="Hackathons, algorithmic contests, and data science competitions."
+          description="Hackathons, algorithmic contests, data science, and high-intensity gaming clutch achievements."
         />
 
         {/* Desktop grid */}
